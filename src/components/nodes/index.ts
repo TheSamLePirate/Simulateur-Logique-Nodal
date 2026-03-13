@@ -6,6 +6,7 @@ import { SRAM8Node } from "./SRAM8Node";
 import { Bus8Node } from "./Bus8Node";
 import { InputNumberNode } from "./InputNumberNode";
 import { OutputNumberNode } from "./OutputNumberNode";
+import { GroupNode } from "./GroupNode";
 
 export {
   InputNode,
@@ -16,6 +17,7 @@ export {
   Bus8Node,
   InputNumberNode,
   OutputNumberNode,
+  GroupNode,
 };
 
 export const nodeTypes = {
@@ -27,4 +29,5 @@ export const nodeTypes = {
   bus8: Bus8Node,
   inputNumber: InputNumberNode,
   outputNumber: OutputNumberNode,
+  group: GroupNode,
 };

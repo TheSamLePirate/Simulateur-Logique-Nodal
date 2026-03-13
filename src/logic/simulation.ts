@@ -1,5 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
-import type { Bit } from "../types";
+import type { Bit, GroupNodeData } from "../types";
 import { logicGates } from "./gates";
 import { add8 } from "./adder";
 
@@ -46,6 +46,12 @@ export const getInputValue = (
     if (edge.sourceHandle?.startsWith("out")) {
       const idx = parseInt(edge.sourceHandle.replace("out", ""));
       return ((sourceNode.data.value as number) || 0) & (1 << idx) ? 1 : 0;
+    }
+  }
+  if (sourceNode.type === "group") {
+    const outputs = (sourceNode.data as unknown as GroupNodeData).outputs;
+    if (edge.sourceHandle && outputs) {
+      return (outputs[edge.sourceHandle] || 0) as Bit;
     }
   }
   return 0;
@@ -164,6 +170,106 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         newNodes[index] = { ...node, data: { ...node.data, value: val } };
         changed = true;
       }
+    } else if (node.type === "group") {
+      const groupData = node.data as unknown as GroupNodeData;
+      const { circuit, inputHandles, outputHandles } = groupData;
+
+      // Step 1: Clone internal circuit nodes
+      let internalNodes: Node[] = circuit.nodes.map((n) => ({
+        ...n,
+        data: { ...n.data },
+      }));
+      const internalEdges = circuit.edges;
+
+      // Step 2: Feed external input values into internal I/O nodes
+      // Group together handles per internal node for inputNumber bit-combining
+      const inputsByNode = new Map<
+        string,
+        { handleId: string; internalHandleId: string }[]
+      >();
+      for (const ih of inputHandles) {
+        if (!inputsByNode.has(ih.internalNodeId)) {
+          inputsByNode.set(ih.internalNodeId, []);
+        }
+        inputsByNode.get(ih.internalNodeId)!.push({
+          handleId: ih.handleId,
+          internalHandleId: ih.internalHandleId,
+        });
+      }
+
+      for (const [internalNodeId, handles] of inputsByNode) {
+        const iNode = internalNodes.find((n) => n.id === internalNodeId);
+        if (!iNode) continue;
+
+        if (iNode.type === "input") {
+          // Single bit input
+          const externalValue = getVal(node.id, handles[0].handleId);
+          internalNodes = internalNodes.map((n) =>
+            n.id === internalNodeId
+              ? { ...n, data: { ...n.data, value: externalValue } }
+              : n,
+          );
+        } else if (iNode.type === "inputNumber") {
+          // Combine 8 bits into a number
+          let numVal = 0;
+          for (const h of handles) {
+            const bitIndex = parseInt(h.internalHandleId.replace("out", ""));
+            const bitVal = getVal(node.id, h.handleId);
+            if (bitVal) numVal |= 1 << bitIndex;
+          }
+          internalNodes = internalNodes.map((n) =>
+            n.id === internalNodeId
+              ? { ...n, data: { ...n.data, value: numVal } }
+              : n,
+          );
+        }
+      }
+
+      // Step 3: Multi-pass internal simulation (converge signals through gate chains)
+      const MAX_PASSES = 10;
+      for (let pass = 0; pass < MAX_PASSES; pass++) {
+        const prev = internalNodes;
+        internalNodes = simulateNodes(internalNodes, internalEdges);
+        if (internalNodes === prev) break; // No changes, converged
+      }
+
+      // Step 4: Read output values from internal output nodes
+      const newOutputs: Record<string, Bit> = {};
+      for (const oh of outputHandles) {
+        const internalNode = internalNodes.find(
+          (n) => n.id === oh.internalNodeId,
+        );
+        if (!internalNode) {
+          newOutputs[oh.handleId] = 0;
+          continue;
+        }
+
+        if (internalNode.type === "output") {
+          newOutputs[oh.handleId] = ((internalNode.data.value as number) ||
+            0) as Bit;
+        } else if (internalNode.type === "outputNumber") {
+          const val = (internalNode.data.value as number) || 0;
+          const bitIndex = parseInt(oh.internalHandleId.replace("in", ""));
+          newOutputs[oh.handleId] = (val & (1 << bitIndex) ? 1 : 0) as Bit;
+        }
+      }
+
+      // Step 5: Check if anything changed
+      const outputsChanged = Object.keys(newOutputs).some(
+        (k) => newOutputs[k] !== groupData.outputs[k],
+      );
+
+      if (outputsChanged) {
+        newNodes[index] = {
+          ...node,
+          data: {
+            ...groupData,
+            outputs: newOutputs,
+            circuit: { nodes: internalNodes, edges: internalEdges },
+          },
+        };
+        changed = true;
+      }
     }
   });
 
@@ -205,6 +311,11 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
           const idx = parseInt(edge.sourceHandle.replace("out", ""));
           const val = Number(sourceNode.data.value) || 0;
           isActive = (val & (1 << idx)) !== 0;
+        }
+      } else if (sourceNode.type === "group") {
+        const outputs = (sourceNode.data as unknown as GroupNodeData).outputs;
+        if (edge.sourceHandle && outputs) {
+          isActive = outputs[edge.sourceHandle] === 1;
         }
       }
     }
