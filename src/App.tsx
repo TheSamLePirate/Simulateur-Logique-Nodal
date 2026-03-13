@@ -20,6 +20,9 @@ import {
   Circle,
   Trash2,
   Package,
+  Clock,
+  Database,
+  Calculator,
 } from "lucide-react";
 
 import type { Bit, GroupHandle, GroupNodeData, SavedModule } from "./types";
@@ -111,6 +114,22 @@ export default function App() {
     };
     window.addEventListener("rename-module", handleRename);
     return () => window.removeEventListener("rename-module", handleRename);
+  }, [setNodes]);
+
+  // Listen for clock-frequency change events from ClockNode
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { id, frequency } = e.detail;
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === id && n.type === "clock"
+            ? { ...n, data: { ...n.data, frequency } }
+            : n,
+        ),
+      );
+    };
+    window.addEventListener("clock-frequency", handler);
+    return () => window.removeEventListener("clock-frequency", handler);
   }, [setNodes]);
 
   // --- Simulation loop (20Hz) ---
@@ -721,6 +740,49 @@ export default function App() {
           data: { label: "NUM_OUT", value: 0 },
         };
         break;
+      case "clock":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "CLK",
+            value: 0 as Bit,
+            frequency: 1,
+            tickCounter: 0,
+          },
+        };
+        break;
+      case "register8":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "REG",
+            value: 0,
+            q: Array(8).fill(0),
+            prevClk: 0 as Bit,
+          },
+        };
+        break;
+      case "alu8":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            a: 0,
+            b: 0,
+            result: 0,
+            r: Array(8).fill(0),
+            zero: 0 as Bit,
+            carry: 0 as Bit,
+            negative: 0 as Bit,
+            opName: "ADD",
+          },
+        };
+        break;
       default:
         return;
     }
@@ -885,6 +947,36 @@ export default function App() {
                   ))}
                 </div>
                 <span className="font-bold">Bus 8-bit</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CPU building blocks */}
+          <div>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+              Composants CPU
+            </h3>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => addNode("clock")}
+                className="bg-slate-800 hover:bg-slate-700 border border-green-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+              >
+                <Clock size={18} className="text-green-400" />
+                <span className="font-bold">Horloge</span>
+              </button>
+              <button
+                onClick={() => addNode("register8")}
+                className="bg-slate-800 hover:bg-slate-700 border border-cyan-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+              >
+                <Database size={18} className="text-cyan-400" />
+                <span className="font-bold">Registre 8-bit</span>
+              </button>
+              <button
+                onClick={() => addNode("alu8")}
+                className="bg-slate-800 hover:bg-slate-700 border border-orange-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+              >
+                <Calculator size={18} className="text-orange-400" />
+                <span className="font-bold">ALU 8-bit</span>
               </button>
             </div>
           </div>

@@ -54,6 +54,26 @@ export const getInputValue = (
       return (outputs[edge.sourceHandle] || 0) as Bit;
     }
   }
+  if (sourceNode.type === "clock") {
+    return (sourceNode.data.value as Bit) || 0;
+  }
+  if (sourceNode.type === "register8") {
+    if (edge.sourceHandle?.startsWith("q")) {
+      const idx = parseInt(edge.sourceHandle.replace("q", ""));
+      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
+    }
+  }
+  if (sourceNode.type === "alu8") {
+    if (edge.sourceHandle?.startsWith("r")) {
+      const idx = parseInt(edge.sourceHandle.replace("r", ""));
+      return ((sourceNode.data.r as Bit[])?.[idx] || 0) as Bit;
+    }
+    if (edge.sourceHandle === "zero") return (sourceNode.data.zero as Bit) || 0;
+    if (edge.sourceHandle === "carry")
+      return (sourceNode.data.carry as Bit) || 0;
+    if (edge.sourceHandle === "neg")
+      return (sourceNode.data.negative as Bit) || 0;
+  }
   return 0;
 };
 
@@ -270,6 +290,153 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         };
         changed = true;
       }
+    } else if (node.type === "clock") {
+      const freq = (node.data.frequency as number) || 1;
+      const threshold = Math.max(1, Math.round(20 / (2 * freq)));
+      let counter = ((node.data.tickCounter as number) || 0) + 1;
+      let value = (node.data.value as Bit) || 0;
+
+      if (counter >= threshold) {
+        value = value ? 0 : 1;
+        counter = 0;
+      }
+
+      if (counter !== node.data.tickCounter || value !== node.data.value) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, value, tickCounter: counter },
+        };
+        changed = true;
+      }
+    } else if (node.type === "register8") {
+      const clk = getVal(node.id, "clk");
+      const prevClk = (node.data.prevClk as Bit) || 0;
+      const rst = getVal(node.id, "rst");
+      const load = getVal(node.id, "load");
+      let value = (node.data.value as number) || 0;
+
+      // Rising edge detection
+      if (prevClk === 0 && clk === 1) {
+        if (rst === 1) {
+          value = 0;
+        } else if (load === 1) {
+          value = 0;
+          for (let i = 0; i < 8; i++) {
+            if (getVal(node.id, `d${i}`)) value |= 1 << i;
+          }
+        }
+      }
+
+      const q: Bit[] = Array(8)
+        .fill(0)
+        .map((_, i) => (value & (1 << i) ? 1 : 0) as Bit);
+
+      const qChanged =
+        (node.data.q as Bit[])?.some((v: Bit, i: number) => v !== q[i]) ||
+        !node.data.q;
+      const valueChanged = node.data.value !== value;
+      const clkChanged = node.data.prevClk !== clk;
+
+      if (qChanged || valueChanged || clkChanged) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, value, q, prevClk: clk },
+        };
+        changed = true;
+      }
+    } else if (node.type === "alu8") {
+      let a = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `a${i}`)) a |= 1 << i;
+      }
+      let b = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `b${i}`)) b |= 1 << i;
+      }
+      let op = 0;
+      for (let i = 0; i < 3; i++) {
+        if (getVal(node.id, `op${i}`)) op |= 1 << i;
+      }
+
+      let result = 0;
+      let carry: Bit = 0;
+      let opName = "ADD";
+
+      switch (op) {
+        case 0b000: {
+          opName = "ADD";
+          const sum = a + b;
+          result = sum & 0xff;
+          carry = (sum > 255 ? 1 : 0) as Bit;
+          break;
+        }
+        case 0b001: {
+          opName = "SUB";
+          const diff = a - b;
+          result = diff & 0xff;
+          carry = (diff < 0 ? 1 : 0) as Bit;
+          break;
+        }
+        case 0b010:
+          opName = "AND";
+          result = a & b & 0xff;
+          break;
+        case 0b011:
+          opName = "OR";
+          result = (a | b) & 0xff;
+          break;
+        case 0b100:
+          opName = "XOR";
+          result = (a ^ b) & 0xff;
+          break;
+        case 0b101:
+          opName = "NOT";
+          result = ~a & 0xff;
+          break;
+        case 0b110:
+          opName = "SHL";
+          carry = (a & 0x80 ? 1 : 0) as Bit;
+          result = (a << 1) & 0xff;
+          break;
+        case 0b111:
+          opName = "SHR";
+          carry = (a & 0x01 ? 1 : 0) as Bit;
+          result = (a >> 1) & 0xff;
+          break;
+      }
+
+      const zero: Bit = result === 0 ? 1 : 0;
+      const negative: Bit = (result & 0x80 ? 1 : 0) as Bit;
+      const r: Bit[] = Array(8)
+        .fill(0)
+        .map((_, i) => (result & (1 << i) ? 1 : 0) as Bit);
+
+      const rChanged =
+        (node.data.r as Bit[])?.some((v: Bit, i: number) => v !== r[i]) ||
+        !node.data.r;
+      if (
+        rChanged ||
+        node.data.zero !== zero ||
+        node.data.carry !== carry ||
+        node.data.negative !== negative ||
+        node.data.opName !== opName
+      ) {
+        newNodes[index] = {
+          ...node,
+          data: {
+            ...node.data,
+            a,
+            b,
+            result,
+            r,
+            zero,
+            carry,
+            negative,
+            opName,
+          },
+        };
+        changed = true;
+      }
     }
   });
 
@@ -316,6 +483,24 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
         const outputs = (sourceNode.data as unknown as GroupNodeData).outputs;
         if (edge.sourceHandle && outputs) {
           isActive = outputs[edge.sourceHandle] === 1;
+        }
+      } else if (sourceNode.type === "clock") {
+        isActive = sourceNode.data.value === 1;
+      } else if (sourceNode.type === "register8") {
+        if (edge.sourceHandle?.startsWith("q")) {
+          const idx = parseInt(edge.sourceHandle.replace("q", ""));
+          isActive = (sourceNode.data.q as Bit[])?.[idx] === 1;
+        }
+      } else if (sourceNode.type === "alu8") {
+        if (edge.sourceHandle?.startsWith("r")) {
+          const idx = parseInt(edge.sourceHandle.replace("r", ""));
+          isActive = (sourceNode.data.r as Bit[])?.[idx] === 1;
+        } else if (edge.sourceHandle === "zero") {
+          isActive = sourceNode.data.zero === 1;
+        } else if (edge.sourceHandle === "carry") {
+          isActive = sourceNode.data.carry === 1;
+        } else if (edge.sourceHandle === "neg") {
+          isActive = sourceNode.data.negative === 1;
         }
       }
     }

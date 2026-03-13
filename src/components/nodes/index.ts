@@ -7,6 +7,9 @@ import { Bus8Node } from "./Bus8Node";
 import { InputNumberNode } from "./InputNumberNode";
 import { OutputNumberNode } from "./OutputNumberNode";
 import { GroupNode } from "./GroupNode";
+import { ClockNode } from "./ClockNode";
+import { Register8Node } from "./Register8Node";
+import { ALU8Node } from "./ALU8Node";
 
 export {
   InputNode,
@@ -18,6 +21,9 @@ export {
   InputNumberNode,
   OutputNumberNode,
   GroupNode,
+  ClockNode,
+  Register8Node,
+  ALU8Node,
 };
 
 export const nodeTypes = {
@@ -30,4 +36,7 @@ export const nodeTypes = {
   inputNumber: InputNumberNode,
   outputNumber: OutputNumberNode,
   group: GroupNode,
+  clock: ClockNode,
+  register8: Register8Node,
+  alu8: ALU8Node,
 };
