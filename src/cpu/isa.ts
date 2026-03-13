@@ -41,6 +41,8 @@ export const Opcode = {
   // I/O (1-byte)
   OUTA: 0x20, // console ← A as ASCII
   OUTD: 0x21, // console ← A as decimal string
+  DRAW: 0x22, // plotter ← pixel at (A, B)
+  CLR: 0x23, // plotter ← clear all pixels
 
   // Arithmetic/Logic with immediate (3-byte, 16-bit operand, CPU uses low byte)
   LDA: 0x80,
@@ -111,6 +113,16 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "OUTD",
     size: 1,
     description: "Output A as decimal number",
+  },
+  [Opcode.DRAW]: {
+    mnemonic: "DRAW",
+    size: 1,
+    description: "Plot pixel at (A, B)",
+  },
+  [Opcode.CLR]: {
+    mnemonic: "CLR",
+    size: 1,
+    description: "Clear plotter",
   },
 
   [Opcode.LDA]: { mnemonic: "LDA", size: 3, description: "A ← imm" },

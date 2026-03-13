@@ -24,17 +24,20 @@ export interface DisassemblyLine {
 export class CPU {
   state: CPUState;
   consoleOutput: string[];
+  plotterPixels: Set<number>;
   onConsoleOutput?: (text: string) => void;
 
   constructor() {
     this.state = createInitialState();
     this.consoleOutput = [];
+    this.plotterPixels = new Set();
   }
 
   /** Reset CPU to initial state, clearing memory */
   reset(): void {
     this.state = createInitialState();
     this.consoleOutput = [];
+    this.plotterPixels = new Set();
   }
 
   /** Load a program (byte array) into memory starting at startAddr */
@@ -208,6 +211,14 @@ export class CPU {
 
       case Opcode.OUTD:
         this.output(this.state.a.toString());
+        break;
+
+      case Opcode.DRAW:
+        this.plotterPixels.add((this.state.b << 8) | this.state.a);
+        break;
+
+      case Opcode.CLR:
+        this.plotterPixels = new Set();
         break;
 
       // ─── Arithmetic/Logic with immediate (3-byte, uses low byte only) ───

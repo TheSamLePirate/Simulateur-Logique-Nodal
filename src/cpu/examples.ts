@@ -120,4 +120,40 @@ done:
   OUTD          ; affiche 120
   HLT`,
   },
+  {
+    name: "Plotter - Carré",
+    description: "Dessine un carré sur le plotter",
+    code: `; Dessine un carré 50x50 sur le plotter
+; Coin supérieur gauche: (20, 20)
+; Coin inférieur droit: (70, 70)
+  CLR           ; effacer le plotter
+
+  ; --- Lignes horizontales (haut et bas) ---
+  LDA 20       ; x = 20
+  LDB 20       ; y = 20 (haut)
+h_loop:
+  DRAW          ; pixel(A, B)
+  LDB 70       ; y = 70 (bas)
+  DRAW          ; pixel(A, B)
+  LDB 20       ; y = 20
+  INC           ; x++
+  CMP 71       ; x <= 70 ?
+  JNZ h_loop
+
+  ; --- Lignes verticales (gauche et droite) ---
+  LDA 20       ; x = 20
+  LDB 21       ; y = 21 (skip corners)
+v_loop:
+  DRAW          ; pixel(20, B)
+  LDA 70       ; x = 70
+  DRAW          ; pixel(70, B)
+  LDA 20       ; x = 20
+  TBA           ; A = B (y)
+  INC           ; y++
+  TAB           ; B = y
+  CMP 70       ; y < 70 ?
+  JNZ v_loop
+
+  HLT`,
+  },
 ];

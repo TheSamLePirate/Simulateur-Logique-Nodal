@@ -108,4 +108,29 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Plotter",
+    description: "Dessine une diagonale et un cadre",
+    code: `// Dessine sur le plotter
+int main() {
+  int i;
+
+  clear();
+
+  // Diagonale
+  for (i = 0; i < 80; i++) {
+    draw(i, i);
+  }
+
+  // Cadre
+  for (i = 0; i < 100; i++) {
+    draw(i, 0);
+    draw(i, 99);
+    draw(0, i);
+    draw(99, i);
+  }
+
+  return 0;
+}`,
+  },
 ];

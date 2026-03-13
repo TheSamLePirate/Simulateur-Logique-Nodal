@@ -795,6 +795,25 @@ export function generate(program: Program): {
       return;
     }
 
+    // ── Built-in: draw(x, y) ──
+    if (expr.name === "draw") {
+      if (expr.args.length >= 2) {
+        emitExpr(expr.args[0], ctx); // x → A
+        emit(`  PUSH`); // save x
+        emitExpr(expr.args[1], ctx); // y → A
+        emit(`  TAB`); // y → B
+        emit(`  POP`); // x → A
+        emit(`  DRAW`);
+      }
+      return;
+    }
+
+    // ── Built-in: clear() ──
+    if (expr.name === "clear") {
+      emit(`  CLR`);
+      return;
+    }
+
     // ── User function call ──
     const calleeInfo = funcTable.get(expr.name);
     if (!calleeInfo) {
