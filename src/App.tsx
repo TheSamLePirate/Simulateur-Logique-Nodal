@@ -25,17 +25,25 @@ import {
   Calculator,
 } from "lucide-react";
 
-import type { Bit, GroupHandle, GroupNodeData, SavedModule } from "./types";
+import type {
+  Bit,
+  GroupHandle,
+  GroupNodeData,
+  SavedModule,
+  ActiveTab,
+} from "./types";
 import { nodeTypes } from "./components/nodes";
 import { MiniSim } from "./components/MiniSim";
 import { initialNodes, initialEdges } from "./data/initialScene";
 import { simulateNodes, updateEdgeStyles } from "./logic/simulation";
 import { PREBUILT_MODULES } from "./data/prebuiltModules";
+import { SoftwareView } from "./components/software/SoftwareView";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isRunning, setIsRunning] = useState(true);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("hardware");
   const [inspecting, setInspecting] = useState<string | null>(null);
   // Load saved modules from localStorage
   const [savedModules, setSavedModules] = useState<SavedModule[]>(() => {
@@ -843,230 +851,258 @@ export default function App() {
         </div>
       </header>
 
+      {/* Tab bar */}
+      <div className="bg-slate-900 border-b border-slate-800 flex px-6 shrink-0 z-10">
+        <button
+          onClick={() => setActiveTab("hardware")}
+          className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "hardware"
+              ? "border-blue-500 text-white"
+              : "border-transparent text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          Matériel
+        </button>
+        <button
+          onClick={() => setActiveTab("software")}
+          className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "software"
+              ? "border-blue-500 text-white"
+              : "border-transparent text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          Logiciel
+        </button>
+      </div>
+
       {/* Main Workspace */}
-      <div className="flex-1 flex relative">
-        {inspecting && (
-          <MiniSim
-            type={inspecting}
-            onClose={() => setInspecting(null)}
-            mainNodes={nodes}
-          />
-        )}
+      {activeTab === "software" ? (
+        <SoftwareView />
+      ) : (
+        <div className="flex-1 flex relative">
+          {inspecting && (
+            <MiniSim
+              type={inspecting}
+              onClose={() => setInspecting(null)}
+              mainNodes={nodes}
+            />
+          )}
 
-        {/* Sidebar / Toolbar */}
-        <div className="w-64 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-6 overflow-y-auto z-10">
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              I/O Simples
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => addNode("input")}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
-              >
-                <Square size={16} className="text-blue-400" /> Switch
-              </button>
-              <button
-                onClick={() => addNode("output")}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
-              >
-                <Circle size={16} className="text-green-400" /> LED
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              I/O 8-bit
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => addNode("inputNumber")}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
-              >
-                <span className="font-mono text-blue-400 font-bold text-lg leading-none">
-                  123
-                </span>
-                <span className="text-[10px]">Num In</span>
-              </button>
-              <button
-                onClick={() => addNode("outputNumber")}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
-              >
-                <span className="font-mono text-green-400 font-bold text-lg leading-none">
-                  123
-                </span>
-                <span className="text-[10px]">Num Out</span>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Portes Logiques
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {["AND", "OR", "XOR", "NAND", "NOR", "NOT"].map((gate) => (
-                <button
-                  key={gate}
-                  onClick={() => addNode("gate", gate)}
-                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm font-mono font-bold transition-colors"
-                >
-                  {gate}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Modules Intégrés
-            </h3>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => addNode("adder8")}
-                className="bg-slate-800 hover:bg-slate-700 border border-blue-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <Cpu size={18} className="text-blue-400" />
-                <span className="font-bold">Additionneur 8-bit</span>
-              </button>
-              <button
-                onClick={() => addNode("sram8")}
-                className="bg-slate-800 hover:bg-slate-700 border border-amber-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <MemoryStick size={18} className="text-amber-400" />
-                <span className="font-bold">SRAM 8-bit</span>
-              </button>
-              <button
-                onClick={() => addNode("bus8")}
-                className="bg-slate-800 hover:bg-slate-700 border border-slate-500/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <div className="flex flex-col gap-[2px]">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-4 h-[2px] bg-slate-400"></div>
-                  ))}
-                </div>
-                <span className="font-bold">Bus 8-bit</span>
-              </button>
-            </div>
-          </div>
-
-          {/* CPU building blocks */}
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Composants CPU
-            </h3>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => addNode("clock")}
-                className="bg-slate-800 hover:bg-slate-700 border border-green-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <Clock size={18} className="text-green-400" />
-                <span className="font-bold">Horloge</span>
-              </button>
-              <button
-                onClick={() => addNode("register8")}
-                className="bg-slate-800 hover:bg-slate-700 border border-cyan-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <Database size={18} className="text-cyan-400" />
-                <span className="font-bold">Registre 8-bit</span>
-              </button>
-              <button
-                onClick={() => addNode("alu8")}
-                className="bg-slate-800 hover:bg-slate-700 border border-orange-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-              >
-                <Calculator size={18} className="text-orange-400" />
-                <span className="font-bold">ALU 8-bit</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Pre-built group modules (from gates) */}
-          <div>
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Modules Logiques
-            </h3>
-            <div className="flex flex-col gap-2">
-              {PREBUILT_MODULES.map((mod) => (
-                <button
-                  key={mod.id}
-                  onClick={() => instantiateModule(mod)}
-                  className="bg-slate-800 hover:bg-slate-700 border border-purple-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
-                  title={`Ajouter un ${mod.label}`}
-                >
-                  <Package size={16} className="text-purple-400" />
-                  <span className="font-bold text-left truncate">
-                    {mod.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* User-saved custom modules */}
-          {savedModules.length > 0 && (
+          {/* Sidebar / Toolbar */}
+          <div className="w-64 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-6 overflow-y-auto z-10">
             <div>
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                Mes Modules
+                I/O Simples
               </h3>
-              <div className="flex flex-col gap-2">
-                {savedModules.map((mod) => (
-                  <div
-                    key={mod.id}
-                    className="bg-slate-800 hover:bg-slate-700 border border-purple-900/50 rounded p-3 text-sm flex items-center gap-2 transition-colors group"
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => addNode("input")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
+                >
+                  <Square size={16} className="text-blue-400" /> Switch
+                </button>
+                <button
+                  onClick={() => addNode("output")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
+                >
+                  <Circle size={16} className="text-green-400" /> LED
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                I/O 8-bit
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => addNode("inputNumber")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
+                >
+                  <span className="font-mono text-blue-400 font-bold text-lg leading-none">
+                    123
+                  </span>
+                  <span className="text-[10px]">Num In</span>
+                </button>
+                <button
+                  onClick={() => addNode("outputNumber")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm flex flex-col items-center gap-1 transition-colors"
+                >
+                  <span className="font-mono text-green-400 font-bold text-lg leading-none">
+                    123
+                  </span>
+                  <span className="text-[10px]">Num Out</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                Portes Logiques
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {["AND", "OR", "XOR", "NAND", "NOR", "NOT"].map((gate) => (
+                  <button
+                    key={gate}
+                    onClick={() => addNode("gate", gate)}
+                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded p-2 text-sm font-mono font-bold transition-colors"
                   >
-                    <Package size={16} className="text-purple-400 shrink-0" />
-                    <button
-                      onClick={() => instantiateModule(mod)}
-                      className="font-bold truncate text-left flex-1"
-                      title={`Ajouter un ${mod.label}`}
-                    >
-                      {mod.label}
-                    </button>
-                    <button
-                      onClick={() =>
-                        setSavedModules((prev) =>
-                          prev.filter((m) => m.id !== mod.id),
-                        )
-                      }
-                      className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                      title="Supprimer ce module"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                    {gate}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
 
-          <div className="mt-auto pt-4 border-t border-slate-800">
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Glissez pour connecter les points. Cliquez sur un fil puis appuyez
-              sur Retour Arrière pour le supprimer. Sélectionnez des noeuds et
-              appuyez sur Ctrl+G pour grouper.
-            </p>
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                Modules Intégrés
+              </h3>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => addNode("adder8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-blue-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Cpu size={18} className="text-blue-400" />
+                  <span className="font-bold">Additionneur 8-bit</span>
+                </button>
+                <button
+                  onClick={() => addNode("sram8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-amber-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <MemoryStick size={18} className="text-amber-400" />
+                  <span className="font-bold">SRAM 8-bit</span>
+                </button>
+                <button
+                  onClick={() => addNode("bus8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-500/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <div className="flex flex-col gap-[2px]">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="w-4 h-[2px] bg-slate-400"></div>
+                    ))}
+                  </div>
+                  <span className="font-bold">Bus 8-bit</span>
+                </button>
+              </div>
+            </div>
+
+            {/* CPU building blocks */}
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                Composants CPU
+              </h3>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => addNode("clock")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-green-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Clock size={18} className="text-green-400" />
+                  <span className="font-bold">Horloge</span>
+                </button>
+                <button
+                  onClick={() => addNode("register8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-cyan-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Database size={18} className="text-cyan-400" />
+                  <span className="font-bold">Registre 8-bit</span>
+                </button>
+                <button
+                  onClick={() => addNode("alu8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-orange-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Calculator size={18} className="text-orange-400" />
+                  <span className="font-bold">ALU 8-bit</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Pre-built group modules (from gates) */}
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                Modules Logiques
+              </h3>
+              <div className="flex flex-col gap-2">
+                {PREBUILT_MODULES.map((mod) => (
+                  <button
+                    key={mod.id}
+                    onClick={() => instantiateModule(mod)}
+                    className="bg-slate-800 hover:bg-slate-700 border border-purple-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                    title={`Ajouter un ${mod.label}`}
+                  >
+                    <Package size={16} className="text-purple-400" />
+                    <span className="font-bold text-left truncate">
+                      {mod.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* User-saved custom modules */}
+            {savedModules.length > 0 && (
+              <div>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  Mes Modules
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {savedModules.map((mod) => (
+                    <div
+                      key={mod.id}
+                      className="bg-slate-800 hover:bg-slate-700 border border-purple-900/50 rounded p-3 text-sm flex items-center gap-2 transition-colors group"
+                    >
+                      <Package size={16} className="text-purple-400 shrink-0" />
+                      <button
+                        onClick={() => instantiateModule(mod)}
+                        className="font-bold truncate text-left flex-1"
+                        title={`Ajouter un ${mod.label}`}
+                      >
+                        {mod.label}
+                      </button>
+                      <button
+                        onClick={() =>
+                          setSavedModules((prev) =>
+                            prev.filter((m) => m.id !== mod.id),
+                          )
+                        }
+                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                        title="Supprimer ce module"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-auto pt-4 border-t border-slate-800">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Glissez pour connecter les points. Cliquez sur un fil puis
+                appuyez sur Retour Arrière pour le supprimer. Sélectionnez des
+                noeuds et appuyez sur Ctrl+G pour grouper.
+              </p>
+            </div>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 h-full bg-slate-950">
+            <ReactFlow
+              nodes={nodesWithHandlers}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              fitView
+              className="bg-slate-950"
+              colorMode="dark"
+            >
+              <Background color="#334155" gap={20} size={1} />
+              <Controls className="bg-slate-800 border-slate-700 fill-slate-300" />
+            </ReactFlow>
           </div>
         </div>
-
-        {/* Canvas */}
-        <div className="flex-1 h-full bg-slate-950">
-          <ReactFlow
-            nodes={nodesWithHandlers}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            fitView
-            className="bg-slate-950"
-            colorMode="dark"
-          >
-            <Background color="#334155" gap={20} size={1} />
-            <Controls className="bg-slate-800 border-slate-700 fill-slate-300" />
-          </ReactFlow>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

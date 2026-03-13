@@ -61,3 +61,6 @@ export interface SavedModule {
   inputHandles: GroupHandle[];
   outputHandles: GroupHandle[];
 }
+
+/** Active tab in the main UI */
+export type ActiveTab = "hardware" | "software";
