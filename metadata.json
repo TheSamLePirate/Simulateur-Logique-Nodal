@@ -1,0 +1,5 @@
+{
+  "name": "Simulateur Logique Nodal",
+  "description": "Un simulateur interactif basé sur des nœuds (node-based) permettant de connecter des portes logiques simples, des additionneurs 8-bit et des mémoires SRAM 8-bit pour créer des systèmes numériques complexes.",
+  "requestFramePermissions": []
+}
