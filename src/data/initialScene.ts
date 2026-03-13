@@ -1,112 +1,318 @@
 import type { Node, Edge } from "@xyflow/react";
 
+/**
+ * Initial scene: A basic 8-bit computer
+ *
+ * Architecture:
+ *   DATA (input) ──┐
+ *                   ├──▶ ALU ──▶ Accumulator (REG) ──▶ Display
+ *   ACC feedback ──┘       ▲
+ *                          │
+ *   OP (switches) ─────────┘
+ *
+ *   Clock ──▶ REG.CLK
+ *   LOAD  ──▶ REG.LOAD
+ *   RST   ──▶ REG.RST
+ *
+ *   ACC ──▶ SRAM.DATA_IN
+ *   ADDR ──▶ SRAM.ADDR
+ *   WE   ──▶ SRAM.WE
+ *   SRAM.Q ──▶ MEM_OUT
+ */
+
 export const initialNodes: Node[] = [
-  // Input A (Value 5)
+  // ─── CLOCK ───
   {
-    id: "inA",
-    type: "inputNumber",
-    position: { x: 50, y: 150 },
-    data: { label: "A", value: 5 },
+    id: "clk",
+    type: "clock",
+    position: { x: 50, y: 80 },
+    data: { label: "CLK", value: 0, frequency: 2, tickCounter: 0 },
   },
-  // Input B (Value 3)
+
+  // ─── DATA INPUT ───
   {
-    id: "inB",
+    id: "dataIn",
     type: "inputNumber",
-    position: { x: 50, y: 350 },
-    data: { label: "B", value: 3 },
+    position: { x: 50, y: 200 },
+    data: { label: "DATA", value: 7 },
   },
-  // Address Input
+
+  // ─── OPERATION SELECT (3 switches for ALU opcode) ───
   {
-    id: "inAddr",
+    id: "op0",
+    type: "input",
+    position: { x: 50, y: 440 },
+    data: { label: "OP0", value: 0 },
+  },
+  {
+    id: "op1",
+    type: "input",
+    position: { x: 50, y: 510 },
+    data: { label: "OP1", value: 0 },
+  },
+  {
+    id: "op2",
+    type: "input",
+    position: { x: 50, y: 580 },
+    data: { label: "OP2", value: 0 },
+  },
+
+  // ─── ALU ───
+  {
+    id: "alu",
+    type: "alu8",
+    position: { x: 300, y: 120 },
+    data: {
+      a: 0,
+      b: 0,
+      result: 0,
+      r: Array(8).fill(0),
+      zero: 0,
+      carry: 0,
+      negative: 0,
+      opName: "ADD",
+    },
+  },
+
+  // ─── ACCUMULATOR REGISTER ───
+  {
+    id: "acc",
+    type: "register8",
+    position: { x: 620, y: 120 },
+    data: { label: "ACC", value: 0, q: Array(8).fill(0), prevClk: 0 },
+  },
+
+  // ─── REGISTER CONTROLS ───
+  {
+    id: "load",
+    type: "input",
+    position: { x: 520, y: 440 },
+    data: { label: "LOAD", value: 1 },
+  },
+  {
+    id: "rst",
+    type: "input",
+    position: { x: 520, y: 510 },
+    data: { label: "RST", value: 0 },
+  },
+
+  // ─── ACCUMULATOR OUTPUT DISPLAY ───
+  {
+    id: "accOut",
+    type: "outputNumber",
+    position: { x: 880, y: 140 },
+    data: { label: "ACC", value: 0 },
+  },
+
+  // ─── ALU FLAGS OUTPUT ───
+  {
+    id: "flagZ",
+    type: "output",
+    position: { x: 550, y: 10 },
+    data: { label: "ZERO", value: 0 },
+  },
+  {
+    id: "flagC",
+    type: "output",
+    position: { x: 650, y: 10 },
+    data: { label: "CARRY", value: 0 },
+  },
+  {
+    id: "flagN",
+    type: "output",
+    position: { x: 750, y: 10 },
+    data: { label: "NEG", value: 0 },
+  },
+
+  // ─── MEMORY SECTION ───
+  {
+    id: "memAddr",
     type: "inputNumber",
-    position: { x: 350, y: 350 },
+    position: { x: 880, y: 380 },
     data: { label: "ADDR", value: 0 },
   },
-  // Adder
   {
-    id: "adder1",
-    type: "adder8",
-    position: { x: 350, y: 150 },
-    data: { sum: Array(8).fill(0), cout: 0 },
-  },
-  // WE
-  {
-    id: "we1",
+    id: "memWE",
     type: "input",
-    position: { x: 450, y: 500 },
-    data: { label: "WE", value: 0 },
+    position: { x: 980, y: 580 },
+    data: { label: "MEM_WE", value: 0 },
   },
-  // SRAM
   {
-    id: "sram1",
+    id: "sram",
     type: "sram8",
-    position: { x: 600, y: 150 },
+    position: { x: 1100, y: 120 },
     data: {
       memory: Array(256).fill(0),
       q: Array(8).fill(0),
       currentAddress: 0,
     },
   },
-  // Output Q
   {
-    id: "outQ",
+    id: "memOut",
     type: "outputNumber",
-    position: { x: 850, y: 150 },
-    data: { label: "Q", value: 0 },
+    position: { x: 1350, y: 180 },
+    data: { label: "MEM_OUT", value: 0 },
   },
 ];
 
 export const initialEdges: Edge[] = [
-  // A to Adder
+  // ─── DATA INPUT → ALU.B (operand B) ───
   ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-a${i}`,
-    source: "inA",
-    target: "adder1",
-    sourceHandle: `out${i}`,
-    targetHandle: `a${i}`,
-    animated: false,
-  })),
-  // B to Adder
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-b${i}`,
-    source: "inB",
-    target: "adder1",
+    id: `e-data-alu-b${i}`,
+    source: "dataIn",
+    target: "alu",
     sourceHandle: `out${i}`,
     targetHandle: `b${i}`,
     animated: false,
   })),
-  // Addr to SRAM
+
+  // ─── OP SWITCHES → ALU.OP ───
+  {
+    id: "e-op0",
+    source: "op0",
+    target: "alu",
+    sourceHandle: "out",
+    targetHandle: "op0",
+    animated: false,
+  },
+  {
+    id: "e-op1",
+    source: "op1",
+    target: "alu",
+    sourceHandle: "out",
+    targetHandle: "op1",
+    animated: false,
+  },
+  {
+    id: "e-op2",
+    source: "op2",
+    target: "alu",
+    sourceHandle: "out",
+    targetHandle: "op2",
+    animated: false,
+  },
+
+  // ─── ALU.R → REGISTER.D (ALU result feeds into accumulator) ───
   ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-addr${i}`,
-    source: "inAddr",
-    target: "sram1",
+    id: `e-alu-acc-d${i}`,
+    source: "alu",
+    target: "acc",
+    sourceHandle: `r${i}`,
+    targetHandle: `d${i}`,
+    animated: false,
+  })),
+
+  // ─── CLOCK → REGISTER.CLK ───
+  {
+    id: "e-clk-acc",
+    source: "clk",
+    target: "acc",
+    sourceHandle: "out",
+    targetHandle: "clk",
+    animated: false,
+  },
+
+  // ─── LOAD → REGISTER.LOAD ───
+  {
+    id: "e-load-acc",
+    source: "load",
+    target: "acc",
+    sourceHandle: "out",
+    targetHandle: "load",
+    animated: false,
+  },
+
+  // ─── RST → REGISTER.RST ───
+  {
+    id: "e-rst-acc",
+    source: "rst",
+    target: "acc",
+    sourceHandle: "out",
+    targetHandle: "rst",
+    animated: false,
+  },
+
+  // ─── REGISTER.Q → ALU.A (feedback: accumulator → ALU operand A) ───
+  ...Array.from({ length: 8 }).map((_, i) => ({
+    id: `e-acc-alu-a${i}`,
+    source: "acc",
+    target: "alu",
+    sourceHandle: `q${i}`,
+    targetHandle: `a${i}`,
+    animated: false,
+  })),
+
+  // ─── REGISTER.Q → ACC OUTPUT DISPLAY ───
+  ...Array.from({ length: 8 }).map((_, i) => ({
+    id: `e-acc-out${i}`,
+    source: "acc",
+    target: "accOut",
+    sourceHandle: `q${i}`,
+    targetHandle: `in${i}`,
+    animated: false,
+  })),
+
+  // ─── ALU FLAGS → FLAG LEDs ───
+  {
+    id: "e-flag-z",
+    source: "alu",
+    target: "flagZ",
+    sourceHandle: "zero",
+    targetHandle: "in",
+    animated: false,
+  },
+  {
+    id: "e-flag-c",
+    source: "alu",
+    target: "flagC",
+    sourceHandle: "carry",
+    targetHandle: "in",
+    animated: false,
+  },
+  {
+    id: "e-flag-n",
+    source: "alu",
+    target: "flagN",
+    sourceHandle: "neg",
+    targetHandle: "in",
+    animated: false,
+  },
+
+  // ─── REGISTER.Q → SRAM.D (store accumulator to memory) ───
+  ...Array.from({ length: 8 }).map((_, i) => ({
+    id: `e-acc-sram-d${i}`,
+    source: "acc",
+    target: "sram",
+    sourceHandle: `q${i}`,
+    targetHandle: `d${i}`,
+    animated: false,
+  })),
+
+  // ─── MEM ADDR → SRAM.A ───
+  ...Array.from({ length: 8 }).map((_, i) => ({
+    id: `e-addr-sram${i}`,
+    source: "memAddr",
+    target: "sram",
     sourceHandle: `out${i}`,
     targetHandle: `a${i}`,
     animated: false,
   })),
-  // Adder to SRAM
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-sum${i}`,
-    source: "adder1",
-    target: "sram1",
-    sourceHandle: `s${i}`,
-    targetHandle: `d${i}`,
-    animated: false,
-  })),
-  // WE to SRAM
+
+  // ─── MEM WE → SRAM.WE ───
   {
-    id: "e-we",
-    source: "we1",
-    target: "sram1",
+    id: "e-we-sram",
+    source: "memWE",
+    target: "sram",
     sourceHandle: "out",
     targetHandle: "we",
     animated: false,
   },
-  // SRAM to Output
+
+  // ─── SRAM.Q → MEM OUTPUT DISPLAY ───
   ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-out${i}`,
-    source: "sram1",
-    target: "outQ",
+    id: `e-sram-out${i}`,
+    source: "sram",
+    target: "memOut",
     sourceHandle: `q${i}`,
     targetHandle: `in${i}`,
     animated: false,
