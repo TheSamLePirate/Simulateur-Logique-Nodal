@@ -7,11 +7,11 @@
  * Syntax:
  *   label:          ; label definition (colon after name)
  *   MNEMONIC        ; 1-byte instruction
- *   MNEMONIC 42     ; 2-byte instruction with decimal operand
+ *   MNEMONIC 42     ; 3-byte instruction with decimal operand (16-bit LE)
  *   MNEMONIC 0x2A   ; hex operand
  *   MNEMONIC 'A'    ; char literal operand
- *   MNEMONIC label  ; label reference (resolved to address)
- *   .db 0x48        ; raw byte data directive
+ *   MNEMONIC label  ; label reference (resolved to 16-bit address)
+ *   .db 0x48        ; raw byte data directive (8-bit)
  *   ; comment       ; everything after semicolon is ignored
  */
 
@@ -89,24 +89,24 @@ function parseOperandValue(
 
   const s = operandStr.trim();
 
-  // Hex: 0x2A or 0X2A
+  // Hex: 0x2A or 0X2A (allow 16-bit)
   if (/^0x[0-9a-fA-F]+$/i.test(s)) {
-    return { value: parseInt(s, 16) & 0xff };
+    return { value: parseInt(s, 16) & 0xffff };
   }
 
-  // Binary: 0b01010101
+  // Binary: 0b01010101 (allow 16-bit)
   if (/^0b[01]+$/i.test(s)) {
-    return { value: parseInt(s.substring(2), 2) & 0xff };
+    return { value: parseInt(s.substring(2), 2) & 0xffff };
   }
 
-  // Char literal: 'A'
+  // Char literal: 'A' (always 8-bit)
   if (/^'.'$/.test(s)) {
     return { value: s.charCodeAt(1) & 0xff };
   }
 
-  // Decimal number
+  // Decimal number (allow 16-bit)
   if (/^-?\d+$/.test(s)) {
-    return { value: parseInt(s, 10) & 0xff };
+    return { value: parseInt(s, 10) & 0xffff };
   }
 
   // Label reference
@@ -220,14 +220,14 @@ export function assemble(source: string): AssemblerResult {
     sourceMap.set(currentAddr, parsed.lineNum);
     bytes.push(opcode);
 
-    // 2-byte instruction: emit operand
-    if (info.size === 2) {
+    // 3-byte instruction: emit 16-bit operand (little-endian)
+    if (info.size === 3) {
       if (!parsed.operandStr) {
         errors.push({
           line: parsed.lineNum,
           message: `"${parsed.mnemonic}" nécessite un opérande`,
         });
-        bytes.push(0);
+        bytes.push(0, 0); // 2 placeholder bytes
       } else {
         const val = parseOperandValue(parsed.operandStr);
         if (val === null) {
@@ -235,7 +235,7 @@ export function assemble(source: string): AssemblerResult {
             line: parsed.lineNum,
             message: `Opérande invalide: "${parsed.operandStr}"`,
           });
-          bytes.push(0);
+          bytes.push(0, 0);
         } else if ("label" in val) {
           const addr = labels.get(val.label);
           if (addr === undefined) {
@@ -243,17 +243,19 @@ export function assemble(source: string): AssemblerResult {
               line: parsed.lineNum,
               message: `Label non défini: "${val.label}"`,
             });
-            bytes.push(0);
+            bytes.push(0, 0);
           } else {
-            bytes.push(addr & 0xff);
+            bytes.push(addr & 0xff); // low byte
+            bytes.push((addr >> 8) & 0xff); // high byte
           }
         } else {
-          bytes.push(val.value & 0xff);
+          bytes.push(val.value & 0xff); // low byte
+          bytes.push((val.value >> 8) & 0xff); // high byte
         }
       }
     } else {
       // 1-byte instruction: warn if operand provided
-      if (parsed.operandStr && !isTwoByteOpcode(opcode)) {
+      if (parsed.operandStr && isTwoByteOpcode(opcode)) {
         errors.push({
           line: parsed.lineNum,
           message: `"${parsed.mnemonic}" ne prend pas d'opérande`,

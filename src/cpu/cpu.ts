@@ -2,13 +2,16 @@
  * Software CPU simulator — executes programs assembled from our ISA.
  *
  * Pure TypeScript, no React dependencies.
- * Stack grows downward from 0xFF.
+ * Stack grows downward from 0x3FF.
+ * Memory: 1024 bytes, 16-bit addresses.
  */
 
 import {
   Opcode,
   INSTRUCTION_INFO,
   createInitialState,
+  MEMORY_SIZE,
+  ADDR_MASK,
   type CPUState,
 } from "./isa";
 
@@ -36,7 +39,7 @@ export class CPU {
 
   /** Load a program (byte array) into memory starting at startAddr */
   loadProgram(bytes: number[], startAddr = 0): void {
-    for (let i = 0; i < bytes.length && startAddr + i < 256; i++) {
+    for (let i = 0; i < bytes.length && startAddr + i < MEMORY_SIZE; i++) {
       this.state.memory[startAddr + i] = bytes[i] & 0xff;
     }
     this.state.pc = startAddr;
@@ -54,21 +57,34 @@ export class CPU {
   // ─── Helpers ───
 
   private read(addr: number): number {
-    return this.state.memory[addr & 0xff];
+    return this.state.memory[addr & ADDR_MASK];
   }
 
   private write(addr: number, value: number): void {
-    this.state.memory[addr & 0xff] = value & 0xff;
+    this.state.memory[addr & ADDR_MASK] = value & 0xff;
   }
 
   private push(value: number): void {
     this.write(this.state.sp, value & 0xff);
-    this.state.sp = (this.state.sp - 1) & 0xff;
+    this.state.sp = (this.state.sp - 1) & ADDR_MASK;
   }
 
   private pop(): number {
-    this.state.sp = (this.state.sp + 1) & 0xff;
+    this.state.sp = (this.state.sp + 1) & ADDR_MASK;
     return this.read(this.state.sp);
+  }
+
+  /** Push a 16-bit value (for CALL return addresses) */
+  private push16(value: number): void {
+    this.push(value & 0xff); // low byte first
+    this.push((value >> 8) & 0xff); // high byte on top
+  }
+
+  /** Pop a 16-bit value (for RET return addresses) */
+  private pop16(): number {
+    const high = this.pop();
+    const low = this.pop();
+    return (high << 8) | low;
   }
 
   private updateFlags(result: number, fullResult?: number): void {
@@ -96,13 +112,17 @@ export class CPU {
     const opcode = this.read(this.state.pc);
     const info = INSTRUCTION_INFO[opcode];
 
-    // Fetch operand for 2-byte instructions
-    const operand =
-      info && info.size === 2 ? this.read((this.state.pc + 1) & 0xff) : 0;
+    // Fetch 16-bit operand for 3-byte instructions (little-endian)
+    let operand = 0;
+    if (info && info.size === 3) {
+      const lo = this.read((this.state.pc + 1) & ADDR_MASK);
+      const hi = this.read((this.state.pc + 2) & ADDR_MASK);
+      operand = (hi << 8) | lo;
+    }
 
     // Advance PC past this instruction
     const instrSize = info ? info.size : 1;
-    let nextPC = (this.state.pc + instrSize) & 0xff;
+    let nextPC = (this.state.pc + instrSize) & ADDR_MASK;
 
     switch (opcode) {
       // ─── Control ───
@@ -169,7 +189,7 @@ export class CPU {
 
       // ─── Stack (1-byte) ───
       case Opcode.RET:
-        nextPC = this.pop();
+        nextPC = this.pop16(); // pop 16-bit return address
         break;
 
       case Opcode.PUSH:
@@ -190,45 +210,48 @@ export class CPU {
         this.output(this.state.a.toString());
         break;
 
-      // ─── Arithmetic/Logic with immediate (2-byte) ───
+      // ─── Arithmetic/Logic with immediate (3-byte, uses low byte only) ───
       case Opcode.LDA:
-        this.state.a = operand;
+        this.state.a = operand & 0xff;
         this.updateFlags(this.state.a);
         break;
 
       case Opcode.LDB:
-        this.state.b = operand;
+        this.state.b = operand & 0xff;
         break;
 
       case Opcode.ADD: {
-        const r = this.state.a + operand;
+        const imm = operand & 0xff;
+        const r = this.state.a + imm;
         this.state.a = r & 0xff;
         this.updateFlags(this.state.a, r);
         break;
       }
       case Opcode.SUB: {
-        const r = this.state.a - operand;
+        const imm = operand & 0xff;
+        const r = this.state.a - imm;
         this.state.a = r & 0xff;
         this.updateFlags(this.state.a, r);
         break;
       }
       case Opcode.AND:
-        this.state.a = this.state.a & operand;
+        this.state.a = this.state.a & (operand & 0xff);
         this.updateFlags(this.state.a);
         break;
 
       case Opcode.OR:
-        this.state.a = this.state.a | operand;
+        this.state.a = this.state.a | (operand & 0xff);
         this.updateFlags(this.state.a);
         break;
 
       case Opcode.XOR:
-        this.state.a = this.state.a ^ operand;
+        this.state.a = this.state.a ^ (operand & 0xff);
         this.updateFlags(this.state.a);
         break;
 
       case Opcode.CMP: {
-        const r = this.state.a - operand;
+        const imm = operand & 0xff;
+        const r = this.state.a - imm;
         this.updateFlags(r & 0xff, r);
         break;
       }
@@ -276,15 +299,15 @@ export class CPU {
         if (this.state.flags.n) nextPC = operand;
         break;
 
-      // ─── Call (2-byte) ───
+      // ─── Call (3-byte) ───
       case Opcode.CALL:
-        this.push(nextPC); // push return address (address after CALL)
+        this.push16(nextPC); // push 16-bit return address
         nextPC = operand;
         break;
 
-      // ─── I/O with immediate (2-byte) ───
+      // ─── I/O with immediate (3-byte, uses low byte) ───
       case Opcode.OUT:
-        this.output(String.fromCharCode(operand));
+        this.output(String.fromCharCode(operand & 0xff));
         break;
 
       default:
@@ -311,11 +334,11 @@ export class CPU {
   /**
    * Disassemble memory contents into human-readable lines.
    */
-  getDisassembly(startAddr = 0, length = 256): DisassemblyLine[] {
+  getDisassembly(startAddr = 0, length = MEMORY_SIZE): DisassemblyLine[] {
     const lines: DisassemblyLine[] = [];
     let addr = startAddr;
 
-    while (addr < startAddr + length && addr < 256) {
+    while (addr < startAddr + length && addr < MEMORY_SIZE) {
       const opcode = this.read(addr);
       const info = INSTRUCTION_INFO[opcode];
 
@@ -329,14 +352,16 @@ export class CPU {
         continue;
       }
 
-      if (info.size === 2 && addr + 1 < 256) {
-        const operand = this.read(addr + 1);
+      if (info.size === 3 && addr + 2 < MEMORY_SIZE) {
+        const lo = this.read(addr + 1);
+        const hi = this.read(addr + 2);
+        const operand = (hi << 8) | lo;
         lines.push({
           addr,
-          bytes: [opcode, operand],
-          mnemonic: `${info.mnemonic} 0x${operand.toString(16).padStart(2, "0")}`,
+          bytes: [opcode, lo, hi],
+          mnemonic: `${info.mnemonic} 0x${operand.toString(16).padStart(3, "0")}`,
         });
-        addr += 2;
+        addr += 3;
       } else {
         lines.push({
           addr,
