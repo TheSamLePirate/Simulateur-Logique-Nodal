@@ -10,12 +10,12 @@
  *
  * Memory layout:
  *   0x00..0x7F  = code (program)
- *   0x80..0xBF  = global variables
- *   0xC0..0xEF  = local variables and parameters (per-function, unique)
- *   0xF0..0xF5  = arithmetic scratch (multiply, divide, bitwise)
- *   0xF6        = scratch: return address save
- *   0xF7        = scratch: return value save
- *   0xF8..0xFF  = stack (grows downward from 0xFF)
+ *   0x80..0x8F  = global variables (16 max)
+ *   0x90..0x95  = arithmetic scratch (multiply, divide, bitwise)
+ *   0x96        = scratch: unused
+ *   0x97        = scratch: return value save
+ *   0x98..0xBF  = local variables and parameters (per-function, unique)
+ *   0xC0..0xFF  = stack (64 bytes, grows downward from 0xFF)
  *
  * Calling convention:
  *   - Caller writes args directly to callee's param addresses
@@ -40,8 +40,10 @@ interface FuncInfo {
 }
 
 // Scratch memory constants
-const TEMP_BASE = 0xf0; // 0xF0-0xF5 for arithmetic
-const TEMP_RETVAL = 0xf7; // save return value around POPs
+const TEMP_BASE = 0x90; // 0x90-0x95 for arithmetic
+const TEMP_COUNT = 6; // number of temp slots to save/restore
+const TEMP_RETVAL = 0x97; // save return value around POPs
+const STACK_BASE = 0xc0; // stack occupies 0xC0-0xFF
 
 export function generate(program: Program): {
   assembly: string;
@@ -51,7 +53,7 @@ export function generate(program: Program): {
   const lines: string[] = [];
   let labelCounter = 0;
   let globalAddr = 0x80;
-  let varAddr = 0xc0; // for locals and params
+  let varAddr = 0x98; // for locals and params (after scratch area)
 
   const globals = new Map<string, number>(); // name → address
   const funcTable = new Map<string, FuncInfo>();
@@ -75,12 +77,12 @@ export function generate(program: Program): {
   }
 
   function allocVar(): number {
-    if (varAddr >= TEMP_BASE) {
+    if (varAddr >= STACK_BASE) {
       errors.push({
         line: 0,
         message: "Trop de variables locales (mémoire pleine)",
       });
-      return TEMP_BASE - 1;
+      return STACK_BASE - 1;
     }
     return varAddr++;
   }
@@ -123,10 +125,10 @@ export function generate(program: Program): {
     }
     globals.set(g.name, globalAddr);
     globalAddr++;
-    if (globalAddr > 0xbf) {
+    if (globalAddr > 0x8f) {
       errors.push({
         line: g.line,
-        message: "Trop de variables globales (max 64)",
+        message: "Trop de variables globales (max 16)",
       });
     }
   }
@@ -812,13 +814,22 @@ export function generate(program: Program): {
       }
     }
 
-    // 2. Evaluate each arg and push to stack (so we don't clobber vars during eval)
+    // 2. Save arithmetic scratch temps to stack (recursion safety)
+    //    This prevents inner calls' multiply/divide/bitwise from clobbering
+    //    temps used by the caller's in-progress arithmetic operations.
+    emitComment(`save ${TEMP_COUNT} temp(s) before call`);
+    for (let i = 0; i < TEMP_COUNT; i++) {
+      emit(`  LDM ${fmt(TEMP_BASE + i)}`);
+      emit(`  PUSH`);
+    }
+
+    // 3. Evaluate each arg and push to stack (so we don't clobber vars during eval)
     for (let i = 0; i < expr.args.length; i++) {
       emitExpr(expr.args[i], ctx);
       emit(`  PUSH`);
     }
 
-    // 3. Pop args into callee's param addresses
+    // 4. Pop args into callee's param addresses
     const calleeParamAddrs = [...calleeInfo.paramAddrs.values()];
     // Args were pushed left-to-right, so last arg is on top
     for (let i = expr.args.length - 1; i >= 0; i--) {
@@ -828,19 +839,25 @@ export function generate(program: Program): {
       }
     }
 
-    // 4. CALL
+    // 5. CALL
     emit(`  CALL __${expr.name}`);
 
-    // 5. Restore current function's locals/params from stack
+    // 6. Restore arithmetic scratch temps from stack
+    emit(`  STA ${fmt(TEMP_RETVAL)}`); // save return value
+    for (let i = TEMP_COUNT - 1; i >= 0; i--) {
+      emit(`  POP`);
+      emit(`  STA ${fmt(TEMP_BASE + i)}`);
+    }
+
+    // 7. Restore current function's locals/params from stack
     if (ctx.allVarAddrs.length > 0) {
-      emit(`  STA ${fmt(TEMP_RETVAL)}`); // save return value
       // Restore in reverse order (stack is LIFO)
       for (let i = ctx.allVarAddrs.length - 1; i >= 0; i--) {
         emit(`  POP`);
         emit(`  STA ${fmt(ctx.allVarAddrs[i])}`);
       }
-      emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
     }
+    emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
   }
 
   // ─── Variable access helpers ───

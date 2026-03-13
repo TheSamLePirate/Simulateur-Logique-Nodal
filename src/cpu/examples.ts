@@ -81,7 +81,8 @@ done:
     description: "Calcule 5! = 120",
     code: `; Factorielle de 5
 ; Résultat: 5! = 120
-; MEM[0xF0] = compteur, MEM[0xF1] = résultat, MEM[0xF2] = additions restantes
+; MEM[0xF0] = compteur, MEM[0xF1] = résultat
+; MEM[0xF2] = additions restantes, MEM[0xF3] = accumulateur
   LDA 1
   STA 0xF1     ; résultat = 1
   LDA 5
@@ -96,20 +97,21 @@ mul_loop:
   LDM 0xF0     ; A = compteur
   DEC           ; A = compteur - 1
   STA 0xF2     ; additions restantes = compteur - 1
-  LDM 0xF1     ; A = résultat (accumulateur)
+  LDM 0xF1     ; A = résultat (accumulateur de départ)
 
 add_loop:
   LBM 0xF1     ; B = résultat original
   ADDB          ; A += résultat original
-  PUSH          ; sauver A
+  STA 0xF3     ; sauver accumulateur (STA ne touche pas les flags)
   LDM 0xF2     ; A = restantes
-  DEC
-  STA 0xF2     ; restantes--
-  CMP 0
-  POP           ; A = accumulateur
-  JNZ add_loop  ; continuer si restantes > 0
+  DEC           ; restantes - 1 (DEC met le flag Z si résultat == 0)
+  STA 0xF2     ; restantes-- (STA préserve le flag Z)
+  JZ mul_next   ; si restantes == 0, sortir du add_loop
+  LDM 0xF3     ; A = accumulateur
+  JMP add_loop
 
-  ; A = résultat * compteur
+mul_next:
+  LDM 0xF3     ; A = résultat * compteur
   STA 0xF1     ; sauver nouveau résultat
   LDM 0xF0     ; A = compteur
   DEC
