@@ -4,8 +4,8 @@ interface CPUStateProps {
   state: CPUStateType;
 }
 
-function hex(value: number): string {
-  return "0x" + value.toString(16).padStart(2, "0").toUpperCase();
+function hex(value: number, width = 2): string {
+  return "0x" + value.toString(16).padStart(width, "0").toUpperCase();
 }
 
 function FlagBadge({
@@ -60,7 +60,7 @@ export function CPUStatePanel({ state }: CPUStateProps) {
             PC
           </div>
           <div className="text-sm font-mono font-bold text-green-400">
-            {hex(state.pc)}
+            {hex(state.pc, 3)}
           </div>
           <div className="text-[10px] font-mono text-slate-400">{state.pc}</div>
         </div>
@@ -71,7 +71,7 @@ export function CPUStatePanel({ state }: CPUStateProps) {
             SP
           </div>
           <div className="text-sm font-mono font-bold text-purple-400">
-            {hex(state.sp)}
+            {hex(state.sp, 3)}
           </div>
           <div className="text-[10px] font-mono text-slate-400">{state.sp}</div>
         </div>

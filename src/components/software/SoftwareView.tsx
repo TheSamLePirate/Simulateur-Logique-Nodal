@@ -7,7 +7,7 @@ import { compile, type CompileError } from "../../cpu/compiler";
 import { EXAMPLES } from "../../cpu/examples";
 import { C_EXAMPLES } from "../../cpu/cexamples";
 import type { CPUState } from "../../cpu/isa";
-import { createInitialState } from "../../cpu/isa";
+import { createInitialState, MEMORY_SIZE } from "../../cpu/isa";
 
 import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
@@ -154,7 +154,7 @@ export function SoftwareView() {
 
     // Detect memory writes
     const writes = new Set<number>();
-    for (let i = 0; i < 256; i++) {
+    for (let i = 0; i < MEMORY_SIZE; i++) {
       if (cpu.state.memory[i] !== prevMem[i]) writes.add(i);
     }
     if (writes.size > 0) {

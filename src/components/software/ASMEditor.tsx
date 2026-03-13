@@ -395,15 +395,16 @@ export function ASMEditor({
             className="absolute inset-0 overflow-hidden pointer-events-none p-2"
             aria-hidden="true"
           >
-            <pre className="font-mono text-[12px] leading-5 whitespace-pre">
+            <pre className="font-mono text-[12px] leading-5 whitespace-pre m-0 p-0">
               {lines.map((line, i) => {
                 const lineNum = i + 1;
                 const isCurrentLine = currentLine === lineNum;
                 const isError = errorLineSet.has(lineNum);
+                const highlighted = highlightLine(line);
                 return (
                   <div
                     key={i}
-                    className={`${
+                    className={`h-5 ${
                       isCurrentLine
                         ? "bg-green-500/10 border-l-2 border-green-400 -ml-2 pl-[6px]"
                         : isError
@@ -412,7 +413,7 @@ export function ASMEditor({
                     }`}
                     title={errorMap.get(lineNum) || undefined}
                   >
-                    {highlightLine(line)}
+                    {highlighted.length > 0 ? highlighted : "\u00A0"}
                   </div>
                 );
               })}
@@ -424,7 +425,8 @@ export function ASMEditor({
             ref={textareaRef}
             value={code}
             onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full p-2 font-mono text-[12px] leading-5 bg-transparent text-transparent caret-white resize-none outline-none selection:bg-blue-500/30"
+            wrap="off"
+            className="absolute inset-0 w-full h-full p-2 font-mono text-[12px] leading-5 bg-transparent text-transparent caret-white resize-none outline-none border-0 whitespace-pre overflow-auto selection:bg-blue-500/30"
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"

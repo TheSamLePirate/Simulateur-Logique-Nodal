@@ -8,14 +8,14 @@
  *   A = expression result / accumulator
  *   B = secondary register for binary ops
  *
- * Memory layout:
- *   0x00..0x7F  = code (program)
- *   0x80..0x8F  = global variables (16 max)
- *   0x90..0x95  = arithmetic scratch (multiply, divide, bitwise)
- *   0x96        = scratch: unused
- *   0x97        = scratch: return value save
- *   0x98..0xBF  = local variables and parameters (per-function, unique)
- *   0xC0..0xFF  = stack (64 bytes, grows downward from 0xFF)
+ * Memory layout (1024 bytes):
+ *   0x000..0x1FF  = code (program, 512 bytes)
+ *   0x200..0x20F  = global variables (16 max)
+ *   0x210..0x215  = arithmetic scratch (multiply, divide, bitwise)
+ *   0x216          = scratch: unused
+ *   0x217          = scratch: return value save
+ *   0x218..0x2FF  = local variables and parameters (per-function, unique)
+ *   0x300..0x3FF  = stack (256 bytes, grows downward from 0x3FF)
  *
  * Calling convention:
  *   - Caller writes args directly to callee's param addresses
@@ -40,10 +40,10 @@ interface FuncInfo {
 }
 
 // Scratch memory constants
-const TEMP_BASE = 0x90; // 0x90-0x95 for arithmetic
+const TEMP_BASE = 0x210; // 0x210-0x215 for arithmetic
 const TEMP_COUNT = 6; // number of temp slots to save/restore
-const TEMP_RETVAL = 0x97; // save return value around POPs
-const STACK_BASE = 0xc0; // stack occupies 0xC0-0xFF
+const TEMP_RETVAL = 0x217; // save return value around POPs
+const STACK_BASE = 0x300; // stack occupies 0x300-0x3FF
 
 export function generate(program: Program): {
   assembly: string;
@@ -52,8 +52,8 @@ export function generate(program: Program): {
   const errors: CodegenError[] = [];
   const lines: string[] = [];
   let labelCounter = 0;
-  let globalAddr = 0x80;
-  let varAddr = 0x98; // for locals and params (after scratch area)
+  let globalAddr = 0x200;
+  let varAddr = 0x218; // for locals and params (after scratch area)
 
   const globals = new Map<string, number>(); // name → address
   const funcTable = new Map<string, FuncInfo>();
@@ -73,7 +73,7 @@ export function generate(program: Program): {
   }
 
   function fmt(addr: number): string {
-    return "0x" + (addr & 0xff).toString(16).padStart(2, "0");
+    return "0x" + (addr & 0xffff).toString(16).padStart(3, "0");
   }
 
   function allocVar(): number {
@@ -125,7 +125,7 @@ export function generate(program: Program): {
     }
     globals.set(g.name, globalAddr);
     globalAddr++;
-    if (globalAddr > 0x8f) {
+    if (globalAddr > 0x20f) {
       errors.push({
         line: g.line,
         message: "Trop de variables globales (max 16)",

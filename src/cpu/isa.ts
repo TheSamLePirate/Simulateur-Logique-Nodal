@@ -3,15 +3,24 @@
  *
  * Variable-length encoding:
  *   - Opcodes 0x00–0x7F → 1-byte instructions (no operand)
- *   - Opcodes 0x80–0xFF → 2-byte instructions (second byte = immediate/address)
+ *   - Opcodes 0x80–0xFF → 3-byte instructions (16-bit little-endian operand)
+ *
+ * Memory: 1024 bytes (10-bit address space, 0x000–0x3FF)
+ * Registers: 8-bit A (accumulator), B (secondary)
+ * PC, SP: 16-bit (masked to 10 bits)
  */
+
+// ─── Memory constants ───
+
+export const MEMORY_SIZE = 1024;
+export const ADDR_MASK = 0x3ff; // 10-bit address mask
 
 // ─── Opcode constants ───
 
 export const Opcode = {
   // Control
   NOP: 0x00,
-  HLT: 0xff,
+  HLT: 0x0f,
 
   // Register ops (1-byte)
   INC: 0x01,
@@ -33,7 +42,7 @@ export const Opcode = {
   OUTA: 0x20, // console ← A as ASCII
   OUTD: 0x21, // console ← A as decimal string
 
-  // Arithmetic/Logic with immediate (2-byte)
+  // Arithmetic/Logic with immediate (3-byte, 16-bit operand, CPU uses low byte)
   LDA: 0x80,
   LDB: 0x81,
   ADD: 0x82,
@@ -43,13 +52,13 @@ export const Opcode = {
   XOR: 0x86,
   CMP: 0x87,
 
-  // Load/Store (2-byte, operand = address)
+  // Load/Store (3-byte, operand = 16-bit address)
   STA: 0x90,
   LDM: 0x91,
   STB: 0x92,
   LBM: 0x93,
 
-  // Jumps (2-byte, operand = target address)
+  // Jumps (3-byte, operand = 16-bit target address)
   JMP: 0xa0,
   JZ: 0xa1,
   JNZ: 0xa2,
@@ -57,10 +66,10 @@ export const Opcode = {
   JNC: 0xa4,
   JN: 0xa5,
 
-  // Call (2-byte)
+  // Call (3-byte, 16-bit address)
   CALL: 0xb0,
 
-  // I/O with immediate (2-byte)
+  // I/O with immediate (3-byte, CPU uses low byte)
   OUT: 0xc0, // console ← immediate as ASCII
 } as const;
 
@@ -70,7 +79,7 @@ export type OpcodeValue = (typeof Opcode)[keyof typeof Opcode];
 
 export interface InstructionInfo {
   mnemonic: string;
-  size: 1 | 2; // byte count
+  size: 1 | 3; // byte count (1 = no operand, 3 = 16-bit operand)
   description: string;
 }
 
@@ -104,48 +113,48 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     description: "Output A as decimal number",
   },
 
-  [Opcode.LDA]: { mnemonic: "LDA", size: 2, description: "A ← imm" },
-  [Opcode.LDB]: { mnemonic: "LDB", size: 2, description: "B ← imm" },
-  [Opcode.ADD]: { mnemonic: "ADD", size: 2, description: "A ← A + imm" },
-  [Opcode.SUB]: { mnemonic: "SUB", size: 2, description: "A ← A - imm" },
-  [Opcode.AND]: { mnemonic: "AND", size: 2, description: "A ← A & imm" },
-  [Opcode.OR]: { mnemonic: "OR", size: 2, description: "A ← A | imm" },
-  [Opcode.XOR]: { mnemonic: "XOR", size: 2, description: "A ← A ^ imm" },
+  [Opcode.LDA]: { mnemonic: "LDA", size: 3, description: "A ← imm" },
+  [Opcode.LDB]: { mnemonic: "LDB", size: 3, description: "B ← imm" },
+  [Opcode.ADD]: { mnemonic: "ADD", size: 3, description: "A ← A + imm" },
+  [Opcode.SUB]: { mnemonic: "SUB", size: 3, description: "A ← A - imm" },
+  [Opcode.AND]: { mnemonic: "AND", size: 3, description: "A ← A & imm" },
+  [Opcode.OR]: { mnemonic: "OR", size: 3, description: "A ← A | imm" },
+  [Opcode.XOR]: { mnemonic: "XOR", size: 3, description: "A ← A ^ imm" },
   [Opcode.CMP]: {
     mnemonic: "CMP",
-    size: 2,
+    size: 3,
     description: "flags ← A - imm (no store)",
   },
 
-  [Opcode.STA]: { mnemonic: "STA", size: 2, description: "MEM[addr] ← A" },
-  [Opcode.LDM]: { mnemonic: "LDM", size: 2, description: "A ← MEM[addr]" },
-  [Opcode.STB]: { mnemonic: "STB", size: 2, description: "MEM[addr] ← B" },
-  [Opcode.LBM]: { mnemonic: "LBM", size: 2, description: "B ← MEM[addr]" },
+  [Opcode.STA]: { mnemonic: "STA", size: 3, description: "MEM[addr] ← A" },
+  [Opcode.LDM]: { mnemonic: "LDM", size: 3, description: "A ← MEM[addr]" },
+  [Opcode.STB]: { mnemonic: "STB", size: 3, description: "MEM[addr] ← B" },
+  [Opcode.LBM]: { mnemonic: "LBM", size: 3, description: "B ← MEM[addr]" },
 
-  [Opcode.JMP]: { mnemonic: "JMP", size: 2, description: "PC ← addr" },
-  [Opcode.JZ]: { mnemonic: "JZ", size: 2, description: "if Z: PC ← addr" },
+  [Opcode.JMP]: { mnemonic: "JMP", size: 3, description: "PC ← addr" },
+  [Opcode.JZ]: { mnemonic: "JZ", size: 3, description: "if Z: PC ← addr" },
   [Opcode.JNZ]: {
     mnemonic: "JNZ",
-    size: 2,
+    size: 3,
     description: "if !Z: PC ← addr",
   },
-  [Opcode.JC]: { mnemonic: "JC", size: 2, description: "if C: PC ← addr" },
+  [Opcode.JC]: { mnemonic: "JC", size: 3, description: "if C: PC ← addr" },
   [Opcode.JNC]: {
     mnemonic: "JNC",
-    size: 2,
+    size: 3,
     description: "if !C: PC ← addr",
   },
-  [Opcode.JN]: { mnemonic: "JN", size: 2, description: "if N: PC ← addr" },
+  [Opcode.JN]: { mnemonic: "JN", size: 3, description: "if N: PC ← addr" },
 
   [Opcode.CALL]: {
     mnemonic: "CALL",
-    size: 2,
+    size: 3,
     description: "push PC, PC ← addr",
   },
 
   [Opcode.OUT]: {
     mnemonic: "OUT",
-    size: 2,
+    size: 3,
     description: "Output imm as ASCII char",
   },
 };
@@ -167,17 +176,17 @@ export interface CPUFlags {
 export interface CPUState {
   a: number; // accumulator (0–255)
   b: number; // B register (0–255)
-  pc: number; // program counter (0–255)
-  sp: number; // stack pointer (0–255)
+  pc: number; // program counter (0–1023)
+  sp: number; // stack pointer (0–1023)
   flags: CPUFlags;
-  memory: Uint8Array; // 256 bytes
+  memory: Uint8Array; // 1024 bytes
   halted: boolean;
   cycles: number;
 }
 
 // ─── Helpers ───
 
-/** Returns true if the opcode is a 2-byte instruction (has an operand) */
+/** Returns true if the opcode is a 3-byte instruction (has a 16-bit operand) */
 export function isTwoByteOpcode(opcode: number): boolean {
   return opcode >= 0x80;
 }
@@ -188,9 +197,9 @@ export function createInitialState(): CPUState {
     a: 0,
     b: 0,
     pc: 0,
-    sp: 0xff, // stack starts at top of memory
+    sp: MEMORY_SIZE - 1, // stack starts at top of memory (0x3FF)
     flags: { z: false, c: false, n: false },
-    memory: new Uint8Array(256),
+    memory: new Uint8Array(MEMORY_SIZE),
     halted: false,
     cycles: 0,
   };
