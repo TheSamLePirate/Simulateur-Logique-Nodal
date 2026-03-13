@@ -3,63 +3,146 @@ import { Play, Square, SkipForward, RotateCcw, Zap, Gauge } from "lucide-react";
 
 import { CPU } from "../../cpu/cpu";
 import { assemble, type AssemblerError } from "../../cpu/assembler";
+import { compile, type CompileError } from "../../cpu/compiler";
 import { EXAMPLES } from "../../cpu/examples";
+import { C_EXAMPLES } from "../../cpu/cexamples";
 import type { CPUState } from "../../cpu/isa";
 import { createInitialState } from "../../cpu/isa";
 
-import { ASMEditor } from "./ASMEditor";
+import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
 import { MemoryView } from "./MemoryView";
 import { ConsolePanel } from "./ConsolePanel";
+
+interface EditorError {
+  line: number;
+  message: string;
+}
 
 export function SoftwareView() {
   // CPU instance (persists across renders)
   const cpuRef = useRef(new CPU());
 
-  // Editor state
-  const [code, setCode] = useState(EXAMPLES[0].code);
-  const [errors, setErrors] = useState<AssemblerError[]>([]);
+  // Language mode
+  const [language, setLanguage] = useState<EditorLanguage>("asm");
+
+  // Separate code buffers per language
+  const [asmCode, setAsmCode] = useState(EXAMPLES[0].code);
+  const [cCode, setCCode] = useState(C_EXAMPLES[0].code);
+
+  // Errors (for whichever tab is active)
+  const [errors, setErrors] = useState<EditorError[]>([]);
   const [assembled, setAssembled] = useState(false);
 
   // CPU state (snapshot for React rendering)
   const [cpuState, setCpuState] = useState<CPUState>(createInitialState());
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
 
-  // Source map for line highlighting
+  // Source map for line highlighting (ASM line → PC mapping)
   const sourceMapRef = useRef<Map<number, number>>(new Map());
 
   // Execution state
   const [isRunning, setIsRunning] = useState(false);
-  const [runSpeed, setRunSpeed] = useState(10); // instructions per 50ms tick
+  const [runSpeed, setRunSpeed] = useState(10);
   const runIntervalRef = useRef<number | null>(null);
 
   // Memory write highlights
   const [memHighlights, setMemHighlights] = useState<Set<number>>(new Set());
 
-  // Current source line being executed
-  const currentLine = assembled
-    ? sourceMapRef.current.get(cpuState.pc) || undefined
-    : undefined;
+  // Derived: active code based on language
+  const code = language === "c" ? cCode : asmCode;
+  const setCode = language === "c" ? setCCode : setAsmCode;
 
-  // ─── Assemble ───
+  // Current source line being executed (only for ASM tab)
+  const currentLine =
+    assembled && language === "asm"
+      ? sourceMapRef.current.get(cpuState.pc) || undefined
+      : undefined;
+
+  // ─── Language toggle ───
+  const handleLanguageChange = useCallback(
+    (lang: EditorLanguage) => {
+      if (lang === language) return;
+      setLanguage(lang);
+      // Don't reset assembled state — keep CPU loaded so you can switch
+      // between tabs and still step/run
+      setErrors([]);
+    },
+    [language],
+  );
+
+  // ─── Assemble / Compile ───
   const handleAssemble = useCallback(() => {
-    const result = assemble(code);
-    setErrors(result.errors);
+    if (language === "c") {
+      // C mode: compile → ASM → assemble
+      const compileResult = compile(cCode);
 
-    if (result.success) {
+      if (!compileResult.success) {
+        setErrors(
+          compileResult.errors.map((e: CompileError) => ({
+            line: e.line,
+            message: `[${e.phase}] ${e.message}`,
+          })),
+        );
+        setAssembled(false);
+        // Still show partial ASM if available
+        if (compileResult.assembly) {
+          setAsmCode(compileResult.assembly);
+        }
+        return;
+      }
+
+      // Put generated ASM into the ASM tab
+      setAsmCode(compileResult.assembly);
+
+      // Assemble the generated ASM
+      const asmResult = assemble(compileResult.assembly);
+      if (!asmResult.success) {
+        setErrors(
+          asmResult.errors.map((e: AssemblerError) => ({
+            line: e.line,
+            message: `[asm] ${e.message}`,
+          })),
+        );
+        setAssembled(false);
+        return;
+      }
+
       const cpu = cpuRef.current;
       cpu.reset();
-      cpu.loadProgram(result.bytes);
-      sourceMapRef.current = result.sourceMap;
+      cpu.loadProgram(asmResult.bytes);
+      sourceMapRef.current = asmResult.sourceMap;
       setCpuState(cpu.snapshot());
       setConsoleOutput([]);
       setAssembled(true);
       setIsRunning(false);
+      setErrors([]);
       setMemHighlights(new Set());
     } else {
-      setAssembled(false);
+      // ASM mode: direct assemble
+      const result = assemble(asmCode);
+      setErrors(
+        result.errors.map((e: AssemblerError) => ({
+          line: e.line,
+          message: e.message,
+        })),
+      );
+
+      if (result.success) {
+        const cpu = cpuRef.current;
+        cpu.reset();
+        cpu.loadProgram(result.bytes);
+        sourceMapRef.current = result.sourceMap;
+        setCpuState(cpu.snapshot());
+        setConsoleOutput([]);
+        setAssembled(true);
+        setIsRunning(false);
+        setMemHighlights(new Set());
+      } else {
+        setAssembled(false);
+      }
     }
-  }, [code]);
+  }, [cCode, asmCode, language]);
 
   // ─── Step ───
   const handleStep = useCallback(() => {
@@ -76,7 +159,6 @@ export function SoftwareView() {
     }
     if (writes.size > 0) {
       setMemHighlights((prev) => new Set([...prev, ...writes]));
-      // Clear highlights after 1 second
       setTimeout(() => {
         setMemHighlights((prev) => {
           const next = new Set(prev);
@@ -153,27 +235,60 @@ export function SoftwareView() {
   }, []);
 
   // ─── Example select ───
-  const handleSelectExample = useCallback((exCode: string) => {
-    setCode(exCode);
-    setAssembled(false);
-    setErrors([]);
-    setIsRunning(false);
-    const cpu = cpuRef.current;
-    cpu.reset();
-    setCpuState(cpu.snapshot());
-    setConsoleOutput([]);
-    setMemHighlights(new Set());
-  }, []);
+  const handleSelectExample = useCallback(
+    (exCode: string) => {
+      setCode(exCode);
+      setAssembled(false);
+      setErrors([]);
+      setIsRunning(false);
+      const cpu = cpuRef.current;
+      cpu.reset();
+      setCpuState(cpu.snapshot());
+      setConsoleOutput([]);
+      setMemHighlights(new Set());
+    },
+    [setCode],
+  );
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
       {/* Control bar */}
       <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 border-b border-slate-800 shrink-0">
+        {/* Language toggle */}
+        <div className="flex rounded-md overflow-hidden border border-slate-700">
+          <button
+            onClick={() => handleLanguageChange("asm")}
+            className={`px-3 py-1 text-xs font-bold transition-colors ${
+              language === "asm"
+                ? "bg-blue-500/30 text-blue-300 border-r border-blue-500/50"
+                : "bg-slate-800 text-slate-500 border-r border-slate-700 hover:bg-slate-700"
+            }`}
+          >
+            ASM
+          </button>
+          <button
+            onClick={() => handleLanguageChange("c")}
+            className={`px-3 py-1 text-xs font-bold transition-colors ${
+              language === "c"
+                ? "bg-purple-500/30 text-purple-300"
+                : "bg-slate-800 text-slate-500 hover:bg-slate-700"
+            }`}
+          >
+            C
+          </button>
+        </div>
+
+        <div className="w-px h-6 bg-slate-700 mx-1" />
+
         <button
           onClick={handleAssemble}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors border ${
+            language === "c"
+              ? "bg-purple-500/20 text-purple-400 border-purple-500/50 hover:bg-purple-500/30"
+              : "bg-blue-500/20 text-blue-400 border-blue-500/50 hover:bg-blue-500/30"
+          }`}
         >
-          <Zap size={14} /> Assembler
+          <Zap size={14} /> {language === "c" ? "Compiler" : "Assembler"}
         </button>
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
@@ -259,6 +374,7 @@ export function SoftwareView() {
               errors={errors}
               currentLine={currentLine}
               onSelectExample={handleSelectExample}
+              language={language}
             />
           </div>
         </div>

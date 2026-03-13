@@ -80,62 +80,44 @@ done:
     name: "Factorielle",
     description: "Calcule 5! = 120",
     code: `; Factorielle de 5
-; Résultat dans A (5! = 120)
-  LDA 1        ; A = résultat = 1
-  LDB 5        ; B = compteur = 5
-  STB 0xF0     ; MEM[0xF0] = compteur
+; Résultat: 5! = 120
+; MEM[0xF0] = compteur, MEM[0xF1] = résultat, MEM[0xF2] = additions restantes
+  LDA 1
+  STA 0xF1     ; résultat = 1
+  LDA 5
+  STA 0xF0     ; compteur = 5
 
 mul_loop:
-  LBM 0xF0     ; B = compteur
-  CMP 0        ; A utilise CMP pour vérifier B... non
-  ; Vérifier si compteur == 0
-  PUSH          ; sauver résultat
-  TBA           ; A = compteur
-  CMP 1        ; compteur <= 1 ?
-  POP           ; restaurer résultat dans A
-  JZ done       ; si compteur == 1, terminé
+  LDM 0xF0     ; A = compteur
+  CMP 1
+  JZ done       ; si compteur <= 1, terminé
 
-  ; Multiplier: résultat = résultat * compteur
-  ; On simule la multiplication par additions répétées
-  TAB           ; B = résultat actuel
-  STA 0xF1     ; sauver résultat
-  LBM 0xF0     ; B = compteur
-  DEC           ; compteur - 1 fois ajouter
-  TAB           ; B = compteur - 1
-  STB 0xF2     ; MEM[0xF2] = nombre d'additions restantes
-  LDM 0xF1     ; A = résultat original
+  ; Multiplier résultat par compteur (additions répétées)
+  LDM 0xF0     ; A = compteur
+  DEC           ; A = compteur - 1
+  STA 0xF2     ; additions restantes = compteur - 1
+  LDM 0xF1     ; A = résultat (accumulateur)
 
 add_loop:
-  LBM 0xF2     ; B = additions restantes
-  PUSH
-  TBA           ; A = additions restantes
-  CMP 0
-  POP           ; restaurer A
-  JZ mul_next   ; si 0, passer au compteur suivant
-
   LBM 0xF1     ; B = résultat original
   ADDB          ; A += résultat original
-  PUSH
-  LBM 0xF2
-  TBA
+  PUSH          ; sauver A
+  LDM 0xF2     ; A = restantes
   DEC
-  TAB
-  STB 0xF2     ; décrémenter additions restantes
-  POP
-  JMP add_loop
+  STA 0xF2     ; restantes--
+  CMP 0
+  POP           ; A = accumulateur
+  JNZ add_loop  ; continuer si restantes > 0
 
-mul_next:
-  ; A contient résultat * compteur
+  ; A = résultat * compteur
   STA 0xF1     ; sauver nouveau résultat
-  LBM 0xF0     ; compteur
-  TBA
+  LDM 0xF0     ; A = compteur
   DEC
-  TAB
-  STB 0xF0     ; décrémenter compteur
-  LDM 0xF1     ; A = résultat
+  STA 0xF0     ; compteur--
   JMP mul_loop
 
 done:
+  LDM 0xF1     ; A = résultat final
   OUTD          ; affiche 120
   HLT`,
   },

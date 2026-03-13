@@ -1,24 +1,29 @@
 import { useCallback, useMemo, useRef, useEffect } from "react";
 import { MNEMONIC_TO_OPCODE } from "../../cpu/isa";
 import { EXAMPLES } from "../../cpu/examples";
-import type { AssemblerError } from "../../cpu/assembler";
+import { C_EXAMPLES } from "../../cpu/cexamples";
+
+export type EditorLanguage = "asm" | "c";
+
+interface EditorError {
+  line: number;
+  message: string;
+}
 
 interface ASMEditorProps {
   code: string;
   onChange: (code: string) => void;
-  errors: AssemblerError[];
+  errors: EditorError[];
   currentLine?: number; // 1-based line being executed (for step highlight)
   onSelectExample: (code: string) => void;
+  language: EditorLanguage;
 }
 
-// All known mnemonics for highlighting
+// ─── ASM Highlighting ───
+
 const ALL_MNEMONICS = new Set(Object.keys(MNEMONIC_TO_OPCODE));
 
-/**
- * Syntax-highlight a single line of assembly.
- * Returns an array of JSX spans.
- */
-function highlightLine(line: string): React.ReactNode[] {
+function highlightASMLine(line: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   let remaining = line;
   let key = 0;
@@ -49,13 +54,11 @@ function highlightLine(line: string): React.ReactNode[] {
   for (const token of tokens) {
     if (!token) continue;
 
-    // Whitespace
     if (/^\s+$/.test(token)) {
       parts.push(<span key={key++}>{token}</span>);
       continue;
     }
 
-    // Mnemonic
     if (!foundMnemonic && ALL_MNEMONICS.has(token.toUpperCase())) {
       foundMnemonic = true;
       parts.push(
@@ -66,7 +69,6 @@ function highlightLine(line: string): React.ReactNode[] {
       continue;
     }
 
-    // Directive
     if (token.toLowerCase().startsWith(".db")) {
       parts.push(
         <span key={key++} className="text-pink-400 font-bold">
@@ -76,7 +78,6 @@ function highlightLine(line: string): React.ReactNode[] {
       continue;
     }
 
-    // Number (hex, binary, decimal)
     if (
       /^0x[0-9a-fA-F]+$/.test(token) ||
       /^0b[01]+$/.test(token) ||
@@ -90,7 +91,6 @@ function highlightLine(line: string): React.ReactNode[] {
       continue;
     }
 
-    // Char literal
     if (/^'.'$/.test(token)) {
       parts.push(
         <span key={key++} className="text-amber-300">
@@ -100,10 +100,169 @@ function highlightLine(line: string): React.ReactNode[] {
       continue;
     }
 
-    // Label reference (after mnemonic)
     if (foundMnemonic && /^[a-zA-Z_]\w*$/.test(token)) {
       parts.push(
         <span key={key++} className="text-yellow-300">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    parts.push(
+      <span key={key++} className="text-slate-300">
+        {token}
+      </span>,
+    );
+  }
+
+  if (comment) {
+    parts.push(
+      <span key={key++} className="text-slate-500 italic">
+        {comment}
+      </span>,
+    );
+  }
+
+  return parts;
+}
+
+// ─── C Highlighting ───
+
+const C_KEYWORDS = new Set([
+  "int",
+  "void",
+  "if",
+  "else",
+  "while",
+  "for",
+  "return",
+]);
+const C_BUILTINS = new Set(["putchar", "print_num", "print"]);
+
+function highlightCLine(line: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let key = 0;
+
+  // Tokenize using regex that captures different token types
+  // Order matters: strings, comments, numbers, identifiers, operators, whitespace
+  const regex =
+    /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|#\w+|0x[0-9a-fA-F]+|\d+|[a-zA-Z_]\w*|[+\-*/%=!<>&|^~]+|[{}();,]|\s+)/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(line)) !== null) {
+    const token = match[0];
+
+    // Whitespace
+    if (/^\s+$/.test(token)) {
+      parts.push(<span key={key++}>{token}</span>);
+      continue;
+    }
+
+    // Line comment
+    if (token.startsWith("//")) {
+      parts.push(
+        <span key={key++} className="text-slate-500 italic">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Block comment
+    if (token.startsWith("/*")) {
+      parts.push(
+        <span key={key++} className="text-slate-500 italic">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Preprocessor directive
+    if (token.startsWith("#")) {
+      parts.push(
+        <span key={key++} className="text-pink-400 font-bold">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // String literal
+    if (token.startsWith('"')) {
+      parts.push(
+        <span key={key++} className="text-amber-300">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Char literal
+    if (token.startsWith("'")) {
+      parts.push(
+        <span key={key++} className="text-amber-300">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Number
+    if (/^(0x[0-9a-fA-F]+|\d+)$/.test(token)) {
+      parts.push(
+        <span key={key++} className="text-green-400">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Keyword
+    if (C_KEYWORDS.has(token)) {
+      parts.push(
+        <span key={key++} className="text-purple-400 font-bold">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Built-in function
+    if (C_BUILTINS.has(token)) {
+      parts.push(
+        <span key={key++} className="text-cyan-400 font-bold">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Identifier
+    if (/^[a-zA-Z_]\w*$/.test(token)) {
+      parts.push(
+        <span key={key++} className="text-slate-200">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Operators and punctuation
+    if (/^[+\-*/%=!<>&|^~]+$/.test(token)) {
+      parts.push(
+        <span key={key++} className="text-sky-300">
+          {token}
+        </span>,
+      );
+      continue;
+    }
+
+    // Braces, parens, etc.
+    if (/^[{}();,]$/.test(token)) {
+      parts.push(
+        <span key={key++} className="text-slate-400">
           {token}
         </span>,
       );
@@ -118,17 +277,10 @@ function highlightLine(line: string): React.ReactNode[] {
     );
   }
 
-  // Append comment
-  if (comment) {
-    parts.push(
-      <span key={key++} className="text-slate-500 italic">
-        {comment}
-      </span>,
-    );
-  }
-
   return parts;
 }
+
+// ─── Main component ───
 
 export function ASMEditor({
   code,
@@ -136,6 +288,7 @@ export function ASMEditor({
   errors,
   currentLine,
   onSelectExample,
+  language,
 }: ASMEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -154,6 +307,10 @@ export function ASMEditor({
     return map;
   }, [errors]);
 
+  const highlightLine = language === "c" ? highlightCLine : highlightASMLine;
+
+  const examples = language === "c" ? C_EXAMPLES : EXAMPLES;
+
   // Sync scroll between textarea and highlight overlay
   const syncScroll = useCallback(() => {
     if (textareaRef.current && highlightRef.current && lineNumbersRef.current) {
@@ -163,7 +320,6 @@ export function ASMEditor({
     }
   }, []);
 
-  // Keep highlight scroll in sync
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -176,22 +332,23 @@ export function ASMEditor({
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 border-b border-slate-700">
         <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider mr-2">
-          Éditeur ASM
+          {language === "c" ? "Éditeur C" : "Éditeur ASM"}
         </span>
         <select
           className="bg-slate-700 text-slate-300 text-xs rounded px-2 py-1 border border-slate-600 focus:outline-none focus:border-blue-500"
           onChange={(e) => {
             const idx = parseInt(e.target.value);
-            if (!isNaN(idx) && EXAMPLES[idx]) {
-              onSelectExample(EXAMPLES[idx].code);
+            if (!isNaN(idx) && examples[idx]) {
+              onSelectExample(examples[idx].code);
             }
           }}
           defaultValue=""
+          key={language} // reset dropdown on language change
         >
           <option value="" disabled>
             Charger un exemple...
           </option>
-          {EXAMPLES.map((ex, i) => (
+          {examples.map((ex, i) => (
             <option key={i} value={i}>
               {ex.name} — {ex.description}
             </option>
