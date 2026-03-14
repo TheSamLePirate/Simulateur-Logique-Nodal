@@ -3,6 +3,9 @@ import { Maximize2, MemoryStick } from "lucide-react";
 
 export const SRAM8Node = ({ data }: any) => {
   const addr = data.currentAddress || 0;
+  const memSize = data.memory ? data.memory.length : 256;
+  const addrBits = memSize <= 256 ? 8 : 10;
+  const addrHexWidth = addrBits <= 8 ? 2 : 3;
   const val = data.memory ? data.memory[addr] : 0;
 
   return (
@@ -21,13 +24,13 @@ export const SRAM8Node = ({ data }: any) => {
       <div className="flex items-center justify-center gap-2 mb-2 border-b border-slate-700 pb-2">
         <MemoryStick size={14} className="text-amber-400" />
         <span className="text-[10px] font-bold text-white uppercase">
-          SRAM 256x8
+          SRAM {memSize}x8
         </span>
       </div>
 
       <div className="bg-slate-900 rounded p-1 mb-2 text-center border border-slate-700">
         <div className="text-[10px] text-slate-400 font-mono">
-          ADDR: 0x{addr.toString(16).padStart(2, "0").toUpperCase()}
+          ADDR: 0x{addr.toString(16).padStart(addrHexWidth, "0").toUpperCase()}
         </div>
         <div className="text-[10px] text-green-400 font-mono">
           DATA: 0x{val.toString(16).padStart(2, "0").toUpperCase()}
@@ -35,10 +38,10 @@ export const SRAM8Node = ({ data }: any) => {
       </div>
 
       <div className="flex justify-between">
-        {/* Left side: A0-A7, D0-D7, WE */}
+        {/* Left side: A0-A9, D0-D7, WE */}
         <div className="flex flex-col gap-1">
           <div className="text-[8px] text-yellow-500 font-bold">ADDR</div>
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          {Array.from({ length: addrBits }, (_, i) => (
             <div key={`a${i}`} className="relative h-3 flex items-center">
               <Handle
                 type="target"

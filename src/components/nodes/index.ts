@@ -11,6 +11,8 @@ import { ClockNode } from "./ClockNode";
 import { Register8Node } from "./Register8Node";
 import { ALU8Node } from "./ALU8Node";
 import { Mux8Node } from "./Mux8Node";
+import { ConsoleNode } from "./ConsoleNode";
+import { PlotterNode } from "./PlotterNode";
 
 export {
   InputNode,
@@ -26,6 +28,8 @@ export {
   Register8Node,
   ALU8Node,
   Mux8Node,
+  ConsoleNode,
+  PlotterNode,
 };
 
 export const nodeTypes = {
@@ -42,4 +46,6 @@ export const nodeTypes = {
   register8: Register8Node,
   alu8: ALU8Node,
   mux8: Mux8Node,
+  console: ConsoleNode,
+  plotter: PlotterNode,
 };

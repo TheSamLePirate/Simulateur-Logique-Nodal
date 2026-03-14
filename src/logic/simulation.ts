@@ -132,10 +132,14 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         changed = true;
       }
     } else if (node.type === "sram8") {
+      const memSize = (node.data.memory as number[])?.length || 256;
+      const addrBits = memSize <= 256 ? 8 : 10;
+
       let addr = 0;
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < addrBits; i++) {
         if (getVal(node.id, `a${i}`)) addr |= 1 << i;
       }
+      if (addr >= memSize) addr = addr % memSize;
 
       let dataIn = 0;
       for (let i = 0; i < 8; i++) {
@@ -146,7 +150,7 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
 
       const memory = node.data.memory
         ? [...(node.data.memory as number[])]
-        : Array(256).fill(0);
+        : Array(memSize).fill(0);
       let memChanged = false;
 
       if (we === 1) {
@@ -368,6 +372,85 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         newNodes[index] = {
           ...node,
           data: { ...node.data, sel, outVal, out },
+        };
+        changed = true;
+      }
+    } else if (node.type === "console") {
+      // Read 8-bit data input
+      let dataIn = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `d${i}`)) dataIn |= 1 << i;
+      }
+      const wr = getVal(node.id, "wr");
+      const prevWr = (node.data.prevWr as Bit) || 0;
+      const mode = getVal(node.id, "mode"); // 0=ASCII, 1=decimal
+      const clr = getVal(node.id, "clr");
+
+      let text = (node.data.text as string) || "";
+      let lastChar = (node.data.lastChar as number) || 0;
+      let textChanged = false;
+
+      if (clr === 1) {
+        if (text.length > 0) {
+          text = "";
+          lastChar = 0;
+          textChanged = true;
+        }
+      } else if (prevWr === 0 && wr === 1) {
+        // Rising edge of WR
+        lastChar = dataIn;
+        if (mode === 0) {
+          // ASCII mode
+          text += String.fromCharCode(dataIn);
+        } else {
+          // Decimal mode
+          text += dataIn.toString();
+        }
+        textChanged = true;
+      }
+
+      if (textChanged || node.data.prevWr !== wr) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, text, lastChar, prevWr: wr },
+        };
+        changed = true;
+      }
+    } else if (node.type === "plotter") {
+      // Read X and Y coordinates
+      let x = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `x${i}`)) x |= 1 << i;
+      }
+      let y = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `y${i}`)) y |= 1 << i;
+      }
+      const draw = getVal(node.id, "draw");
+      const prevDraw = (node.data.prevDraw as Bit) || 0;
+      const clr = getVal(node.id, "clr");
+
+      let pixels = (node.data.pixels as number[]) || [];
+      let pixelsChanged = false;
+
+      if (clr === 1) {
+        if (pixels.length > 0) {
+          pixels = [];
+          pixelsChanged = true;
+        }
+      } else if (prevDraw === 0 && draw === 1) {
+        // Rising edge of DRAW
+        const encoded = (y << 8) | x;
+        if (!pixels.includes(encoded)) {
+          pixels = [...pixels, encoded];
+          pixelsChanged = true;
+        }
+      }
+
+      if (pixelsChanged || node.data.prevDraw !== draw) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, pixels, prevDraw: draw },
         };
         changed = true;
       }

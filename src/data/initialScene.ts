@@ -22,6 +22,14 @@ import type { Node, Edge } from "@xyflow/react";
  *
  *   CLOCK ──→ all registers (CLK)
  *   Control switches: LOAD enables, MUX selects, MEM_WE, ALU_OP, RST
+ *
+ *   I/O Peripherals:
+ *   ┌──────────┐     ┌──────────┐
+ *   │ CONSOLE  │     │ PLOTTER  │
+ *   │ (text)   │     │ (256×256)│
+ *   └──────────┘     └──────────┘
+ *     A → DATA         A → X, B → Y
+ *     WR strobe        DRAW strobe
  */
 
 // ── Helper: generate 8 edges for an 8-bit bus connection ──
@@ -141,7 +149,7 @@ export const initialNodes: Node[] = [
   },
 
   // ═════════════════════════════════
-  //  MEMORY (SRAM 256×8)
+  //  MEMORY (SRAM 1024×8)
   // ═════════════════════════════════
 
   {
@@ -149,7 +157,7 @@ export const initialNodes: Node[] = [
     type: "sram8",
     position: { x: 600, y: 80 },
     data: {
-      memory: Array(256).fill(0),
+      memory: Array(1024).fill(0),
       q: Array(8).fill(0),
       currentAddress: 0,
     },
@@ -355,6 +363,61 @@ export const initialNodes: Node[] = [
   },
 
   // ═════════════════════════════════
+  //  I/O PERIPHERALS
+  // ═════════════════════════════════
+
+  // Console output — displays characters from A register
+  {
+    id: "console",
+    type: "console",
+    position: { x: 2150, y: -200 },
+    data: { label: "CONSOLE", text: "", lastChar: 0, prevWr: 0 },
+  },
+  // Console write strobe
+  {
+    id: "consoleWr",
+    type: "input",
+    position: { x: 2050, y: -60 },
+    data: { label: "CON_WR", value: 0 },
+  },
+  // Console mode (0=ASCII, 1=decimal)
+  {
+    id: "consoleMode",
+    type: "input",
+    position: { x: 2050, y: 10 },
+    data: { label: "CON_MODE", value: 0 },
+  },
+  // Console clear
+  {
+    id: "consoleClear",
+    type: "input",
+    position: { x: 2050, y: 80 },
+    data: { label: "CON_CLR", value: 0 },
+  },
+
+  // Plotter output — plots pixels at (A, B) coordinates
+  {
+    id: "plotter",
+    type: "plotter",
+    position: { x: 2150, y: 500 },
+    data: { label: "PLOTTER", pixels: [], prevDraw: 0 },
+  },
+  // Plotter draw strobe
+  {
+    id: "plotDraw",
+    type: "input",
+    position: { x: 2050, y: 760 },
+    data: { label: "DRAW", value: 0 },
+  },
+  // Plotter clear
+  {
+    id: "plotClear",
+    type: "input",
+    position: { x: 2050, y: 830 },
+    data: { label: "PLOT_CLR", value: 0 },
+  },
+
+  // ═════════════════════════════════
   //  GLOBAL CONTROLS
   // ═════════════════════════════════
 
@@ -511,4 +574,30 @@ export const initialEdges: Edge[] = [
 
   // SRAM → memory read display
   ...bus8("e-mem-disp-", "sram", "memDisp", "q", "in"),
+
+  // ══════════════════════════════════════
+  //  CONSOLE: A → data, control wires
+  // ══════════════════════════════════════
+
+  // A register output → Console data input
+  ...bus8("e-a-con-d", "aReg", "console", "q", "d"),
+
+  // Console control signals
+  wire("e-con-wr", "consoleWr", "console", "out", "wr"),
+  wire("e-con-mode", "consoleMode", "console", "out", "mode"),
+  wire("e-con-clr", "consoleClear", "console", "out", "clr"),
+
+  // ══════════════════════════════════════
+  //  PLOTTER: A → X, B → Y, control wires
+  // ══════════════════════════════════════
+
+  // A register output → Plotter X coordinate
+  ...bus8("e-a-plot-x", "aReg", "plotter", "q", "x"),
+
+  // B register output → Plotter Y coordinate
+  ...bus8("e-b-plot-y", "bReg", "plotter", "q", "y"),
+
+  // Plotter control signals
+  wire("e-plot-draw", "plotDraw", "plotter", "out", "draw"),
+  wire("e-plot-clr", "plotClear", "plotter", "out", "clr"),
 ];

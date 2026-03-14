@@ -24,6 +24,8 @@ import {
   Database,
   Calculator,
   GitFork,
+  Terminal,
+  Grid3X3,
 } from "lucide-react";
 
 import type {
@@ -38,7 +40,10 @@ import { MiniSim } from "./components/MiniSim";
 import { initialNodes, initialEdges } from "./data/initialScene";
 import { simulateNodes, updateEdgeStyles } from "./logic/simulation";
 import { PREBUILT_MODULES } from "./data/prebuiltModules";
-import { SoftwareView } from "./components/software/SoftwareView";
+import {
+  SoftwareView,
+  type HardwareSyncData,
+} from "./components/software/SoftwareView";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -805,6 +810,31 @@ export default function App() {
           },
         };
         break;
+      case "console":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "CONSOLE",
+            text: "",
+            lastChar: 0,
+            prevWr: 0 as Bit,
+          },
+        };
+        break;
+      case "plotter":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "PLOTTER",
+            pixels: [],
+            prevDraw: 0 as Bit,
+          },
+        };
+        break;
       default:
         return;
     }
@@ -816,6 +846,88 @@ export default function App() {
     setNodes([]);
     setEdges([]);
   };
+
+  // =============================================
+  //  SOFTWARE → HARDWARE SYNC
+  // =============================================
+  const handleHardwareSync = useCallback(
+    (data: HardwareSyncData) => {
+      const toBits = (val: number, bits = 8) =>
+        Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
+
+      setNodes((nds) =>
+        nds.map((node) => {
+          switch (node.id) {
+            case "pc":
+              return {
+                ...node,
+                data: { ...node.data, value: data.pc, q: toBits(data.pc) },
+              };
+            case "ir":
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  value: data.memory[data.pc] || 0,
+                  q: toBits(data.memory[data.pc] || 0),
+                },
+              };
+            case "aReg":
+              return {
+                ...node,
+                data: { ...node.data, value: data.a, q: toBits(data.a) },
+              };
+            case "bReg":
+              return {
+                ...node,
+                data: { ...node.data, value: data.b, q: toBits(data.b) },
+              };
+            case "sp":
+              return {
+                ...node,
+                data: { ...node.data, value: data.sp, q: toBits(data.sp) },
+              };
+            case "sram":
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  memory: Array.from(data.memory),
+                },
+              };
+            case "flagZ":
+              return {
+                ...node,
+                data: { ...node.data, value: data.flags.z ? 1 : 0 },
+              };
+            case "flagC":
+              return {
+                ...node,
+                data: { ...node.data, value: data.flags.c ? 1 : 0 },
+              };
+            case "flagN":
+              return {
+                ...node,
+                data: { ...node.data, value: data.flags.n ? 1 : 0 },
+              };
+            case "console":
+              return {
+                ...node,
+                data: { ...node.data, text: data.consoleText },
+              };
+            case "plotter":
+              return {
+                ...node,
+                data: { ...node.data, pixels: data.plotterPixels },
+              };
+            default:
+              return node;
+          }
+        }),
+      );
+    },
+    [setNodes],
+  );
 
   const hasSelection = nodes.some((n) => n.selected);
 
@@ -891,7 +1003,7 @@ export default function App() {
 
       {/* Main Workspace */}
       {activeTab === "software" ? (
-        <SoftwareView />
+        <SoftwareView onHardwareSync={handleHardwareSync} />
       ) : (
         <div className="flex-1 flex relative">
           {inspecting && (
@@ -1033,6 +1145,20 @@ export default function App() {
                 >
                   <GitFork size={18} className="text-indigo-400" />
                   <span className="font-bold">MUX 8-bit</span>
+                </button>
+                <button
+                  onClick={() => addNode("console")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-emerald-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Terminal size={18} className="text-emerald-400" />
+                  <span className="font-bold">Console</span>
+                </button>
+                <button
+                  onClick={() => addNode("plotter")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-cyan-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Grid3X3 size={18} className="text-cyan-400" />
+                  <span className="font-bold">Plotter</span>
                 </button>
               </div>
             </div>

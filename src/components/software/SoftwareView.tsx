@@ -20,7 +20,22 @@ interface EditorError {
   message: string;
 }
 
-export function SoftwareView() {
+export interface HardwareSyncData {
+  pc: number;
+  a: number;
+  b: number;
+  sp: number;
+  memory: Uint8Array;
+  flags: { z: boolean; c: boolean; n: boolean };
+  consoleText: string;
+  plotterPixels: number[];
+}
+
+interface SoftwareViewProps {
+  onHardwareSync?: (data: HardwareSyncData) => void;
+}
+
+export function SoftwareView({ onHardwareSync }: SoftwareViewProps) {
   // CPU instance (persists across renders)
   const cpuRef = useRef(new CPU());
 
@@ -174,10 +189,21 @@ export function SoftwareView() {
     setConsoleOutput([...cpu.consoleOutput]);
     setPlotterPixels(new Set(cpu.plotterPixels));
 
+    onHardwareSync?.({
+      pc: cpu.state.pc,
+      a: cpu.state.a,
+      b: cpu.state.b,
+      sp: cpu.state.sp,
+      memory: new Uint8Array(cpu.state.memory),
+      flags: { ...cpu.state.flags },
+      consoleText: cpu.consoleOutput.join(""),
+      plotterPixels: Array.from(cpu.plotterPixels),
+    });
+
     if (cpu.state.halted) {
       setIsRunning(false);
     }
-  }, [assembled]);
+  }, [assembled, onHardwareSync]);
 
   // ─── Run / Stop ───
   const handleRun = useCallback(() => {
@@ -210,6 +236,17 @@ export function SoftwareView() {
       setCpuState(cpu.snapshot());
       setConsoleOutput([...cpu.consoleOutput]);
       setPlotterPixels(new Set(cpu.plotterPixels));
+
+      onHardwareSync?.({
+        pc: cpu.state.pc,
+        a: cpu.state.a,
+        b: cpu.state.b,
+        sp: cpu.state.sp,
+        memory: new Uint8Array(cpu.state.memory),
+        flags: { ...cpu.state.flags },
+        consoleText: cpu.consoleOutput.join(""),
+        plotterPixels: Array.from(cpu.plotterPixels),
+      });
     }, 50);
 
     return () => {
@@ -218,7 +255,7 @@ export function SoftwareView() {
         runIntervalRef.current = null;
       }
     };
-  }, [isRunning, runSpeed]);
+  }, [isRunning, runSpeed, onHardwareSync]);
 
   // ─── Reset ───
   const handleReset = useCallback(() => {
