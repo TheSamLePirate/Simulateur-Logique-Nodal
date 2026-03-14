@@ -32,6 +32,13 @@ export interface CodegenError {
   message: string;
 }
 
+export interface MemoryLayout {
+  globals: number; // number of global variables
+  scratch: number; // arithmetic scratch slots (fixed)
+  locals: number; // number of local/param variables
+  stackSize: number; // stack area size (fixed)
+}
+
 interface FuncInfo {
   isMain: boolean;
   paramAddrs: Map<string, number>; // param name → memory address
@@ -48,6 +55,7 @@ const STACK_BASE = 0x300; // stack occupies 0x300-0x3FF
 export function generate(program: Program): {
   assembly: string;
   errors: CodegenError[];
+  memoryLayout: MemoryLayout;
 } {
   const errors: CodegenError[] = [];
   const lines: string[] = [];
@@ -175,7 +183,16 @@ export function generate(program: Program): {
     errors.push({ line: 1, message: "Fonction 'main' requise" });
   }
 
-  return { assembly: lines.join("\n"), errors };
+  return {
+    assembly: lines.join("\n"),
+    errors,
+    memoryLayout: {
+      globals: globalAddr - 0x200,
+      scratch: 8, // 0x210-0x217 always reserved
+      locals: varAddr - 0x218,
+      stackSize: 256, // 0x300-0x3FF always reserved
+    },
+  };
 
   // ═══════════════════════════════════════
   //  Function code generation

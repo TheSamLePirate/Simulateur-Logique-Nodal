@@ -15,7 +15,12 @@
  *   ; comment       ; everything after semicolon is ignored
  */
 
-import { MNEMONIC_TO_OPCODE, INSTRUCTION_INFO, isTwoByteOpcode } from "./isa";
+import {
+  MNEMONIC_TO_OPCODE,
+  INSTRUCTION_INFO,
+  isTwoByteOpcode,
+  CODE_SIZE,
+} from "./isa";
 
 export interface AssemblerError {
   line: number; // 1-based line number
@@ -262,6 +267,14 @@ export function assemble(source: string): AssemblerResult {
         });
       }
     }
+  }
+
+  // ─── Check code size overflow ───
+  if (bytes.length > CODE_SIZE) {
+    errors.push({
+      line: 0,
+      message: `Programme trop grand : ${bytes.length} octets (max ${CODE_SIZE}). Déborde sur la zone variables/données.`,
+    });
   }
 
   return {

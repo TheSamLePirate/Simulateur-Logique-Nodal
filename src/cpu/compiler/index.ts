@@ -16,10 +16,13 @@ export interface CompileError {
   message: string;
 }
 
+export type { MemoryLayout } from "./codegen";
+
 export interface CompileResult {
   success: boolean;
   assembly: string; // generated ASM text (even if errors, for debugging)
   errors: CompileError[];
+  memoryLayout?: MemoryLayout;
 }
 
 /**
@@ -109,7 +112,7 @@ export function compile(source: string): CompileResult {
   }
 
   // 4. Code generation
-  const { assembly, errors: codegenErrors } = generate(program);
+  const { assembly, errors: codegenErrors, memoryLayout } = generate(program);
   for (const e of codegenErrors) {
     allErrors.push({
       phase: "codegen",
@@ -119,8 +122,8 @@ export function compile(source: string): CompileResult {
   }
 
   if (codegenErrors.length > 0) {
-    return { success: false, assembly, errors: allErrors };
+    return { success: false, assembly, errors: allErrors, memoryLayout };
   }
 
-  return { success: true, assembly, errors: [] };
+  return { success: true, assembly, errors: [], memoryLayout };
 }

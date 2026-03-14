@@ -259,4 +259,146 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Calculatrice",
+    description: "Calculatrice interactive : tapez a op b",
+    code: `// Calculatrice interactive (8-bit)
+// Tapez: chiffre op chiffre (ex: 3+5)
+// Operateurs: + - * /
+// Valeurs: 0-9 (un seul chiffre)
+
+int main() {
+  int a;
+  int b;
+  int op;
+  int r;
+
+  while (1) {
+    print("> ");
+
+    a = getchar() - 48;
+    putchar(a + 48);
+
+    op = getchar();
+    putchar(op);
+
+    b = getchar() - 48;
+    putchar(b + 48);
+
+    getchar();
+    putchar(10);
+
+    r = 0;
+    if (op == 43) { r = a + b; }
+    if (op == 45) { r = a - b; }
+    if (op == 42) { r = a * b; }
+    if (op == 47) { r = a / b; }
+
+    print("= ");
+    print_num(r);
+    putchar(10);
+  }
+  return 0;
+}`,
+  },
+  {
+    name: "Horloge",
+    description: "Chronomètre MM:SS qui défile",
+    code: `// Chronometre MM:SS
+// Affiche chaque seconde sur une nouvelle ligne
+
+int print_2d(int n) {
+  putchar(48 + n / 10);
+  putchar(48 + n % 10);
+  return 0;
+}
+
+int main() {
+  int m;
+  int s;
+  int t;
+
+  m = 0;
+  s = 0;
+
+  while (m < 60) {
+    print_2d(m);
+    putchar(58);
+    print_2d(s);
+    putchar(10);
+
+    s = s + 1;
+    if (s >= 60) {
+      s = 0;
+      m = m + 1;
+    }
+  }
+  return 0;
+}`,
+  },
+  {
+    name: "Spirale",
+    description: "Dessine une spirale carrée sur le plotter",
+    code: `// Spirale carree sur le plotter
+// 4 bras par tour, longueur croissante
+
+int main() {
+  int x;
+  int y;
+  int s;
+  int i;
+
+  clear();
+  x = 128;
+  y = 128;
+  s = 4;
+
+  while (s < 120) {
+    for (i = 0; i < s; i++) { draw(x, y); x = x + 1; }
+    for (i = 0; i < s; i++) { draw(x, y); y = y + 1; }
+    s = s + 4;
+    for (i = 0; i < s; i++) { draw(x, y); x = x - 1; }
+    for (i = 0; i < s; i++) { draw(x, y); y = y - 1; }
+    s = s + 4;
+  }
+  return 0;
+}`,
+  },
+  {
+    name: "Tableau de nombres premiers",
+    description: "Trouve et affiche les nombres premiers",
+    code: `// Trouve les nombres premiers jusqu'a 100
+
+int is_prime(int n) {
+  int d;
+  if (n < 2) { return 0; }
+  for (d = 2; d * d <= n; d++) {
+    if (n % d == 0) { return 0; }
+  }
+  return 1;
+}
+
+int main() {
+  int i;
+  int count;
+  count = 0;
+
+  print("Nombres premiers:");
+  putchar(10);
+
+  for (i = 2; i <= 100; i++) {
+    if (is_prime(i)) {
+      print_num(i);
+      putchar(32);
+      count = count + 1;
+    }
+  }
+
+  putchar(10);
+  print("Total: ");
+  print_num(count);
+  putchar(10);
+  return 0;
+}`,
+  },
 ];

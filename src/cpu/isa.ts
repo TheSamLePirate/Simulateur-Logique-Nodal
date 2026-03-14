@@ -13,6 +13,7 @@
 // ─── Memory constants ───
 
 export const MEMORY_SIZE = 1024;
+export const CODE_SIZE = 512; // 0x000..0x1FF — code area (bytes)
 export const ADDR_MASK = 0x3ff; // 10-bit address mask
 
 // ─── Opcode constants ───

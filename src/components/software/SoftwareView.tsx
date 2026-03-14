@@ -3,11 +3,15 @@ import { Play, Square, SkipForward, RotateCcw, Zap, Gauge } from "lucide-react";
 
 import { CPU } from "../../cpu/cpu";
 import { assemble, type AssemblerError } from "../../cpu/assembler";
-import { compile, type CompileError } from "../../cpu/compiler";
+import {
+  compile,
+  type CompileError,
+  type MemoryLayout,
+} from "../../cpu/compiler";
 import { EXAMPLES } from "../../cpu/examples";
 import { C_EXAMPLES } from "../../cpu/cexamples";
 import type { CPUState } from "../../cpu/isa";
-import { createInitialState, MEMORY_SIZE } from "../../cpu/isa";
+import { createInitialState, MEMORY_SIZE, CODE_SIZE } from "../../cpu/isa";
 
 import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
@@ -54,6 +58,8 @@ export function SoftwareView({
   // Errors (for whichever tab is active)
   const [errors, setErrors] = useState<EditorError[]>([]);
   const [assembled, setAssembled] = useState(false);
+  const [codeSize, setCodeSize] = useState(0);
+  const [memLayout, setMemLayout] = useState<MemoryLayout | null>(null);
 
   // CPU state (snapshot for React rendering)
   const [cpuState, setCpuState] = useState<CPUState>(createInitialState());
@@ -107,6 +113,7 @@ export function SoftwareView({
           })),
         );
         setAssembled(false);
+        setMemLayout(compileResult.memoryLayout || null);
         // Still show partial ASM if available
         if (compileResult.assembly) {
           setAsmCode(compileResult.assembly);
@@ -127,6 +134,7 @@ export function SoftwareView({
           })),
         );
         setAssembled(false);
+        setMemLayout(compileResult.memoryLayout || null);
         return;
       }
 
@@ -139,6 +147,8 @@ export function SoftwareView({
       setAssembled(true);
       setIsRunning(false);
       setErrors([]);
+      setCodeSize(asmResult.bytes.length);
+      setMemLayout(compileResult.memoryLayout || null);
       setMemHighlights(new Set());
       onProgramLoaded?.(asmResult.bytes);
     } else {
@@ -160,10 +170,14 @@ export function SoftwareView({
         setConsoleOutput([]);
         setAssembled(true);
         setIsRunning(false);
+        setCodeSize(result.bytes.length);
+        setMemLayout(null);
         setMemHighlights(new Set());
         onProgramLoaded?.(result.bytes);
       } else {
         setAssembled(false);
+        setCodeSize(result.bytes.length);
+        setMemLayout(null);
       }
     }
   }, [cCode, asmCode, language, onProgramLoaded]);
@@ -275,6 +289,8 @@ export function SoftwareView({
     setAssembled(false);
     setIsRunning(false);
     setErrors([]);
+    setCodeSize(0);
+    setMemLayout(null);
     setMemHighlights(new Set());
   }, []);
 
@@ -315,6 +331,15 @@ export function SoftwareView({
     },
     [setCode],
   );
+
+  // Memory total for status display
+  const memTotal = memLayout
+    ? codeSize +
+      memLayout.globals +
+      memLayout.scratch +
+      memLayout.locals +
+      memLayout.stackSize
+    : 0;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
@@ -425,6 +450,68 @@ export function SoftwareView({
             <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">
               READY
             </span>
+          )}
+          {codeSize > 0 && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                  codeSize > CODE_SIZE
+                    ? "text-red-400 bg-red-500/10 border-red-500/30"
+                    : codeSize > CODE_SIZE * 0.8
+                      ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30"
+                      : "text-slate-400 bg-slate-800 border-slate-700"
+                }`}
+              >
+                Code {codeSize}/{CODE_SIZE}
+              </span>
+              {memLayout && (
+                <>
+                  <span className="text-[10px] font-mono text-slate-500">
+                    Var:{memLayout.globals + memLayout.locals}
+                  </span>
+                  <div
+                    className="flex h-2.5 w-24 rounded-sm overflow-hidden bg-slate-900 border border-slate-700"
+                    title={`Code: ${codeSize}B\nGlobales: ${memLayout.globals}B\nScratch: ${memLayout.scratch}B\nLocales: ${memLayout.locals}B\nStack: ${memLayout.stackSize}B\n─────────\nTotal: ${memTotal}/${MEMORY_SIZE}B`}
+                  >
+                    <div
+                      style={{ width: `${(codeSize / MEMORY_SIZE) * 100}%` }}
+                      className="bg-blue-500"
+                    />
+                    <div
+                      style={{
+                        width: `${(memLayout.globals / MEMORY_SIZE) * 100}%`,
+                      }}
+                      className="bg-emerald-500"
+                    />
+                    <div
+                      style={{
+                        width: `${(memLayout.scratch / MEMORY_SIZE) * 100}%`,
+                      }}
+                      className="bg-yellow-500"
+                    />
+                    <div
+                      style={{
+                        width: `${(memLayout.locals / MEMORY_SIZE) * 100}%`,
+                      }}
+                      className="bg-purple-500"
+                    />
+                    <div
+                      style={{
+                        width: `${(memLayout.stackSize / MEMORY_SIZE) * 100}%`,
+                      }}
+                      className="bg-orange-500"
+                    />
+                  </div>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      memTotal > MEMORY_SIZE ? "text-red-400" : "text-slate-500"
+                    }`}
+                  >
+                    {memTotal}/{MEMORY_SIZE}
+                  </span>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
