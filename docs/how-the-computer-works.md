@@ -14,6 +14,7 @@ A complete guide to the 8-bit computer built inside this simulator.
 6. [The C Compiler — High Level to ASM](#6-the-c-compiler--high-level-to-asm)
 7. [Putting It All Together](#7-putting-it-all-together)
 8. [Walkthrough Examples](#8-walkthrough-examples)
+9. [Testing](#9-testing)
 
 ---
 
@@ -645,6 +646,8 @@ src/cpu/
     parser.ts         Parser (tokens → AST)
     codegen.ts        Code generator (AST → ASM text)
     index.ts          Compiler entry point (chains all phases)
+  __tests__/
+    cexamples.test.ts Unit tests for all C examples (88 tests)
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
@@ -819,3 +822,149 @@ This program reads a line of text, echoes each character, then displays the char
 | **PC** | Program Counter — address of the next instruction |
 | **SP** | Stack Pointer — address of the top of the stack |
 | **Two-pass** | Assembler reads the code twice: once for labels, once to emit bytes |
+
+---
+
+## 9. Testing
+
+The compiler and CPU are covered by a comprehensive test suite using **Vitest**. The tests exercise the full pipeline: C source → compile → assemble → CPU execution → output verification.
+
+**File:** `src/cpu/__tests__/cexamples.test.ts`
+
+### Running Tests
+
+```bash
+# Run all tests once
+npm test
+
+# Watch mode (re-runs on file changes)
+npm run test:watch
+
+# Run a specific test by name
+npx vitest run -t "Fibonacci"
+```
+
+### What Is Tested (88 tests)
+
+#### Compilation (14 tests)
+
+Every C example program is compiled and assembled. This catches regressions in the lexer, parser, and code generator.
+
+```
+For each of the 14 C examples:
+  ✓ C compilation succeeds (no errors)
+  ✓ ASM assembly succeeds (code fits in 512 bytes)
+  Exception: "Sinusoïdes" correctly reports code overflow (1640 bytes > 512)
+```
+
+#### Memory Layout (14 tests)
+
+Validates the memory allocation for every example:
+
+```
+For each example:
+  ✓ globals ∈ [0, 16]
+  ✓ scratch = 8 (always)
+  ✓ locals ∈ [0, 232]
+  ✓ stack = 256 (always)
+  ✓ globals + scratch + locals ≤ 256 (data area fits)
+```
+
+#### Output Verification (13 tests)
+
+Runs each program and checks exact output. Examples:
+
+```
+  "Hello World"     → "Hello World!"
+  "Fibonacci"       → "0 1 1 2 3 5 8 13 21 34 "
+  "Factorielle"     → "5! = 120"
+  "Horloge"         → 3600 lines from "00:00" to "59:59"
+  "Nombres premiers" → "Total: 25", includes "2 " and "97 "
+  "Test Mémoire"    → "PASS" with 16 globals, 232 locals, memory verified
+```
+
+Programs that require console input are tested with simulated input fed before execution.
+
+#### Compiler Edge Cases (17 tests)
+
+Individual feature tests:
+
+```
+  ✓ Empty main halts immediately
+  ✓ Global variable initialization
+  ✓ Multiple return paths
+  ✓ Nested function calls: quad(3) = double(double(3)) = 12
+  ✓ Recursion: sum(10) = 55
+  ✓ While/for loops
+  ✓ Compound assignment (+=, -=)
+  ✓ Postfix increment/decrement
+  ✓ Logical AND/OR operators
+  ✓ All 6 comparison operators (==, !=, <, >, <=, >=)
+  ✓ Multiply and divide (inline loops)
+  ✓ #define preprocessor
+  ✓ Char literals
+  ✓ getchar() with simulated input
+  ✓ Stack pointer restoration after function calls
+  ✓ 16 globals allowed, 17th rejected
+  ✓ Code size overflow detected
+```
+
+#### Execution Properties (13 tests)
+
+```
+  ✓ 10 programs halt within 50M cycles
+  ✓ 3 input-dependent programs do NOT halt without input
+```
+
+### Adding a New Test
+
+To test a new C program, use the `compileAndRun` helper:
+
+```typescript
+it("my new program works", () => {
+  const r = compileAndRun(`
+    int main() {
+      print_num(2 + 3);
+      return 0;
+    }
+  `);
+  expect(r.output).toBe("5");
+  expect(r.halted).toBe(true);
+});
+```
+
+For programs that need console input:
+
+```typescript
+it("reads input correctly", () => {
+  const r = compileAndRun(`
+    int main() {
+      int c = getchar();
+      putchar(c);
+      return 0;
+    }
+  `, { input: "A" });
+  expect(r.output).toBe("A");
+});
+```
+
+For compile-only checks (no execution):
+
+```typescript
+it("too many globals is rejected", () => {
+  const { compile: cr } = compileOnly(`
+    int a; int b; ... int q; // 17 globals
+    int main() { return 0; }
+  `);
+  expect(cr.success).toBe(false);
+  expect(cr.errors[0].message).toContain("globales");
+});
+```
+
+### Bugs Found by Tests
+
+The test suite discovered two compiler bugs:
+
+1. **`>=` and `>` always returned true** — The code generator's false-path jumped over `LDA 0`, leaving garbage in register A. Fixed by adding intermediate skip labels. (See `docs/compiler-bugfixes-and-tests.md` for full analysis.)
+
+2. **16th global variable rejected** — Off-by-one: overflow check fired after allocating the 16th global. Fixed by moving the check before allocation.

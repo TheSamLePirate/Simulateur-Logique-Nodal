@@ -501,22 +501,30 @@ export function generate(program: Program): {
         // unsigned: left < right ↔ borrow (carry) on left - right
         emit(`  JC ${trueLabel}`);
         break;
-      case ">":
+      case ">": {
         // unsigned: left > right ↔ no borrow AND not zero
-        emit(`  JZ ${endLabel}`);
-        emit(`  JC ${endLabel}`);
+        // If zero or carry, result is false → fall through to LDA 0
+        const skipGt = newLabel();
+        emit(`  JZ ${skipGt}`);
+        emit(`  JC ${skipGt}`);
         emit(`  JMP ${trueLabel}`);
+        emit(`${skipGt}:`);
         break;
+      }
       case "<=":
         // unsigned: left <= right ↔ borrow OR zero
         emit(`  JZ ${trueLabel}`);
         emit(`  JC ${trueLabel}`);
         break;
-      case ">=":
+      case ">=": {
         // unsigned: left >= right ↔ no borrow
-        emit(`  JC ${endLabel}`);
+        // If carry (borrow), result is false → fall through to LDA 0
+        const skipGte = newLabel();
+        emit(`  JC ${skipGte}`);
         emit(`  JMP ${trueLabel}`);
+        emit(`${skipGte}:`);
         break;
+      }
     }
 
     emit(`  LDA 0`);
