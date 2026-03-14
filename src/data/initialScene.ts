@@ -6,8 +6,8 @@ import type { Node, Edge } from "@xyflow/react";
  * Architecture (data flow left → right):
  *
  *   ┌──────┐   ┌──────────┐   ┌──────┐   ┌──────┐
- *   │  PC  │──→│ ADDR MUX │──→│ SRAM │──→│  IR  │
- *   └──────┘   └──────────┘   │256×8 │   └──────┘
+ *   │  PC  │──→│ ADDR MUX │──→│ SRAM  │──→│  IR  │
+ *   └──────┘   └──────────┘   │1024×8│   └──────┘
  *       ↑           ↑         └──────┘
  *   [PC+1]    [OPERAND]          │ ↑
  *                                │ │
@@ -76,7 +76,7 @@ export const initialNodes: Node[] = [
   {
     id: "clk",
     type: "clock",
-    position: { x: 680, y: -180 },
+    position: { x: 700, y: -180 },
     data: { label: "CLK", value: 0, frequency: 2, tickCounter: 0 },
   },
 
@@ -88,21 +88,21 @@ export const initialNodes: Node[] = [
   {
     id: "pc",
     type: "register8",
-    position: { x: 0, y: 120 },
+    position: { x: 50, y: 20 },
     data: { label: "PC", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // PC value display
   {
     id: "pcDisp",
     type: "outputNumber",
-    position: { x: 0, y: -60 },
+    position: { x: 50, y: -100 },
     data: { label: "PC", value: 0 },
   },
   // PC load enable (for jumps)
   {
     id: "pcLoad",
     type: "input",
-    position: { x: -120, y: 460 },
+    position: { x: -80, y: 120 },
     data: { label: "PC_LOAD", value: 1 },
   },
 
@@ -111,14 +111,14 @@ export const initialNodes: Node[] = [
   {
     id: "pcInc",
     type: "adder8",
-    position: { x: -200, y: 620 },
+    position: { x: -200, y: 280 },
     data: { sum: Array(8).fill(0), cout: 0 },
   },
   // Constant 1 for PC increment
   {
     id: "pcOne",
     type: "inputNumber",
-    position: { x: -450, y: 700 },
+    position: { x: -200, y: 480 },
     data: { label: "CONST_1", value: 1 },
   },
 
@@ -130,21 +130,21 @@ export const initialNodes: Node[] = [
   {
     id: "addrMux",
     type: "mux8",
-    position: { x: 300, y: 80 },
+    position: { x: 400, y: 60 },
     data: { label: "ADDR MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // Address source select switch
   {
     id: "addrSel",
     type: "input",
-    position: { x: 200, y: -20 },
+    position: { x: 300, y: -20 },
     data: { label: "ADDR_SEL", value: 0 },
   },
   // Manual operand address input (for LDM/STA addresses)
   {
     id: "operand",
     type: "inputNumber",
-    position: { x: 200, y: 640 },
+    position: { x: 300, y: 480 },
     data: { label: "OPERAND", value: 0 },
   },
 
@@ -155,7 +155,7 @@ export const initialNodes: Node[] = [
   {
     id: "sram",
     type: "sram8",
-    position: { x: 600, y: 80 },
+    position: { x: 680, y: 60 },
     data: {
       memory: Array(1024).fill(0),
       q: Array(8).fill(0),
@@ -166,14 +166,14 @@ export const initialNodes: Node[] = [
   {
     id: "memWE",
     type: "input",
-    position: { x: 580, y: 560 },
+    position: { x: 600, y: 280 },
     data: { label: "MEM_WE", value: 0 },
   },
   // Memory read display
   {
     id: "memDisp",
     type: "outputNumber",
-    position: { x: 600, y: -60 },
+    position: { x: 680, y: -60 },
     data: { label: "MEM_OUT", value: 0 },
   },
 
@@ -185,21 +185,21 @@ export const initialNodes: Node[] = [
   {
     id: "ir",
     type: "register8",
-    position: { x: 900, y: 120 },
+    position: { x: 1000, y: 60 },
     data: { label: "IR", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // IR load enable
   {
     id: "irLoad",
     type: "input",
-    position: { x: 800, y: 460 },
+    position: { x: 920, y: 260 },
     data: { label: "IR_LOAD", value: 1 },
   },
   // IR value display
   {
     id: "irDisp",
     type: "outputNumber",
-    position: { x: 900, y: -60 },
+    position: { x: 1000, y: -60 },
     data: { label: "IR", value: 0 },
   },
 
@@ -211,14 +211,14 @@ export const initialNodes: Node[] = [
   {
     id: "dataMux",
     type: "mux8",
-    position: { x: 1200, y: 80 },
+    position: { x: 1250, y: 60 },
     data: { label: "DATA MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // Data source select switch
   {
     id: "dataSel",
     type: "input",
-    position: { x: 1100, y: -20 },
+    position: { x: 1150, y: -20 },
     data: { label: "DATA_SEL", value: 0 },
   },
 
@@ -230,21 +230,21 @@ export const initialNodes: Node[] = [
   {
     id: "aReg",
     type: "register8",
-    position: { x: 1500, y: 20 },
+    position: { x: 1450, y: 20 },
     data: { label: "A (ACC)", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // A load enable
   {
     id: "aLoad",
     type: "input",
-    position: { x: 1400, y: 380 },
+    position: { x: 1350, y: 180 },
     data: { label: "A_LOAD", value: 1 },
   },
   // A value display
   {
     id: "aDisp",
     type: "outputNumber",
-    position: { x: 1500, y: -100 },
+    position: { x: 1450, y: -100 },
     data: { label: "A (ACC)", value: 0 },
   },
 
@@ -252,21 +252,21 @@ export const initialNodes: Node[] = [
   {
     id: "bReg",
     type: "register8",
-    position: { x: 1500, y: 500 },
+    position: { x: 1450, y: 420 },
     data: { label: "B", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // B load enable
   {
     id: "bLoad",
     type: "input",
-    position: { x: 1400, y: 850 },
+    position: { x: 1350, y: 580 },
     data: { label: "B_LOAD", value: 0 },
   },
   // B value display
   {
     id: "bDisp",
     type: "outputNumber",
-    position: { x: 1750, y: 820 },
+    position: { x: 1450, y: 330 },
     data: { label: "B", value: 0 },
   },
 
@@ -277,7 +277,7 @@ export const initialNodes: Node[] = [
   {
     id: "alu",
     type: "alu8",
-    position: { x: 1850, y: 50 },
+    position: { x: 1750, y: 60 },
     data: {
       a: 0,
       b: 0,
@@ -293,19 +293,19 @@ export const initialNodes: Node[] = [
   {
     id: "op0",
     type: "input",
-    position: { x: 1750, y: 620 },
+    position: { x: 1700, y: 280 },
     data: { label: "ALU_OP0", value: 0 },
   },
   {
     id: "op1",
     type: "input",
-    position: { x: 1750, y: 690 },
+    position: { x: 1700, y: 340 },
     data: { label: "ALU_OP1", value: 0 },
   },
   {
     id: "op2",
     type: "input",
-    position: { x: 1750, y: 760 },
+    position: { x: 1700, y: 400 },
     data: { label: "ALU_OP2", value: 0 },
   },
 
@@ -316,19 +316,19 @@ export const initialNodes: Node[] = [
   {
     id: "flagZ",
     type: "output",
-    position: { x: 2150, y: 200 },
+    position: { x: 2000, y: 60 },
     data: { label: "ZERO", value: 0 },
   },
   {
     id: "flagC",
     type: "output",
-    position: { x: 2150, y: 270 },
+    position: { x: 2000, y: 130 },
     data: { label: "CARRY", value: 0 },
   },
   {
     id: "flagN",
     type: "output",
-    position: { x: 2150, y: 340 },
+    position: { x: 2000, y: 200 },
     data: { label: "NEG", value: 0 },
   },
 
@@ -339,7 +339,7 @@ export const initialNodes: Node[] = [
   {
     id: "sp",
     type: "register8",
-    position: { x: 0, y: 800 },
+    position: { x: 200, y: 500 },
     data: {
       label: "SP",
       value: 255,
@@ -351,14 +351,14 @@ export const initialNodes: Node[] = [
   {
     id: "spLoad",
     type: "input",
-    position: { x: -120, y: 1140 },
+    position: { x: 100, y: 600 },
     data: { label: "SP_LOAD", value: 0 },
   },
   // SP value display
   {
     id: "spDisp",
     type: "outputNumber",
-    position: { x: 220, y: 1000 },
+    position: { x: 200, y: 400 },
     data: { label: "SP", value: 255 },
   },
 
@@ -369,14 +369,14 @@ export const initialNodes: Node[] = [
   {
     id: "pcSrcMux",
     type: "mux8",
-    position: { x: -100, y: 350 },
+    position: { x: 50, y: 280 },
     data: { label: "PC SRC MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // PC jump select control
   {
     id: "pcJmp",
     type: "input",
-    position: { x: -220, y: 260 },
+    position: { x: -80, y: 200 },
     data: { label: "PC_JMP", value: 0 },
   },
 
@@ -387,14 +387,14 @@ export const initialNodes: Node[] = [
   {
     id: "aluBMux",
     type: "mux8",
-    position: { x: 1680, y: 320 },
+    position: { x: 1650, y: 360 },
     data: { label: "ALU B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // ALU immediate select control
   {
     id: "aluImm",
     type: "input",
-    position: { x: 1580, y: 230 },
+    position: { x: 1600, y: 280 },
     data: { label: "ALU_IMM", value: 0 },
   },
 
@@ -405,14 +405,14 @@ export const initialNodes: Node[] = [
   {
     id: "spOpMux",
     type: "mux8",
-    position: { x: 300, y: 400 },
+    position: { x: 400, y: 320 },
     data: { label: "ADDR B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // SP/Operand select control
   {
     id: "spSel",
     type: "input",
-    position: { x: 200, y: 340 },
+    position: { x: 300, y: 250 },
     data: { label: "SP_SEL", value: 0 },
   },
 
@@ -424,35 +424,35 @@ export const initialNodes: Node[] = [
   {
     id: "console",
     type: "console",
-    position: { x: 2150, y: -200 },
+    position: { x: 2100, y: -180 },
     data: { label: "CONSOLE", text: "", lastChar: 0, prevWr: 0 },
   },
   // Console write strobe
   {
     id: "consoleWr",
     type: "input",
-    position: { x: 2050, y: -60 },
+    position: { x: 2000, y: -40 },
     data: { label: "CON_WR", value: 0 },
   },
   // Console mode (0=ASCII, 1=decimal)
   {
     id: "consoleMode",
     type: "input",
-    position: { x: 2050, y: 10 },
+    position: { x: 2000, y: 30 },
     data: { label: "CON_MODE", value: 0 },
   },
   // Console clear
   {
     id: "consoleClear",
     type: "input",
-    position: { x: 2050, y: 80 },
+    position: { x: 2000, y: 100 },
     data: { label: "CON_CLR", value: 0 },
   },
   // Console read strobe (for INA instruction)
   {
     id: "consoleRd",
     type: "input",
-    position: { x: 2350, y: -60 },
+    position: { x: 2350, y: -40 },
     data: { label: "CON_RD", value: 0 },
   },
 
@@ -460,21 +460,21 @@ export const initialNodes: Node[] = [
   {
     id: "plotter",
     type: "plotter",
-    position: { x: 2150, y: 500 },
+    position: { x: 2100, y: 340 },
     data: { label: "PLOTTER", pixels: [], prevDraw: 0 },
   },
   // Plotter draw strobe
   {
     id: "plotDraw",
     type: "input",
-    position: { x: 2050, y: 760 },
+    position: { x: 2000, y: 540 },
     data: { label: "DRAW", value: 0 },
   },
   // Plotter clear
   {
     id: "plotClear",
     type: "input",
-    position: { x: 2050, y: 830 },
+    position: { x: 2000, y: 610 },
     data: { label: "PLOT_CLR", value: 0 },
   },
 
@@ -486,7 +486,7 @@ export const initialNodes: Node[] = [
   {
     id: "rst",
     type: "input",
-    position: { x: 680, y: 600 },
+    position: { x: 820, y: 280 },
     data: { label: "RST", value: 0 },
   },
 ];

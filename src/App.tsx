@@ -19,6 +19,9 @@ import {
   Square,
   Circle,
   Trash2,
+  Save,
+  FolderOpen,
+  Layout,
   Package,
   Clock,
   Database,
@@ -36,6 +39,7 @@ import type {
   GroupHandle,
   GroupNodeData,
   SavedModule,
+  ScenePreset,
   ActiveTab,
 } from "./types";
 import { nodeTypes } from "./components/nodes";
@@ -49,6 +53,7 @@ import {
 } from "./components/software/SoftwareView";
 import { CPU } from "./cpu/cpu";
 import { Opcode } from "./cpu/isa";
+import { BUILTIN_PRESETS } from "./data/scenePresets";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -92,6 +97,24 @@ export default function App() {
       // Storage full or unavailable, ignore
     }
   }, [savedModules]);
+
+  // ── Saved scene presets (localStorage) ──
+  const [savedScenes, setSavedScenes] = useState<ScenePreset[]>(() => {
+    try {
+      const stored = localStorage.getItem("logique_saved_scenes");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("logique_saved_scenes", JSON.stringify(savedScenes));
+    } catch {
+      // Storage full or unavailable, ignore
+    }
+  }, [savedScenes]);
 
   // Listen for inspect-node events from Adder8 / SRAM / Group nodes
   useEffect(() => {
@@ -886,6 +909,50 @@ export default function App() {
     setEdges([]);
   };
 
+  // ── Scene preset loading / saving ──
+  const loadScene = useCallback(
+    (preset: ScenePreset) => {
+      if (
+        !window.confirm(
+          `Charger la scène « ${preset.name} » ?\nLe contenu actuel du canvas sera remplacé.`,
+        )
+      )
+        return;
+      // Deep-clone to avoid shared references (e.g. SRAM memory arrays)
+      const clonedNodes = JSON.parse(JSON.stringify(preset.nodes));
+      const clonedEdges = JSON.parse(JSON.stringify(preset.edges));
+      setNodes(clonedNodes);
+      setEdges(clonedEdges);
+      // Reset hardware CPU state
+      hwCpuRef.current = new CPU();
+      setHwCpuLoaded(false);
+      setHwCpuRunning(false);
+      setHwCpuHalted(false);
+      if (hwRunIntervalRef.current !== null) {
+        clearInterval(hwRunIntervalRef.current);
+        hwRunIntervalRef.current = null;
+      }
+    },
+    [setNodes, setEdges],
+  );
+
+  const saveCurrentScene = useCallback(() => {
+    const name = window.prompt("Nom de la scène :");
+    if (!name || !name.trim()) return;
+    const newPreset: ScenePreset = {
+      id: uuidv4(),
+      name: name.trim(),
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      edges: JSON.parse(JSON.stringify(edges)),
+    };
+    setSavedScenes((prev) => [...prev, newPreset]);
+  }, [nodes, edges]);
+
+  const allScenes = useMemo(
+    () => [...BUILTIN_PRESETS, ...savedScenes],
+    [savedScenes],
+  );
+
   // =============================================
   //  SOFTWARE → HARDWARE SYNC
   // =============================================
@@ -1569,6 +1636,53 @@ export default function App() {
 
           {/* Sidebar / Toolbar */}
           <div className="w-64 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-6 overflow-y-auto z-10">
+            {/* Scene presets */}
+            <div>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                <Layout size={12} className="inline mr-1.5 -mt-0.5" />
+                Scènes
+              </h3>
+              <div className="flex flex-col gap-2">
+                {allScenes.map((scene) => (
+                  <div
+                    key={scene.id}
+                    className="bg-slate-800 hover:bg-slate-700 border border-yellow-900/50 rounded p-2.5 text-sm flex items-center gap-2 transition-colors group"
+                  >
+                    <FolderOpen
+                      size={14}
+                      className="text-yellow-400 shrink-0"
+                    />
+                    <button
+                      onClick={() => loadScene(scene)}
+                      className="font-bold truncate text-left flex-1"
+                      title={`Charger « ${scene.name} »`}
+                    >
+                      {scene.name}
+                    </button>
+                    {!scene.builtIn && (
+                      <button
+                        onClick={() =>
+                          setSavedScenes((prev) =>
+                            prev.filter((s) => s.id !== scene.id),
+                          )
+                        }
+                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                        title="Supprimer cette scène"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={saveCurrentScene}
+                  className="bg-slate-800/50 hover:bg-slate-700 border border-dashed border-yellow-900/50 rounded p-2 text-xs flex items-center justify-center gap-1.5 transition-colors text-slate-400 hover:text-yellow-400"
+                >
+                  <Save size={12} /> Sauvegarder la scène
+                </button>
+              </div>
+            </div>
+
             <div>
               <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
                 I/O Simples

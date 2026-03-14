@@ -62,5 +62,14 @@ export interface SavedModule {
   outputHandles: GroupHandle[];
 }
 
+/** A saved scene preset (entire canvas state) */
+export interface ScenePreset {
+  id: string;
+  name: string;
+  nodes: Node[];
+  edges: Edge[];
+  builtIn?: boolean;
+}
+
 /** Active tab in the main UI */
 export type ActiveTab = "hardware" | "software";
