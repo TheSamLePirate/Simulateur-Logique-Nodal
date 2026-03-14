@@ -314,6 +314,60 @@ int main() {
 }`,
   },
   {
+    name: "Cercle",
+    description: "Dessine un cercle sur le plotter",
+    code: `// Cercle sur le plotter
+
+int main()
+{
+    int x;
+    int y;
+    int ax;
+    int ay;
+    int sx;
+    int sy;
+    int d;
+    x = 0;
+    while (x < 255)
+    {
+        y = 0;
+print_num(x);
+putchar(10);
+        while (y < 255)
+        {
+            if (x < 128)
+            {
+                ax = 128 - x;
+            }
+            else
+            {
+                ax = x - 128;
+            }
+            if (y < 128)
+            {
+                ay = 128 - y;
+            }
+            else
+            {
+                ay = y - 128;
+            }
+            sx = ax / 16;
+            sy = ay / 16;
+            d = (sx * sx) + (sy * sy);
+            if (d > 12)
+            {
+                if (d < 20)
+                {
+                    draw(x, y);
+                }
+            }
+            y = y + 1;
+        }
+        x = x + 1;
+    }
+}`,
+  },
+  {
     name: "Horloge",
     description: "Chronomètre MM:SS qui défile",
     code: `// Chronometre MM:SS

@@ -942,12 +942,6 @@ export default function App() {
   // ── Scene preset loading / saving ──
   const loadScene = useCallback(
     (preset: ScenePreset) => {
-      if (
-        !window.confirm(
-          `Charger la scène « ${preset.name} » ?\nLe contenu actuel du canvas sera remplacé.`,
-        )
-      )
-        return;
       // Deep-clone to avoid shared references (e.g. SRAM memory arrays)
       const clonedNodes = JSON.parse(JSON.stringify(preset.nodes));
       const clonedEdges = JSON.parse(JSON.stringify(preset.edges));

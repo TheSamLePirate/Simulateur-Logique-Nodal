@@ -273,7 +273,7 @@ The comparison operators (`<`, `>`, `<=`, `>=`) in `emitComparison()` already us
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 98 tests, all green
+**Total:** 103 tests, all green
 
 ### Test Architecture
 
@@ -288,7 +288,7 @@ compileOnly(source)              // compile → assemble without running
 
 ### Test Suites
 
-#### 5.1 — C Examples: Compilation (15 examples)
+#### 5.1 — C Examples: Compilation (16 examples)
 
 Tests that **every** C example compiles without errors and assembles within 512 bytes.
 
@@ -304,13 +304,14 @@ Tests that **every** C example compiles without errors and assembles within 512 
 "Compteur de lettres"       compiles → ✓  assembles → ✓
 "Calculatrice"              compiles → ✓  assembles → ✓
 "Traceur de droite"         compiles → ✓  assembles → ✓
+"Cercle"                    compiles → ✓  assembles → ✓
 "Horloge"                   compiles → ✓  assembles → ✓
 "Spirale"                   compiles → ✓  assembles → ✓
 "Tableau de nombres premiers" compiles → ✓  assembles → ✓
 "Test Mémoire"              compiles → ✓  assembles → ✓
 ```
 
-#### 5.2 — C Examples: Memory Layout (15 examples)
+#### 5.2 — C Examples: Memory Layout (16 examples)
 
 Validates the `MemoryLayout` structure for every example:
 
@@ -320,7 +321,7 @@ Validates the `MemoryLayout` structure for every example:
 - `stackSize` is always 256
 - Total data (`globals + scratch + locals`) never exceeds 256
 
-#### 5.3 — C Examples: Output Verification (16 programs)
+#### 5.3 — C Examples: Output Verification (18 programs)
 
 Runs each program and verifies exact output:
 
@@ -337,6 +338,7 @@ Runs each program and verifies exact output:
 | Compteur de lettres | `"Longueur: 3"` for input `"abc\n"` |
 | Calculatrice | `"= 8"` for `"3+5\n"`, `"= 63"` for `"9*7\n"` |
 | Traceur de droite | DDA plot y=2x (input "210"), b=0 error (input "10"), wraps past x=128 |
+| Cercle | > 200 pixels forming ring, center (128,128) NOT drawn |
 | Horloge | 3600 lines from `"00:00"` to `"59:59"` |
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
@@ -370,11 +372,11 @@ Fine-grained tests for individual compiler features:
 | 17th global error | Correctly rejected with error |
 | Code size overflow | 40 functions × 50 chars → compile error detected |
 
-#### 5.5 — Execution Properties (14 programs)
+#### 5.5 — Execution Properties (16 programs)
 
 Verifies runtime behavior:
 
-- **11 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Horloge, Spirale, Nombres premiers, Test Mémoire)
+- **12 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Test Mémoire)
 - **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
 
 ---
@@ -398,10 +400,10 @@ npx vitest run --reporter verbose
 Expected output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (98 tests) 1.4s
+ ✓ src/cpu/__tests__/cexamples.test.ts (103 tests) 10.9s
 
  Test Files  1 passed (1)
-      Tests  98 passed (98)
+      Tests  103 passed (103)
 ```
 
 ---

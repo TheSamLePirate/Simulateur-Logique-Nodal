@@ -296,8 +296,17 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBe(0);
   });
 
-  it('"Horloge" starts at 00:00 and increments', () => {
+  it('"Cercle" draws a circle ring on plotter', () => {
     const r = compileAndRun(C_EXAMPLES[11].code, { maxCycles: 50_000_000 });
+    expect(r.halted).toBe(true);
+    // Should have drawn many pixels forming a ring
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
+    // Center area (128,128) should NOT be drawn (d ≈ 0, not in 12..20 range)
+    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(false);
+  });
+
+  it('"Horloge" starts at 00:00 and increments', () => {
+    const r = compileAndRun(C_EXAMPLES[12].code, { maxCycles: 50_000_000 });
     const lines = r.output.split("\n").filter(Boolean);
     expect(lines[0]).toBe("00:00");
     expect(lines[1]).toBe("00:01");
@@ -309,7 +318,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Spirale" draws spiral pixels and halts', () => {
-    const r = compileAndRun(C_EXAMPLES[12].code);
+    const r = compileAndRun(C_EXAMPLES[13].code);
     expect(r.halted).toBe(true);
     // Should have drawn many pixels
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
@@ -318,7 +327,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Tableau de nombres premiers" finds 25 primes up to 100', () => {
-    const r = compileAndRun(C_EXAMPLES[13].code);
+    const r = compileAndRun(C_EXAMPLES[14].code);
     expect(r.output).toContain("Nombres premiers:");
     expect(r.output).toContain("Total: 25");
     // Check a few known primes are present
@@ -329,7 +338,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Test Mémoire" fills all memory and passes', () => {
-    const r = compileAndRun(C_EXAMPLES[14].code);
+    const r = compileAndRun(C_EXAMPLES[15].code);
 
     // Verify output
     expect(r.output).toContain("=MEM TEST=");
@@ -701,6 +710,7 @@ describe("C Examples — Execution Properties", () => {
     "Calcul",
     "Plotter",
     "Courbe",
+    "Cercle",
     "Horloge",
     "Spirale",
     "Tableau de nombres premiers",
