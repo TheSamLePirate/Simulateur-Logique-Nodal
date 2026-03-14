@@ -48,6 +48,7 @@ import {
   type HardwareSyncData,
 } from "./components/software/SoftwareView";
 import { CPU } from "./cpu/cpu";
+import { Opcode } from "./cpu/isa";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -948,12 +949,65 @@ export default function App() {
   const syncHwCpuToNodes = useCallback(() => {
     const cpu = hwCpuRef.current;
     const s = cpu.state;
+    const op = cpu.lastOpcode;
     const toBits = (val: number, bits = 8) =>
       Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
+
+    // ── Derive control signals from last executed opcode ──
+    const aLoad = [
+      Opcode.LDA,
+      Opcode.ADD,
+      Opcode.SUB,
+      Opcode.AND,
+      Opcode.OR,
+      Opcode.XOR,
+      Opcode.INC,
+      Opcode.DEC,
+      Opcode.NOT,
+      Opcode.SHL,
+      Opcode.SHR,
+      Opcode.TBA,
+      Opcode.ADDB,
+      Opcode.SUBB,
+      Opcode.POP,
+      Opcode.LDM,
+    ].includes(op)
+      ? 1
+      : 0;
+
+    const bLoad = [Opcode.LDB, Opcode.TAB, Opcode.LBM].includes(op) ? 1 : 0;
+    const spLoad = [Opcode.PUSH, Opcode.POP, Opcode.CALL, Opcode.RET].includes(
+      op,
+    )
+      ? 1
+      : 0;
+    const memWE = [Opcode.STA, Opcode.STB].includes(op) ? 1 : 0;
+    const addrSel = [Opcode.STA, Opcode.STB, Opcode.LDM, Opcode.LBM].includes(
+      op,
+    )
+      ? 1
+      : 0;
+    const dataSel = [Opcode.LDM, Opcode.LBM].includes(op) ? 1 : 0;
+    const conWr = [Opcode.OUTA, Opcode.OUTD, Opcode.OUT].includes(op) ? 1 : 0;
+    const conMode = op === Opcode.OUTD ? 1 : 0;
+    const plotDraw = op === Opcode.DRAW ? 1 : 0;
+    const plotClr = op === Opcode.CLR ? 1 : 0;
+
+    // ALU op bits (3-bit encoding matching ALU8 simulation)
+    let aluOp = 0b000; // ADD
+    if ([Opcode.SUB, Opcode.SUBB, Opcode.CMP, Opcode.DEC].includes(op))
+      aluOp = 0b001;
+    else if (op === Opcode.AND) aluOp = 0b010;
+    else if (op === Opcode.OR) aluOp = 0b011;
+    else if (op === Opcode.XOR) aluOp = 0b100;
+    else if (op === Opcode.NOT) aluOp = 0b101;
+    else if (op === Opcode.SHL) aluOp = 0b110;
+    else if (op === Opcode.SHR) aluOp = 0b111;
 
     setNodes((nds) =>
       nds.map((node) => {
         switch (node.id) {
+          // ── Registers (values from CPU state) ──
           case "pc":
             return {
               ...node,
@@ -983,11 +1037,15 @@ export default function App() {
               ...node,
               data: { ...node.data, value: s.sp, q: toBits(s.sp) },
             };
+
+          // ── Memory ──
           case "sram":
             return {
               ...node,
               data: { ...node.data, memory: Array.from(s.memory) },
             };
+
+          // ── Flags ──
           case "flagZ":
             return {
               ...node,
@@ -1003,6 +1061,8 @@ export default function App() {
               ...node,
               data: { ...node.data, value: s.flags.n ? 1 : 0 },
             };
+
+          // ── I/O peripherals ──
           case "console":
             return {
               ...node,
@@ -1013,6 +1073,67 @@ export default function App() {
               ...node,
               data: { ...node.data, pixels: Array.from(cpu.plotterPixels) },
             };
+
+          // ── Clock (toggles each CPU step) ──
+          case "clk":
+            return { ...node, data: { ...node.data, value: cpu.clockBit } };
+
+          // ── Register load enables ──
+          case "pcLoad":
+            return { ...node, data: { ...node.data, value: 1 } };
+          case "irLoad":
+            return { ...node, data: { ...node.data, value: 1 } };
+          case "aLoad":
+            return { ...node, data: { ...node.data, value: aLoad } };
+          case "bLoad":
+            return { ...node, data: { ...node.data, value: bLoad } };
+          case "spLoad":
+            return { ...node, data: { ...node.data, value: spLoad } };
+
+          // ── MUX selects ──
+          case "addrSel":
+            return { ...node, data: { ...node.data, value: addrSel } };
+          case "dataSel":
+            return { ...node, data: { ...node.data, value: dataSel } };
+
+          // ── Memory write enable ──
+          case "memWE":
+            return { ...node, data: { ...node.data, value: memWE } };
+
+          // ── ALU operation select ──
+          case "op0":
+            return { ...node, data: { ...node.data, value: (aluOp >> 0) & 1 } };
+          case "op1":
+            return { ...node, data: { ...node.data, value: (aluOp >> 1) & 1 } };
+          case "op2":
+            return { ...node, data: { ...node.data, value: (aluOp >> 2) & 1 } };
+
+          // ── Console control ──
+          case "consoleWr":
+            return { ...node, data: { ...node.data, value: conWr } };
+          case "consoleMode":
+            return { ...node, data: { ...node.data, value: conMode } };
+          case "consoleClear":
+            return { ...node, data: { ...node.data, value: 0 } };
+
+          // ── Plotter control ──
+          case "plotDraw":
+            return { ...node, data: { ...node.data, value: plotDraw } };
+          case "plotClear":
+            return { ...node, data: { ...node.data, value: plotClr } };
+
+          // ── Operand address (for memory access instructions) ──
+          case "operand":
+            return {
+              ...node,
+              data: { ...node.data, value: cpu.lastOperand & 0xff },
+            };
+
+          // ── Reset ──
+          case "rst":
+            return { ...node, data: { ...node.data, value: 0 } };
+
+          // ── Display outputs (updated via bus8 edges from registers) ──
           default:
             return node;
         }

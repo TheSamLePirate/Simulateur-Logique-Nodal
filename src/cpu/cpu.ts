@@ -27,6 +27,13 @@ export class CPU {
   plotterPixels: Set<number>;
   onConsoleOutput?: (text: string) => void;
 
+  /** Last executed opcode (for hardware visualization) */
+  lastOpcode = -1;
+  /** Last operand (for hardware visualization) */
+  lastOperand = 0;
+  /** Clock toggle bit (flips each step) */
+  clockBit = 0;
+
   constructor() {
     this.state = createInitialState();
     this.consoleOutput = [];
@@ -38,6 +45,9 @@ export class CPU {
     this.state = createInitialState();
     this.consoleOutput = [];
     this.plotterPixels = new Set();
+    this.lastOpcode = -1;
+    this.lastOperand = 0;
+    this.clockBit = 0;
   }
 
   /** Load a program (byte array) into memory starting at startAddr */
@@ -122,6 +132,11 @@ export class CPU {
       const hi = this.read((this.state.pc + 2) & ADDR_MASK);
       operand = (hi << 8) | lo;
     }
+
+    // Track for hardware visualization
+    this.lastOpcode = opcode;
+    this.lastOperand = operand;
+    this.clockBit ^= 1;
 
     // Advance PC past this instruction
     const instrSize = info ? info.size : 1;
