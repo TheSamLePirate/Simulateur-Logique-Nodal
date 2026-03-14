@@ -74,6 +74,12 @@ export const getInputValue = (
     if (edge.sourceHandle === "neg")
       return (sourceNode.data.negative as Bit) || 0;
   }
+  if (sourceNode.type === "mux8") {
+    if (edge.sourceHandle?.startsWith("out")) {
+      const idx = parseInt(edge.sourceHandle.replace("out", ""));
+      return ((sourceNode.data.out as Bit[])?.[idx] || 0) as Bit;
+    }
+  }
   return 0;
 };
 
@@ -344,6 +350,27 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         };
         changed = true;
       }
+    } else if (node.type === "mux8") {
+      const sel = getVal(node.id, "sel");
+      const prefix = sel ? "b" : "a";
+      const out: Bit[] = Array(8)
+        .fill(0)
+        .map((_, i) => getVal(node.id, `${prefix}${i}`));
+      let outVal = 0;
+      for (let i = 0; i < 8; i++) {
+        if (out[i]) outVal |= 1 << i;
+      }
+
+      const outChanged =
+        (node.data.out as Bit[])?.some((v: Bit, i: number) => v !== out[i]) ||
+        !node.data.out;
+      if (outChanged || node.data.sel !== sel || node.data.outVal !== outVal) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, sel, outVal, out },
+        };
+        changed = true;
+      }
     } else if (node.type === "alu8") {
       let a = 0;
       for (let i = 0; i < 8; i++) {
@@ -501,6 +528,11 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
           isActive = sourceNode.data.carry === 1;
         } else if (edge.sourceHandle === "neg") {
           isActive = sourceNode.data.negative === 1;
+        }
+      } else if (sourceNode.type === "mux8") {
+        if (edge.sourceHandle?.startsWith("out")) {
+          const idx = parseInt(edge.sourceHandle.replace("out", ""));
+          isActive = (sourceNode.data.out as Bit[])?.[idx] === 1;
         }
       }
     }

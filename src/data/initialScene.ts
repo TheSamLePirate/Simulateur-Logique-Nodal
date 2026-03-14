@@ -1,67 +1,275 @@
 import type { Node, Edge } from "@xyflow/react";
 
 /**
- * Initial scene: A basic 8-bit computer
+ * Initial scene: A complete 8-bit von Neumann computer
  *
- * Architecture:
- *   DATA (input) ──┐
- *                   ├──▶ ALU ──▶ Accumulator (REG) ──▶ Display
- *   ACC feedback ──┘       ▲
- *                          │
- *   OP (switches) ─────────┘
+ * Architecture (data flow left → right):
  *
- *   Clock ──▶ REG.CLK
- *   LOAD  ──▶ REG.LOAD
- *   RST   ──▶ REG.RST
+ *   ┌──────┐   ┌──────────┐   ┌──────┐   ┌──────┐
+ *   │  PC  │──→│ ADDR MUX │──→│ SRAM │──→│  IR  │
+ *   └──────┘   └──────────┘   │256×8 │   └──────┘
+ *       ↑           ↑         └──────┘
+ *   [PC+1]    [OPERAND]          │ ↑
+ *                                │ │
+ *                                ↓ │
+ *                ┌──────────┐  ┌───┴──┐     ┌─────┐
+ *                │ DATA MUX │  │  A   │────→│     │
+ *                └──────────┘→→│(ACC) │     │ ALU │──→ FLAGS
+ *                    ↑         └──────┘     │     │
+ *                 ALU.R        ┌──────┐────→│     │
+ *                              │  B   │     └─────┘
+ *                              └──────┘
  *
- *   ACC ──▶ SRAM.DATA_IN
- *   ADDR ──▶ SRAM.ADDR
- *   WE   ──▶ SRAM.WE
- *   SRAM.Q ──▶ MEM_OUT
+ *   CLOCK ──→ all registers (CLK)
+ *   Control switches: LOAD enables, MUX selects, MEM_WE, ALU_OP, RST
  */
 
+// ── Helper: generate 8 edges for an 8-bit bus connection ──
+const bus8 = (
+  idPrefix: string,
+  src: string,
+  tgt: string,
+  srcPrefix: string,
+  tgtPrefix: string,
+): Edge[] =>
+  Array.from({ length: 8 }, (_, i) => ({
+    id: `${idPrefix}${i}`,
+    source: src,
+    target: tgt,
+    sourceHandle: `${srcPrefix}${i}`,
+    targetHandle: `${tgtPrefix}${i}`,
+    animated: false,
+    style: { stroke: "#475569", strokeWidth: 2 },
+  }));
+
+// ── Helper: single-bit edge ──
+const wire = (
+  id: string,
+  src: string,
+  tgt: string,
+  srcH: string,
+  tgtH: string,
+): Edge => ({
+  id,
+  source: src,
+  target: tgt,
+  sourceHandle: srcH,
+  targetHandle: tgtH,
+  animated: false,
+  style: { stroke: "#475569", strokeWidth: 2 },
+});
+
+// ═══════════════════════════════════════════
+//  NODES — Complete CPU architecture
+// ═══════════════════════════════════════════
+
 export const initialNodes: Node[] = [
-  // ─── CLOCK ───
+  // ─── SYSTEM CLOCK ───
   {
     id: "clk",
     type: "clock",
-    position: { x: 50, y: 80 },
+    position: { x: 680, y: -180 },
     data: { label: "CLK", value: 0, frequency: 2, tickCounter: 0 },
   },
 
-  // ─── DATA INPUT ───
+  // ═════════════════════════════════
+  //  FETCH UNIT (left section)
+  // ═════════════════════════════════
+
+  // Program Counter register
   {
-    id: "dataIn",
+    id: "pc",
+    type: "register8",
+    position: { x: 0, y: 120 },
+    data: { label: "PC", value: 0, q: Array(8).fill(0), prevClk: 0 },
+  },
+  // PC value display
+  {
+    id: "pcDisp",
+    type: "outputNumber",
+    position: { x: 0, y: -60 },
+    data: { label: "PC", value: 0 },
+  },
+  // PC load enable (for jumps)
+  {
+    id: "pcLoad",
+    type: "input",
+    position: { x: -120, y: 460 },
+    data: { label: "PC_LOAD", value: 1 },
+  },
+
+  // ─── PC INCREMENTER ───
+  // Adder adds 1 to current PC value
+  {
+    id: "pcInc",
+    type: "adder8",
+    position: { x: -200, y: 620 },
+    data: { sum: Array(8).fill(0), cout: 0 },
+  },
+  // Constant 1 for PC increment
+  {
+    id: "pcOne",
     type: "inputNumber",
-    position: { x: 50, y: 200 },
-    data: { label: "DATA", value: 7 },
+    position: { x: -450, y: 700 },
+    data: { label: "CONST_1", value: 1 },
   },
 
-  // ─── OPERATION SELECT (3 switches for ALU opcode) ───
+  // ═════════════════════════════════
+  //  ADDRESS SELECTION
+  // ═════════════════════════════════
+
+  // Address MUX: sel=0 → PC (fetch), sel=1 → OPERAND (data access)
   {
-    id: "op0",
-    type: "input",
-    position: { x: 50, y: 440 },
-    data: { label: "OP0", value: 0 },
+    id: "addrMux",
+    type: "mux8",
+    position: { x: 300, y: 80 },
+    data: { label: "ADDR MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
+  // Address source select switch
   {
-    id: "op1",
+    id: "addrSel",
     type: "input",
-    position: { x: 50, y: 510 },
-    data: { label: "OP1", value: 0 },
+    position: { x: 200, y: -20 },
+    data: { label: "ADDR_SEL", value: 0 },
   },
+  // Manual operand address input (for LDM/STA addresses)
   {
-    id: "op2",
-    type: "input",
-    position: { x: 50, y: 580 },
-    data: { label: "OP2", value: 0 },
+    id: "operand",
+    type: "inputNumber",
+    position: { x: 200, y: 640 },
+    data: { label: "OPERAND", value: 0 },
   },
 
-  // ─── ALU ───
+  // ═════════════════════════════════
+  //  MEMORY (SRAM 256×8)
+  // ═════════════════════════════════
+
+  {
+    id: "sram",
+    type: "sram8",
+    position: { x: 600, y: 80 },
+    data: {
+      memory: Array(256).fill(0),
+      q: Array(8).fill(0),
+      currentAddress: 0,
+    },
+  },
+  // Memory write enable
+  {
+    id: "memWE",
+    type: "input",
+    position: { x: 580, y: 560 },
+    data: { label: "MEM_WE", value: 0 },
+  },
+  // Memory read display
+  {
+    id: "memDisp",
+    type: "outputNumber",
+    position: { x: 600, y: -60 },
+    data: { label: "MEM_OUT", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  DECODE (Instruction Register)
+  // ═════════════════════════════════
+
+  // IR captures the opcode fetched from memory
+  {
+    id: "ir",
+    type: "register8",
+    position: { x: 900, y: 120 },
+    data: { label: "IR", value: 0, q: Array(8).fill(0), prevClk: 0 },
+  },
+  // IR load enable
+  {
+    id: "irLoad",
+    type: "input",
+    position: { x: 800, y: 460 },
+    data: { label: "IR_LOAD", value: 1 },
+  },
+  // IR value display
+  {
+    id: "irDisp",
+    type: "outputNumber",
+    position: { x: 900, y: -60 },
+    data: { label: "IR", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  DATA PATH MUX
+  // ═════════════════════════════════
+
+  // Data MUX: sel=0 → ALU result, sel=1 → Memory data
+  {
+    id: "dataMux",
+    type: "mux8",
+    position: { x: 1200, y: 80 },
+    data: { label: "DATA MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
+  },
+  // Data source select switch
+  {
+    id: "dataSel",
+    type: "input",
+    position: { x: 1100, y: -20 },
+    data: { label: "DATA_SEL", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  REGISTERS
+  // ═════════════════════════════════
+
+  // Accumulator — the main register
+  {
+    id: "aReg",
+    type: "register8",
+    position: { x: 1500, y: 20 },
+    data: { label: "A (ACC)", value: 0, q: Array(8).fill(0), prevClk: 0 },
+  },
+  // A load enable
+  {
+    id: "aLoad",
+    type: "input",
+    position: { x: 1400, y: 380 },
+    data: { label: "A_LOAD", value: 1 },
+  },
+  // A value display
+  {
+    id: "aDisp",
+    type: "outputNumber",
+    position: { x: 1500, y: -100 },
+    data: { label: "A (ACC)", value: 0 },
+  },
+
+  // B register — secondary for ALU operations
+  {
+    id: "bReg",
+    type: "register8",
+    position: { x: 1500, y: 500 },
+    data: { label: "B", value: 0, q: Array(8).fill(0), prevClk: 0 },
+  },
+  // B load enable
+  {
+    id: "bLoad",
+    type: "input",
+    position: { x: 1400, y: 850 },
+    data: { label: "B_LOAD", value: 0 },
+  },
+  // B value display
+  {
+    id: "bDisp",
+    type: "outputNumber",
+    position: { x: 1750, y: 820 },
+    data: { label: "B", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  ALU — Arithmetic Logic Unit
+  // ═════════════════════════════════
+
   {
     id: "alu",
     type: "alu8",
-    position: { x: 300, y: 120 },
+    position: { x: 1850, y: 50 },
     data: {
       a: 0,
       b: 0,
@@ -73,248 +281,234 @@ export const initialNodes: Node[] = [
       opName: "ADD",
     },
   },
-
-  // ─── ACCUMULATOR REGISTER ───
+  // ALU operation select (3 switches)
   {
-    id: "acc",
-    type: "register8",
-    position: { x: 620, y: 120 },
-    data: { label: "ACC", value: 0, q: Array(8).fill(0), prevClk: 0 },
-  },
-
-  // ─── REGISTER CONTROLS ───
-  {
-    id: "load",
+    id: "op0",
     type: "input",
-    position: { x: 520, y: 440 },
-    data: { label: "LOAD", value: 1 },
+    position: { x: 1750, y: 620 },
+    data: { label: "ALU_OP0", value: 0 },
   },
   {
-    id: "rst",
+    id: "op1",
     type: "input",
-    position: { x: 520, y: 510 },
-    data: { label: "RST", value: 0 },
+    position: { x: 1750, y: 690 },
+    data: { label: "ALU_OP1", value: 0 },
   },
-
-  // ─── ACCUMULATOR OUTPUT DISPLAY ───
   {
-    id: "accOut",
-    type: "outputNumber",
-    position: { x: 880, y: 140 },
-    data: { label: "ACC", value: 0 },
+    id: "op2",
+    type: "input",
+    position: { x: 1750, y: 760 },
+    data: { label: "ALU_OP2", value: 0 },
   },
 
-  // ─── ALU FLAGS OUTPUT ───
+  // ═════════════════════════════════
+  //  FLAGS — ALU Status Outputs
+  // ═════════════════════════════════
+
   {
     id: "flagZ",
     type: "output",
-    position: { x: 550, y: 10 },
+    position: { x: 2150, y: 200 },
     data: { label: "ZERO", value: 0 },
   },
   {
     id: "flagC",
     type: "output",
-    position: { x: 650, y: 10 },
+    position: { x: 2150, y: 270 },
     data: { label: "CARRY", value: 0 },
   },
   {
     id: "flagN",
     type: "output",
-    position: { x: 750, y: 10 },
+    position: { x: 2150, y: 340 },
     data: { label: "NEG", value: 0 },
   },
 
-  // ─── MEMORY SECTION ───
+  // ═════════════════════════════════
+  //  STACK POINTER
+  // ═════════════════════════════════
+
   {
-    id: "memAddr",
-    type: "inputNumber",
-    position: { x: 880, y: 380 },
-    data: { label: "ADDR", value: 0 },
-  },
-  {
-    id: "memWE",
-    type: "input",
-    position: { x: 980, y: 580 },
-    data: { label: "MEM_WE", value: 0 },
-  },
-  {
-    id: "sram",
-    type: "sram8",
-    position: { x: 1100, y: 120 },
+    id: "sp",
+    type: "register8",
+    position: { x: 0, y: 800 },
     data: {
-      memory: Array(256).fill(0),
-      q: Array(8).fill(0),
-      currentAddress: 0,
+      label: "SP",
+      value: 255,
+      q: [1, 1, 1, 1, 1, 1, 1, 1],
+      prevClk: 0,
     },
   },
+  // SP load enable
   {
-    id: "memOut",
+    id: "spLoad",
+    type: "input",
+    position: { x: -120, y: 1140 },
+    data: { label: "SP_LOAD", value: 0 },
+  },
+  // SP value display
+  {
+    id: "spDisp",
     type: "outputNumber",
-    position: { x: 1350, y: 180 },
-    data: { label: "MEM_OUT", value: 0 },
+    position: { x: 220, y: 1000 },
+    data: { label: "SP", value: 255 },
+  },
+
+  // ═════════════════════════════════
+  //  GLOBAL CONTROLS
+  // ═════════════════════════════════
+
+  // Global reset — connected to RST on all registers
+  {
+    id: "rst",
+    type: "input",
+    position: { x: 680, y: 600 },
+    data: { label: "RST", value: 0 },
   },
 ];
 
+// ═══════════════════════════════════════════
+//  EDGES — All data paths and control signals
+// ═══════════════════════════════════════════
+
 export const initialEdges: Edge[] = [
-  // ─── DATA INPUT → ALU.B (operand B) ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-data-alu-b${i}`,
-    source: "dataIn",
-    target: "alu",
-    sourceHandle: `out${i}`,
-    targetHandle: `b${i}`,
-    animated: false,
-  })),
+  // ══════════════════════════════════════
+  //  FETCH: PC → ADDR_MUX → SRAM → IR
+  // ══════════════════════════════════════
 
-  // ─── OP SWITCHES → ALU.OP ───
-  {
-    id: "e-op0",
-    source: "op0",
-    target: "alu",
-    sourceHandle: "out",
-    targetHandle: "op0",
-    animated: false,
-  },
-  {
-    id: "e-op1",
-    source: "op1",
-    target: "alu",
-    sourceHandle: "out",
-    targetHandle: "op1",
-    animated: false,
-  },
-  {
-    id: "e-op2",
-    source: "op2",
-    target: "alu",
-    sourceHandle: "out",
-    targetHandle: "op2",
-    animated: false,
-  },
+  // PC output → Address MUX input A (fetch mode)
+  ...bus8("e-pc-amux-a", "pc", "addrMux", "q", "a"),
 
-  // ─── ALU.R → REGISTER.D (ALU result feeds into accumulator) ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-alu-acc-d${i}`,
-    source: "alu",
-    target: "acc",
-    sourceHandle: `r${i}`,
-    targetHandle: `d${i}`,
-    animated: false,
-  })),
+  // Operand input → Address MUX input B (data access mode)
+  ...bus8("e-op-amux-b", "operand", "addrMux", "out", "b"),
 
-  // ─── CLOCK → REGISTER.CLK ───
-  {
-    id: "e-clk-acc",
-    source: "clk",
-    target: "acc",
-    sourceHandle: "out",
-    targetHandle: "clk",
-    animated: false,
-  },
+  // Address MUX output → SRAM address
+  ...bus8("e-amux-sram-a", "addrMux", "sram", "out", "a"),
 
-  // ─── LOAD → REGISTER.LOAD ───
-  {
-    id: "e-load-acc",
-    source: "load",
-    target: "acc",
-    sourceHandle: "out",
-    targetHandle: "load",
-    animated: false,
-  },
+  // SRAM data output → IR register input
+  ...bus8("e-sram-ir-d", "sram", "ir", "q", "d"),
 
-  // ─── RST → REGISTER.RST ───
-  {
-    id: "e-rst-acc",
-    source: "rst",
-    target: "acc",
-    sourceHandle: "out",
-    targetHandle: "rst",
-    animated: false,
-  },
+  // Address select → MUX sel
+  wire("e-asel", "addrSel", "addrMux", "out", "sel"),
 
-  // ─── REGISTER.Q → ALU.A (feedback: accumulator → ALU operand A) ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-acc-alu-a${i}`,
-    source: "acc",
-    target: "alu",
-    sourceHandle: `q${i}`,
-    targetHandle: `a${i}`,
-    animated: false,
-  })),
+  // ══════════════════════════════════════
+  //  PC INCREMENTER: PC → Adder(+1) → PC
+  // ══════════════════════════════════════
 
-  // ─── REGISTER.Q → ACC OUTPUT DISPLAY ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-acc-out${i}`,
-    source: "acc",
-    target: "accOut",
-    sourceHandle: `q${i}`,
-    targetHandle: `in${i}`,
-    animated: false,
-  })),
+  // PC output → Adder input A
+  ...bus8("e-pc-inc-a", "pc", "pcInc", "q", "a"),
 
-  // ─── ALU FLAGS → FLAG LEDs ───
-  {
-    id: "e-flag-z",
-    source: "alu",
-    target: "flagZ",
-    sourceHandle: "zero",
-    targetHandle: "in",
-    animated: false,
-  },
-  {
-    id: "e-flag-c",
-    source: "alu",
-    target: "flagC",
-    sourceHandle: "carry",
-    targetHandle: "in",
-    animated: false,
-  },
-  {
-    id: "e-flag-n",
-    source: "alu",
-    target: "flagN",
-    sourceHandle: "neg",
-    targetHandle: "in",
-    animated: false,
-  },
+  // Constant 1 → Adder input B
+  ...bus8("e-one-inc-b", "pcOne", "pcInc", "out", "b"),
 
-  // ─── REGISTER.Q → SRAM.D (store accumulator to memory) ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-acc-sram-d${i}`,
-    source: "acc",
-    target: "sram",
-    sourceHandle: `q${i}`,
-    targetHandle: `d${i}`,
-    animated: false,
-  })),
+  // Adder sum → PC data input (PC ← PC + 1)
+  ...bus8("e-inc-pc-d", "pcInc", "pc", "s", "d"),
 
-  // ─── MEM ADDR → SRAM.A ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-addr-sram${i}`,
-    source: "memAddr",
-    target: "sram",
-    sourceHandle: `out${i}`,
-    targetHandle: `a${i}`,
-    animated: false,
-  })),
+  // ══════════════════════════════════════
+  //  DATA PATH: SRAM/ALU → DATA_MUX → A
+  // ══════════════════════════════════════
 
-  // ─── MEM WE → SRAM.WE ───
-  {
-    id: "e-we-sram",
-    source: "memWE",
-    target: "sram",
-    sourceHandle: "out",
-    targetHandle: "we",
-    animated: false,
-  },
+  // ALU result → Data MUX input A (ALU result path)
+  ...bus8("e-alu-dmux-a", "alu", "dataMux", "r", "a"),
 
-  // ─── SRAM.Q → MEM OUTPUT DISPLAY ───
-  ...Array.from({ length: 8 }).map((_, i) => ({
-    id: `e-sram-out${i}`,
-    source: "sram",
-    target: "memOut",
-    sourceHandle: `q${i}`,
-    targetHandle: `in${i}`,
-    animated: false,
-  })),
+  // SRAM data output → Data MUX input B (memory load path)
+  ...bus8("e-sram-dmux-b", "sram", "dataMux", "q", "b"),
+
+  // Data MUX output → A register input
+  ...bus8("e-dmux-a-d", "dataMux", "aReg", "out", "d"),
+
+  // Data select → MUX sel
+  wire("e-dsel", "dataSel", "dataMux", "out", "sel"),
+
+  // ══════════════════════════════════════
+  //  ALU CONNECTIONS: A, B → ALU
+  // ══════════════════════════════════════
+
+  // A register → ALU operand A
+  ...bus8("e-a-alu-a", "aReg", "alu", "q", "a"),
+
+  // B register → ALU operand B
+  ...bus8("e-b-alu-b", "bReg", "alu", "q", "b"),
+
+  // ALU operation select switches
+  wire("e-op0", "op0", "alu", "out", "op0"),
+  wire("e-op1", "op1", "alu", "out", "op1"),
+  wire("e-op2", "op2", "alu", "out", "op2"),
+
+  // ══════════════════════════════════════
+  //  STORE: A → SRAM data input
+  // ══════════════════════════════════════
+
+  // A register output → SRAM data input (for STA operations)
+  ...bus8("e-a-sram-d", "aReg", "sram", "q", "d"),
+
+  // Memory write enable
+  wire("e-memwe", "memWE", "sram", "out", "we"),
+
+  // ══════════════════════════════════════
+  //  B REGISTER: SRAM → B (for LBM)
+  // ══════════════════════════════════════
+
+  // SRAM data output → B register input (for LDB/LBM)
+  ...bus8("e-sram-b-d", "sram", "bReg", "q", "d"),
+
+  // ══════════════════════════════════════
+  //  ALU FLAGS → LED OUTPUTS
+  // ══════════════════════════════════════
+
+  wire("e-fz", "alu", "flagZ", "zero", "in"),
+  wire("e-fc", "alu", "flagC", "carry", "in"),
+  wire("e-fn", "alu", "flagN", "neg", "in"),
+
+  // ══════════════════════════════════════
+  //  CLOCK → ALL REGISTERS
+  // ══════════════════════════════════════
+
+  wire("e-clk-pc", "clk", "pc", "out", "clk"),
+  wire("e-clk-ir", "clk", "ir", "out", "clk"),
+  wire("e-clk-a", "clk", "aReg", "out", "clk"),
+  wire("e-clk-b", "clk", "bReg", "out", "clk"),
+  wire("e-clk-sp", "clk", "sp", "out", "clk"),
+
+  // ══════════════════════════════════════
+  //  REGISTER LOAD ENABLES
+  // ══════════════════════════════════════
+
+  wire("e-ld-pc", "pcLoad", "pc", "out", "load"),
+  wire("e-ld-ir", "irLoad", "ir", "out", "load"),
+  wire("e-ld-a", "aLoad", "aReg", "out", "load"),
+  wire("e-ld-b", "bLoad", "bReg", "out", "load"),
+  wire("e-ld-sp", "spLoad", "sp", "out", "load"),
+
+  // ══════════════════════════════════════
+  //  GLOBAL RESET → ALL REGISTERS
+  // ══════════════════════════════════════
+
+  wire("e-rst-pc", "rst", "pc", "out", "rst"),
+  wire("e-rst-ir", "rst", "ir", "out", "rst"),
+  wire("e-rst-a", "rst", "aReg", "out", "rst"),
+  wire("e-rst-b", "rst", "bReg", "out", "rst"),
+  wire("e-rst-sp", "rst", "sp", "out", "rst"),
+
+  // ══════════════════════════════════════
+  //  DISPLAY OUTPUTS (register values)
+  // ══════════════════════════════════════
+
+  // PC → PC display
+  ...bus8("e-pc-disp-", "pc", "pcDisp", "q", "in"),
+
+  // IR → IR display
+  ...bus8("e-ir-disp-", "ir", "irDisp", "q", "in"),
+
+  // A → A display
+  ...bus8("e-a-disp-", "aReg", "aDisp", "q", "in"),
+
+  // B → B display
+  ...bus8("e-b-disp-", "bReg", "bDisp", "q", "in"),
+
+  // SP → SP display
+  ...bus8("e-sp-disp-", "sp", "spDisp", "q", "in"),
+
+  // SRAM → memory read display
+  ...bus8("e-mem-disp-", "sram", "memDisp", "q", "in"),
 ];

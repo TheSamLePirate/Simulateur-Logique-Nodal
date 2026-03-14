@@ -10,6 +10,7 @@ import { GroupNode } from "./GroupNode";
 import { ClockNode } from "./ClockNode";
 import { Register8Node } from "./Register8Node";
 import { ALU8Node } from "./ALU8Node";
+import { Mux8Node } from "./Mux8Node";
 
 export {
   InputNode,
@@ -24,6 +25,7 @@ export {
   ClockNode,
   Register8Node,
   ALU8Node,
+  Mux8Node,
 };
 
 export const nodeTypes = {
@@ -39,4 +41,5 @@ export const nodeTypes = {
   clock: ClockNode,
   register8: Register8Node,
   alu8: ALU8Node,
+  mux8: Mux8Node,
 };

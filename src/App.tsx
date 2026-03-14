@@ -23,6 +23,7 @@ import {
   Clock,
   Database,
   Calculator,
+  GitFork,
 } from "lucide-react";
 
 import type {
@@ -791,6 +792,19 @@ export default function App() {
           },
         };
         break;
+      case "mux8":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "MUX",
+            sel: 0 as Bit,
+            outVal: 0,
+            out: Array(8).fill(0),
+          },
+        };
+        break;
       default:
         return;
     }
@@ -1012,6 +1026,13 @@ export default function App() {
                 >
                   <Calculator size={18} className="text-orange-400" />
                   <span className="font-bold">ALU 8-bit</span>
+                </button>
+                <button
+                  onClick={() => addNode("mux8")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-indigo-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <GitFork size={18} className="text-indigo-400" />
+                  <span className="font-bold">MUX 8-bit</span>
                 </button>
               </div>
             </div>
