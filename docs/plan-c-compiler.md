@@ -14,9 +14,9 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 ## Simple C Language Specification
 
-### Constraints (8-bit CPU, 256 bytes RAM)
+### Constraints (8-bit CPU, 1024 bytes RAM)
 - All values are **8-bit unsigned** (0–255)
-- Memory layout: code at 0x00+, globals at 0x80+, stack from 0xFF downward
+- Memory layout: code at 0x000+, globals at 0x200+, locals at 0x218+, stack from 0x3FF downward
 - Two registers: A (accumulator), B (secondary)
 
 ### Supported Features
@@ -24,8 +24,8 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Feature | Syntax | Notes |
 |---------|--------|-------|
 | Types | `int`, `void` | int = 8-bit unsigned (0–255) |
-| Globals | `int x = 5;` | Stored at fixed addresses 0x80+ |
-| Locals | `int y = 3;` | Stack-allocated |
+| Globals | `int x = 5;` | Stored at fixed addresses 0x200+ |
+| Locals | `int y = 3;` | Fixed addresses 0x218+ (per function) |
 | Functions | `int foo(int a) { return a+1; }` | With params, recursion |
 | Entry point | `int main() { ... }` | Required |
 | If/else | `if (x > 0) { ... } else { ... }` | |
@@ -36,16 +36,29 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | Produce 0 or 1 |
 | Assignment | `=`, `+=`, `-=` | |
 | Unary | `!`, `~`, `++`, `--` | |
-| Built-ins | `putchar(c)`, `print_num(n)`, `print("str")` | I/O |
+| Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
+| Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
+| Built-in Plotter | `draw(x, y)`, `clear()` | Pixel drawing |
 | Comments | `//` and `/* */` | |
 | Constants | `#define NAME value` | Preprocessed |
+
+### Built-in Functions Reference
+
+| Function | Description | Compiled to |
+|----------|-------------|-------------|
+| `putchar(expr)` | Output one ASCII character | Evaluate expr → A, then `OUTA` |
+| `print_num(expr)` | Output a decimal number | Evaluate expr → A, then `OUTD` |
+| `print("str")` | Output a string literal | Series of `OUT` instructions |
+| `getchar()` | Read one char from input (blocks until available) | `INA; CMP 0; JZ wait` busy-wait loop |
+| `draw(x, y)` | Plot pixel at (x, y) on plotter | x → A, y → B, then `DRAW` |
+| `clear()` | Clear all pixels on plotter | `CLR` |
 
 ### NOT Supported
 - Arrays, pointers, structs, strings as values, switch/case, float
 
 ---
 
-## Files to Create (5 new files)
+## Files Created (5 files)
 
 ### 1. `src/cpu/compiler/lexer.ts` (~150 lines)
 - Tokenizer with line/column tracking for error reporting
@@ -66,11 +79,17 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 ### 3. `src/cpu/compiler/codegen.ts` (~350 lines)
 - AST → ASM string generation
-- **Symbol table**: globals at 0x80+, locals as SP offsets
+- **Memory layout** (1024 bytes):
+  - `0x000-0x1FF` = code (program, 512 bytes max)
+  - `0x200-0x20F` = global variables (16 max)
+  - `0x210-0x215` = arithmetic scratch (multiply, divide, bitwise)
+  - `0x217` = scratch: return value save
+  - `0x218-0x2FF` = local variables and parameters (per-function, unique)
+  - `0x300-0x3FF` = stack (256 bytes, grows downward from 0x3FF)
 - **Label generator**: `__L0`, `__L1`, ... for control flow jumps
 - **Register strategy**: A = expression result, B = temporary for binary ops
-- **Calling convention**: args pushed right-to-left, CALL, return value in A, caller pops args
-- **Built-in recognition**: `putchar(expr)` → evaluate expr to A then `OUTA`, `print_num(expr)` → `OUTD`, `print("str")` → series of `OUT` instructions
+- **Calling convention**: caller saves own vars + temps to stack, writes args to callee param addresses, CALL, return value in A, caller restores temps + vars
+- **Built-in recognition**: `putchar(expr)` → `OUTA`, `print_num(expr)` → `OUTD`, `print("str")` → series of `OUT`, `getchar()` → `INA; CMP 0; JZ` busy-wait, `draw(x,y)` → `DRAW`, `clear()` → `CLR`
 - **Multiply/Divide**: emitted as inline ASM loops (no function call overhead)
 - Emits `JMP __main` at start, function bodies with labels, `HLT` after main returns
 
@@ -81,47 +100,41 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 - Aggregates errors from all phases
 - Returns: `{ success, assembly, errors, generatedASM }`
 
-### 5. `src/cpu/cexamples.ts` (~100 lines)
+### 5. `src/cpu/cexamples.ts` (~260 lines)
 - `C_EXAMPLES: { name, description, code }[]`
 - Examples:
   1. **"Hello World"** — `print("Hello World!");`
   2. **"Compteur"** — `for` loop 0→9 with `putchar`
-  3. **"Fibonacci"** — compute + print fibonacci
+  3. **"Fibonacci"** — compute + print fibonacci numbers
   4. **"Factorielle"** — recursive `fact(n)` function
-  5. **"Calcul"** — arithmetic with variables
+  5. **"Calcul"** — arithmetic with variables and `#define`
+  6. **"Plotter"** — draws diagonal and border on plotter
+  7. **"Sinusoïdes"** — harmonic synthesis with parabolic wave approximation
+  8. **"Echo (Saisie)"** — reads chars with `getchar()` and echoes them
+  9. **"Compteur de lettres"** — counts characters per line of input
 
 ---
 
-## Files to Modify (2 files)
+## Files Modified (2 files)
 
 ### 6. `src/components/software/ASMEditor.tsx`
-- Add `language` prop: `"asm" | "c"`
-- Add C keyword highlighting when `language === "c"`: keywords=purple (`int`, `void`, `if`, `else`, `while`, `for`, `return`), strings=amber, comments=gray, numbers=green, built-ins=cyan (`putchar`, `print_num`, `print`), operators=slate
-- Switch example list based on language
-- Keep ASM highlighting as default
+- Added `language` prop: `"asm" | "c"`
+- Added C keyword highlighting when `language === "c"`: keywords=purple (`int`, `void`, `if`, `else`, `while`, `for`, `return`), strings=amber, comments=gray, numbers=green, built-ins=cyan (`putchar`, `print_num`, `print`, `getchar`, `draw`, `clear`), operators=slate
+- Switches example list based on language
+- Keeps ASM highlighting as default
 
 ### 7. `src/components/software/SoftwareView.tsx`
-- Add `language` state: `"asm" | "c"`
-- Add language toggle in control bar: two buttons "ASM" / "C"
-- Import `compile` from compiler and `C_EXAMPLES`
-- Modify `handleAssemble`:
+- Added `language` state: `"asm" | "c"`
+- Added language toggle in control bar: two buttons "ASM" / "C"
+- Imports `compile` from compiler and `C_EXAMPLES`
+- Modified `handleAssemble`:
   - If `language === "c"`: call `compile(code)` → if success, pass `result.assembly` to `assemble()` → store `generatedASM` for display
   - If `language === "asm"`: existing behavior
-- Add collapsible "ASM Généré" panel below editor (shown only for C mode)
-- Pass `language` prop to ASMEditor
-- Switch examples based on language
-
----
-
-## Implementation Order
-
-1. `src/cpu/compiler/lexer.ts` — tokenizer (no deps)
-2. `src/cpu/compiler/parser.ts` — parser (depends on lexer token types)
-3. `src/cpu/compiler/codegen.ts` — code gen (depends on parser AST types)
-4. `src/cpu/compiler/index.ts` — compile() entry point
-5. `src/cpu/cexamples.ts` — C examples
-6. `src/components/software/ASMEditor.tsx` — add language prop + C highlighting
-7. `src/components/software/SoftwareView.tsx` — language toggle + compile pipeline
+- Added collapsible "ASM Généré" panel below editor (shown only for C mode)
+- Passes `language` prop to ASMEditor
+- Switches examples based on language
+- Added `handleConsoleInput` callback: loops through text chars, calls `cpu.pushInput(charCode)`, appends newline (char 10)
+- Passes `onInput={handleConsoleInput}` to ConsolePanel
 
 ---
 
@@ -133,7 +146,8 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 4. Select "Hello World" → click "Assembler" → console shows "Hello World!"
 5. Select "Compteur" → Run → console shows "0123456789"
 6. Select "Factorielle" → Step → see CALL/RET in action, result in console
-7. View "ASM Généré" panel → shows generated assembly code
-8. Write invalid C (`int x = ;`) → error with correct line number
-9. Toggle back to "ASM" → ASM examples still work perfectly
-10. Step through compiled C → current line highlights correctly in C source
+7. Select "Echo (Saisie)" → Run → type text in console input → chars echo back
+8. View "ASM Généré" panel → shows generated assembly code
+9. Write invalid C (`int x = ;`) → error with correct line number
+10. Toggle back to "ASM" → ASM examples still work perfectly
+11. Step through compiled C → current line highlights correctly in C source

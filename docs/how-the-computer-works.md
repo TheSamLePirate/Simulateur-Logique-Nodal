@@ -8,7 +8,7 @@ A complete guide to the 8-bit computer built inside this simulator.
 
 1. [The Big Picture](#1-the-big-picture)
 2. [The CPU — Brain of the Computer](#2-the-cpu--brain-of-the-computer)
-3. [Memory — 256 Bytes of RAM](#3-memory--256-bytes-of-ram)
+3. [Memory — 1024 Bytes of RAM](#3-memory--1024-bytes-of-ram)
 4. [The Instruction Set (ISA)](#4-the-instruction-set-isa)
 5. [The Assembler — Text to Bytes](#5-the-assembler--text-to-bytes)
 6. [The C Compiler — High Level to ASM](#6-the-c-compiler--high-level-to-asm)
@@ -32,10 +32,10 @@ Layer 1: HARDWARE (the node editor)
 The software layer works like this:
 
 ```
-  +-----------+     +------------+     +-----------+     +-------+
-  | Your Code | --> | Assembler  | --> | CPU       | --> | Output|
-  | (ASM or C)|     | (text->hex)|     | (executes)|     | (text)|
-  +-----------+     +------------+     +-----------+     +-------+
+  +-----------+     +------------+     +-----------+     +--------+
+  | Your Code | --> | Assembler  | --> | CPU       | --> | Output |
+  | (ASM or C)|     | (text->hex)|     | (executes)|     | (text) |
+  +-----------+     +------------+     +-----------+     +--------+
 ```
 
 If you write **C code**, there's one extra step:
@@ -55,7 +55,7 @@ If you write **C code**, there's one extra step:
 The CPU is the part that actually **runs** your program. It reads instructions from memory one by one and executes them. Our CPU is very simple — it's an **8-bit** CPU, which means:
 
 - All numbers are between **0 and 255**
-- Memory addresses are between **0 and 255** (so 256 bytes total)
+- Memory addresses are **10-bit** (0 to 1023), so **1024 bytes** total
 - It processes **one instruction at a time**
 
 ### The Registers
@@ -66,8 +66,8 @@ Registers are tiny storage slots **inside** the CPU. They are much faster than m
 |----------|---------------|--------------------------------------------------------|
 | **A**    | Accumulator   | The main register. All math happens here.              |
 | **B**    | Secondary     | Helper register for two-operand operations.            |
-| **PC**   | Program Counter | Points to the next instruction to execute.           |
-| **SP**   | Stack Pointer | Points to the top of the stack (starts at 0xFF).       |
+| **PC**   | Program Counter | Points to the next instruction to execute (16-bit, masked to 10 bits). |
+| **SP**   | Stack Pointer | Points to the top of the stack (starts at 0x3FF).      |
 
 ### The Flags
 
@@ -79,7 +79,7 @@ Flags are **single bits** that remember the result of the last operation:
 | **C** | Carry   | The result overflowed past 255 (or below 0)     |
 | **N** | Negative | Bit 7 of the result is 1 (value >= 128)        |
 
-Flags are used by **conditional jumps** (JZ, JNZ, JC, JN) to make decisions.
+Flags are used by **conditional jumps** (JZ, JNZ, JC, JNC, JN) to make decisions.
 
 ### The Fetch-Execute Cycle
 
@@ -100,37 +100,38 @@ The stack is a region of memory used for **temporary storage**. Think of it like
 
 - **PUSH** puts a value on top (writes to SP, then SP goes down by 1)
 - **POP** takes the top value off (SP goes up by 1, then reads)
-- **CALL** pushes the return address, then jumps to a function
-- **RET** pops the return address and jumps back
+- **CALL** pushes the 16-bit return address (2 bytes), then jumps to a function
+- **RET** pops the 16-bit return address and jumps back
 
 ```
 Memory addresses:    Stack grows DOWNWARD
 
-  0xFD  [empty]          <-- SP after 3 pushes
-  0xFE  [value 2]
-  0xFF  [value 1]        <-- where SP started
+  0x3FD  [empty]          <-- SP after 3 pushes
+  0x3FE  [value 2]
+  0x3FF  [value 1]        <-- where SP started
 ```
 
 ---
 
-## 3. Memory — 256 Bytes of RAM
+## 3. Memory — 1024 Bytes of RAM
 
-The entire computer has **256 bytes** of memory. Everything lives here: code, variables, the stack. Here's how it's organized:
+The entire computer has **1024 bytes** of memory (10-bit address space, 0x000–0x3FF). Everything lives here: code, variables, the stack. Here's how it's organized:
 
 ```
-  Address     What's there
-  --------    -------------------------------------------
-  0x00-0x7F   CODE: Your program (instructions)
-  0x80-0x8F   GLOBALS: Global variables (C compiler)
-  0x90-0x97   SCRATCH: Temp values for multiply/divide
-  0x98-0xBF   LOCALS: Function parameters & local vars
-  0xC0-0xFF   STACK: Grows downward from 0xFF
+  Address         What's there
+  -----------     -------------------------------------------
+  0x000-0x1FF     CODE: Your program (instructions, 512 bytes max)
+  0x200-0x20F     GLOBALS: Global variables (C compiler, 16 max)
+  0x210-0x215     SCRATCH: Temp values for multiply/divide
+  0x217           SCRATCH: Return value save
+  0x218-0x2FF     LOCALS: Function parameters & local vars
+  0x300-0x3FF     STACK: Grows downward from 0x3FF (256 bytes)
 ```
 
 ### Important Rules
 
-- **Code starts at address 0x00.** The PC starts here when the CPU boots.
-- **The stack grows downward.** SP starts at 0xFF and decreases with each PUSH.
+- **Code starts at address 0x000.** The PC starts here when the CPU boots.
+- **The stack grows downward.** SP starts at 0x3FF and decreases with each PUSH.
 - **STA does NOT update flags.** This is critical for writing correct ASM.
 - **POP, LDM, DEC, INC all DO update flags.** Be careful when using them between a comparison and a conditional jump!
 
@@ -145,11 +146,11 @@ ISA = "Instruction Set Architecture" — the complete list of things the CPU can
 Instructions are **variable length**:
 
 - **1-byte instructions** (opcode 0x00-0x7F): Just the opcode, no data
-- **2-byte instructions** (opcode 0x80-0xFF): Opcode + one byte of data
+- **3-byte instructions** (opcode 0x80-0xFF): Opcode + 16-bit little-endian operand (2 data bytes)
 
 ```
-  1-byte: [ opcode ]           Example: INC = 0x01
-  2-byte: [ opcode ] [ data ]  Example: LDA 42 = 0x80 0x2A
+  1-byte: [ opcode ]                        Example: INC = 0x01
+  3-byte: [ opcode ] [ low byte ] [ high byte ]  Example: LDA 42 = 0x80 0x2A 0x00
 ```
 
 ### Complete Instruction Reference
@@ -159,7 +160,7 @@ Instructions are **variable length**:
 | ASM     | Opcode | Bytes | What it does              |
 |---------|--------|-------|---------------------------|
 | `NOP`   | 0x00   | 1     | Do nothing                |
-| `HLT`   | 0xFF   | 1     | Stop the CPU              |
+| `HLT`   | 0x0F   | 1     | Stop the CPU              |
 
 #### Register Operations
 
@@ -175,55 +176,73 @@ Instructions are **variable length**:
 | `ADDB`  | 0x08   | 1     | A = A + B                 |
 | `SUBB`  | 0x09   | 1     | A = A - B                 |
 
+#### Input
+
+| ASM     | Opcode | Bytes | What it does                                    |
+|---------|--------|-------|-------------------------------------------------|
+| `INA`   | 0x0A   | 1     | A = next char from input buffer (0 if empty, sets Z) |
+
+`INA` is **non-blocking**: if the input buffer is empty, A is set to 0 and the Zero flag is set. Programs typically busy-wait:
+
+```asm
+wait:
+  INA          ; read from buffer
+  CMP 0        ; empty?
+  JZ wait      ; yes → keep waiting
+  ; A now contains the character
+```
+
 #### Stack
 
-| ASM     | Opcode | Bytes | What it does              |
-|---------|--------|-------|---------------------------|
-| `PUSH`  | 0x11   | 1     | Push A onto the stack     |
-| `POP`   | 0x12   | 1     | Pop stack into A          |
-| `CALL`  | 0xB0   | 2     | Push return addr, jump    |
-| `RET`   | 0x10   | 1     | Pop return addr, jump back|
+| ASM     | Opcode | Bytes | What it does                    |
+|---------|--------|-------|---------------------------------|
+| `PUSH`  | 0x11   | 1     | Push A onto the stack           |
+| `POP`   | 0x12   | 1     | Pop stack into A                |
+| `CALL`  | 0xB0   | 3     | Push 16-bit return addr, jump   |
+| `RET`   | 0x10   | 1     | Pop 16-bit return addr, jump back |
 
-#### Output (Console)
+#### Output (Console & Plotter)
 
 | ASM       | Opcode | Bytes | What it does                     |
 |-----------|--------|-------|----------------------------------|
 | `OUTA`    | 0x20   | 1     | Print A as an ASCII character    |
 | `OUTD`    | 0x21   | 1     | Print A as a decimal number      |
-| `OUT imm` | 0xC0   | 2     | Print immediate as ASCII char    |
+| `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) on plotter  |
+| `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
+| `OUT imm` | 0xC0   | 3     | Print immediate as ASCII char    |
 
-#### Load / Store (Immediate Values)
+#### Arithmetic / Logic with Immediate
 
 | ASM       | Opcode | Bytes | What it does              |
 |-----------|--------|-------|---------------------------|
-| `LDA imm` | 0x80  | 2     | A = immediate value       |
-| `LDB imm` | 0x81  | 2     | B = immediate value       |
-| `ADD imm` | 0x82  | 2     | A = A + immediate         |
-| `SUB imm` | 0x83  | 2     | A = A - immediate         |
-| `AND imm` | 0x84  | 2     | A = A AND immediate       |
-| `OR imm`  | 0x85  | 2     | A = A OR immediate        |
-| `XOR imm` | 0x86  | 2     | A = A XOR immediate       |
-| `CMP imm` | 0x87  | 2     | Set flags for A - immediate (don't store result) |
+| `LDA imm` | 0x80  | 3     | A = immediate value       |
+| `LDB imm` | 0x81  | 3     | B = immediate value       |
+| `ADD imm` | 0x82  | 3     | A = A + immediate         |
+| `SUB imm` | 0x83  | 3     | A = A - immediate         |
+| `AND imm` | 0x84  | 3     | A = A AND immediate       |
+| `OR imm`  | 0x85  | 3     | A = A OR immediate        |
+| `XOR imm` | 0x86  | 3     | A = A XOR immediate       |
+| `CMP imm` | 0x87  | 3     | Set flags for A - immediate (don't store result) |
 
 #### Load / Store (Memory)
 
 | ASM        | Opcode | Bytes | What it does              |
 |------------|--------|-------|---------------------------|
-| `STA addr` | 0x90  | 2     | MEM[addr] = A             |
-| `LDM addr` | 0x91  | 2     | A = MEM[addr]             |
-| `STB addr` | 0x92  | 2     | MEM[addr] = B             |
-| `LBM addr` | 0x93  | 2     | B = MEM[addr]             |
+| `STA addr` | 0x90  | 3     | MEM[addr] = A             |
+| `LDM addr` | 0x91  | 3     | A = MEM[addr]             |
+| `STB addr` | 0x92  | 3     | MEM[addr] = B             |
+| `LBM addr` | 0x93  | 3     | B = MEM[addr]             |
 
 #### Jumps (Conditional & Unconditional)
 
 | ASM        | Opcode | Bytes | What it does              |
 |------------|--------|-------|---------------------------|
-| `JMP addr` | 0xA0  | 2     | Always jump to addr       |
-| `JZ addr`  | 0xA1  | 2     | Jump if Zero flag is set  |
-| `JNZ addr` | 0xA2  | 2     | Jump if Zero flag is NOT set |
-| `JC addr`  | 0xA3  | 2     | Jump if Carry flag is set |
-| `JNC addr` | 0xA4  | 2     | Jump if Carry is NOT set  |
-| `JN addr`  | 0xA5  | 2     | Jump if Negative flag     |
+| `JMP addr` | 0xA0  | 3     | Always jump to addr       |
+| `JZ addr`  | 0xA1  | 3     | Jump if Zero flag is set  |
+| `JNZ addr` | 0xA2  | 3     | Jump if Zero flag is NOT set |
+| `JC addr`  | 0xA3  | 3     | Jump if Carry flag is set |
+| `JNC addr` | 0xA4  | 3     | Jump if Carry is NOT set  |
+| `JN addr`  | 0xA5  | 3     | Jump if Negative flag     |
 
 ### Flag Behavior — What You MUST Know
 
@@ -231,8 +250,8 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 | Updates flags?  | Instructions                             |
 |-----------------|------------------------------------------|
-| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM |
-| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, NOP, HLT |
+| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, INA, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM |
+| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, NOP, HLT |
 
 **Critical rule:** Never put a flag-modifying instruction between a comparison (CMP) and a conditional jump (JZ/JNZ). Example of a **bug**:
 
@@ -246,7 +265,7 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 ```asm
   DEC         ; sets Z flag when result is 0
-  STA 0xF0   ; saves A (STA does NOT touch flags)
+  STA 0x200   ; saves A (STA does NOT touch flags)
   JZ done     ; Z flag from DEC is still valid!
 ```
 
@@ -265,24 +284,24 @@ The assembler converts human-readable ASM text into machine bytes the CPU can ex
 The assembler reads every line and notes where each **label** is (its byte address). It also counts how many bytes each instruction will need.
 
 ```asm
-  LDA 0        ; 2 bytes → address 0x00
-loop:            ; label "loop" = address 0x02
-  ADD 48       ; 2 bytes → address 0x02
-  OUTA         ; 1 byte  → address 0x04
-  JMP loop     ; 2 bytes → address 0x05
+  LDA 0        ; 3 bytes → address 0x000
+loop:            ; label "loop" = address 0x003
+  ADD 48       ; 3 bytes → address 0x003
+  OUTA         ; 1 byte  → address 0x006
+  JMP loop     ; 3 bytes → address 0x007
 ```
 
-After pass 1, the assembler knows: `loop = 0x02`.
+After pass 1, the assembler knows: `loop = 0x003`.
 
 #### Pass 2: Emit Bytes
 
 Now it goes through again and converts each instruction to bytes. When it sees a label reference (like `JMP loop`), it replaces it with the address from pass 1.
 
 ```
-  LDA 0    →  0x80 0x00
-  ADD 48   →  0x82 0x30
+  LDA 0    →  0x80 0x00 0x00
+  ADD 48   →  0x82 0x30 0x00
   OUTA     →  0x20
-  JMP loop →  0xA0 0x02    (loop was at address 0x02)
+  JMP loop →  0xA0 0x03 0x00    (loop was at address 0x003)
 ```
 
 ### ASM Syntax
@@ -370,7 +389,7 @@ if (x > 5) {
 Becomes:
 
 ```
-IfStmt
+ IfStmt
   condition: BinaryExpr(>)
     left:  Identifier("x")
     right: NumberLiteral(5)
@@ -406,9 +425,11 @@ Walks the AST and produces ASM instructions. This is the most complex part.
 Since the CPU has no stack-relative addressing, every variable gets a **fixed memory address**:
 
 ```
-  Global variables:  0x80, 0x81, 0x82, ...   (up to 16)
-  Function locals:   0x98, 0x99, 0x9A, ...   (per function)
-  Arithmetic temps:  0x90-0x95               (for multiply, divide, etc.)
+  Global variables:  0x200, 0x201, 0x202, ...  (up to 16)
+  Arithmetic temps:  0x210-0x215               (for multiply, divide, etc.)
+  Return value save: 0x217
+  Function locals:   0x218, 0x219, 0x21A, ...  (per function, unique addresses)
+  Stack:             0x300-0x3FF               (grows downward from 0x3FF)
 ```
 
 #### How Expressions Are Compiled
@@ -422,12 +443,12 @@ x + y
 Generates:
 
 ```asm
-  LDM 0x98     ; A = x (load from memory)
-  PUSH         ; save x on stack
-  LDM 0x99     ; A = y
-  TAB          ; B = y
-  POP          ; A = x
-  ADDB         ; A = x + y
+  LDM 0x218     ; A = x (load from memory)
+  PUSH          ; save x on stack
+  LDM 0x219     ; A = y
+  TAB           ; B = y
+  POP           ; A = x
+  ADDB          ; A = x + y
 ```
 
 #### How If/Else Works
@@ -444,19 +465,19 @@ Generates:
 
 ```asm
   ; evaluate condition (result in A: 0 or 1)
-  LDM 0x98     ; A = x
-  ...          ; comparison → A = 0 or 1
+  LDM 0x218     ; A = x
+  ...           ; comparison → A = 0 or 1
   CMP 0
-  JZ __L1      ; if false, jump to else
+  JZ __L1       ; if false, jump to else
 
   ; then branch
   ...
-  JMP __L2     ; skip else branch
+  JMP __L2      ; skip else branch
 
-__L1:          ; else branch
+__L1:           ; else branch
   ...
 
-__L2:          ; continue
+__L2:           ; continue
 ```
 
 #### How Loops Work
@@ -472,15 +493,15 @@ Generates:
 ```asm
 __L0:          ; loop start
   ; evaluate condition
-  LDM 0x98
+  LDM 0x218
   ...          ; comparison
   CMP 0
   JZ __L1      ; if false, exit loop
 
   ; loop body
-  LDM 0x98
+  LDM 0x218
   DEC
-  STA 0x98
+  STA 0x218
 
   JMP __L0     ; back to loop start
 __L1:          ; loop end
@@ -510,9 +531,9 @@ When calling a function, the compiler does:
 ```
 
 This means each function call uses stack space proportional to:
-`(number of variables) + 6 (temps) + (number of args) + 1 (return address)`
+`(number of variables) + 6 (temps) + (number of args) + 2 (16-bit return address)`
 
-With 64 bytes of stack, that's enough for about 5-7 levels of recursion.
+With 256 bytes of stack (0x300-0x3FF), that's enough for many levels of recursion.
 
 #### How Multiply Works (No MUL Instruction!)
 
@@ -526,26 +547,26 @@ In ASM:
 
 ```asm
   ; t1 = left value, t2 = counter, t3 = result
-  STA 0x90       ; t1 = left
-  STA 0x91       ; t2 = right (counter)
+  STA 0x210       ; t1 = left
+  STA 0x211       ; t2 = right (counter)
   LDA 0
-  STA 0x92       ; t3 = 0 (result)
+  STA 0x212       ; t3 = 0 (result)
 
 __loop:
-  LDM 0x91       ; A = counter
+  LDM 0x211       ; A = counter
   CMP 0
-  JZ __done      ; if counter == 0, done
-  LDM 0x92       ; A = result
-  LBM 0x90       ; B = left value
-  ADDB           ; A = result + left
-  STA 0x92       ; result = A
-  LDM 0x91       ; A = counter
-  DEC            ; counter--
-  STA 0x91
+  JZ __done       ; if counter == 0, done
+  LDM 0x212       ; A = result
+  LBM 0x210       ; B = left value
+  ADDB            ; A = result + left
+  STA 0x212       ; result = A
+  LDM 0x211       ; A = counter
+  DEC             ; counter--
+  STA 0x211
   JMP __loop
 
 __done:
-  LDM 0x92       ; A = final result
+  LDM 0x212       ; A = final result
 ```
 
 #### How Division Works
@@ -572,8 +593,35 @@ Similar loop, but using **repeated subtraction**:
 | Logical | `&& \|\|` | Short-circuit |
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
-| I/O | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
+| Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
+| Input | `getchar()` | Reads one character (blocking) |
+| Plotter | `draw(x, y)`, `clear()` | Drawing built-ins |
 | Constants | `#define MAX 100` | Preprocessor |
+
+### Console Input in C
+
+The `getchar()` built-in reads a single character from the console input buffer. It **blocks** (busy-waits) until a character is available:
+
+```c
+int main() {
+  int c;
+  while (1) {
+    c = getchar();     // waits for a character
+    putchar(c);        // echoes it back
+  }
+  return 0;
+}
+```
+
+Under the hood, `getchar()` compiles to a busy-wait loop:
+
+```asm
+__wait:
+  INA           ; read from input buffer
+  CMP 0         ; empty?
+  JZ __wait     ; yes → keep waiting
+  ; A now contains the character
+```
 
 ### NOT Supported
 
@@ -602,8 +650,8 @@ src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
   ASMEditor.tsx       Code editor with syntax highlighting
   CPUState.tsx        Register and flag display
-  MemoryView.tsx      256-byte memory hex viewer
-  ConsolePanel.tsx    Text output console
+  MemoryView.tsx      1024-byte memory hex viewer
+  ConsolePanel.tsx    Text output console with keyboard input field
 ```
 
 ### The Full Pipeline
@@ -613,13 +661,14 @@ src/components/software/
   2. Click "Assembler" (or "Compiler" for C)
   3. If C: Compiler produces ASM text → shown in ASM tab
   4. Assembler converts ASM text → machine bytes
-  5. Bytes are loaded into CPU memory starting at address 0x00
-  6. PC is set to 0x00
+  5. Bytes are loaded into CPU memory starting at address 0x000
+  6. PC is set to 0x000
   7. Click "Step" to execute one instruction at a time
      or "Run" to execute continuously
   8. CPU state (registers, memory, flags) updates in real time
   9. Output appears in the console panel
-  10. CPU halts when it executes HLT
+  10. Input is typed in the console input field and submitted with Enter
+  11. CPU halts when it executes HLT
 ```
 
 ---
@@ -637,15 +686,15 @@ src/components/software/
   HLT         ; Stop
 ```
 
-This compiles to just 11 bytes:
+This compiles to 16 bytes (each OUT is 3 bytes, HLT is 1 byte):
 
 ```
-  0xC0 0x48   OUT 'H'   (0x48 = ASCII for 'H')
-  0xC0 0x45   OUT 'E'
-  0xC0 0x4C   OUT 'L'
-  0xC0 0x4C   OUT 'L'
-  0xC0 0x4F   OUT 'O'
-  0xFF        HLT
+  0xC0 0x48 0x00   OUT 'H'   (0x48 = ASCII for 'H')
+  0xC0 0x45 0x00   OUT 'E'
+  0xC0 0x4C 0x00   OUT 'L'
+  0xC0 0x4C 0x00   OUT 'L'
+  0xC0 0x4F 0x00   OUT 'O'
+  0x0F             HLT
 ```
 
 ### Example 2: Counter 0-9 (ASM)
@@ -664,7 +713,35 @@ loop:
 
 Key concept: The loop uses **CMP** to set flags, then **JNZ** to check them. This works because there is no flag-modifying instruction between CMP and JNZ.
 
-### Example 3: Factorial (C)
+### Example 3: Echo (ASM — Console Input)
+
+```asm
+; Echo - reads characters and echoes them back
+  OUT 'T'
+  OUT 'a'
+  OUT 'p'
+  OUT 'e'
+  OUT 'z'
+  OUT ':'
+  OUT ' '
+
+loop:
+  INA          ; read a character from buffer
+  CMP 0        ; buffer empty?
+  JZ loop      ; yes → wait
+  CMP 10       ; newline?
+  JZ newline
+  OUTA         ; echo the character
+  JMP loop
+
+newline:
+  OUT 10       ; print newline
+  JMP loop
+```
+
+Key concept: **INA** sets A=0 and Z=1 when the input buffer is empty. The `INA; CMP 0; JZ loop` pattern creates a busy-wait loop.
+
+### Example 4: Factorial (C)
 
 ```c
 int fact(int n) {
@@ -683,15 +760,44 @@ int main() {
 
 What happens under the hood:
 
-1. Compiler allocates address 0x98 for `fact`'s parameter `n`
-2. `fact(5)` → saves main's vars to stack, writes 5 to 0x98, calls `__fact`
+1. Compiler allocates address 0x218 for `fact`'s parameter `n`
+2. `fact(5)` → saves main's vars to stack, writes 5 to 0x218, calls `__fact`
 3. Inside `fact`: checks `n <= 1`? No. Computes `n - 1 = 4`.
-4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x98, calls `__fact` again
+4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x218, calls `__fact` again
 5. This repeats until `n = 1`, which returns 1
 6. Unwinding: `fact(2)` computes `2 * 1 = 2`, `fact(3)` computes `3 * 2 = 6`, etc.
 7. Final result: `fact(5) = 120`
 
-Each level of recursion uses ~9 bytes of stack. With 64 bytes of stack space (0xC0-0xFF), that's enough for ~7 levels.
+Each level of recursion uses stack space for variable saves + temp saves + return address. With 256 bytes of stack space (0x300-0x3FF), that's enough for many levels.
+
+### Example 5: Character Counter (C — Console Input)
+
+```c
+int main() {
+  int c;
+  int count;
+
+  while (1) {
+    count = 0;
+    print("> ");
+
+    c = getchar();
+    while (c != 10) {
+      count += 1;
+      putchar(c);
+      c = getchar();
+    }
+
+    putchar(10);
+    print("Longueur: ");
+    print_num(count);
+    putchar(10);
+  }
+  return 0;
+}
+```
+
+This program reads a line of text, echoes each character, then displays the character count. `getchar()` busy-waits until a character is available, and the newline character (ASCII 10) marks the end of a line.
 
 ---
 

@@ -44,9 +44,10 @@ Everything in the simulator is built from simple gates upward:
   Level 0:  BITS          0 and 1 — that's it
   Level 1:  GATES         AND, OR, XOR, NAND, NOR, NOT
   Level 2:  ADDERS        Full Adder (1-bit), Ripple Carry Adder (8-bit)
-  Level 3:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (256x8)
+  Level 3:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (1024x8)
   Level 4:  ALU           8 operations (ADD, SUB, AND, OR, XOR, NOT, SHL, SHR)
-  Level 5:  COMPUTER      ALU + Register + SRAM + Clock = working CPU
+  Level 5:  PERIPHERALS   Console (text I/O), Plotter (256×256 pixel display)
+  Level 6:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
 ```
 
 ---
@@ -171,6 +172,8 @@ The function `simulateNodes(nodes, edges)` visits every node in the circuit and 
     4. Compute this node's output based on its type
     5. Store the new output in the node's data
 ```
+
+**Note:** When a program is loaded from the Software tab onto the hardware CPU (`hwCpuLoaded=true`), `simulateNodes` is **skipped** — instead, a dedicated `syncHwCpuToNodes` function derives all node data directly from the CPU state and the last executed opcode. Only `updateEdgeStyles` still runs to color/animate the wires.
 
 ### Step 2: Update Wire Colors
 
@@ -324,6 +327,26 @@ function add8(a: Bit[], b: Bit[], cin: Bit = 0) {
 }
 ```
 
+### 8-bit MUX (Multiplexer)
+
+A 2-to-1 multiplexer that selects between two 8-bit inputs based on a select signal.
+
+```
+  a0-a7 ────┐
+            │
+  b0-b7 ────┤── out0-out7
+            │
+  sel ──────┘
+```
+
+**Behavior:**
+```
+  sel = 0:  output = A inputs
+  sel = 1:  output = B inputs
+```
+
+Used extensively in the default scene for address selection (PC vs operand), data selection (ALU vs memory), ALU B source (B register vs immediate), and PC source (PC+1 vs jump target).
+
 ### 8-bit Bus
 
 A simple pass-through that bundles 8 individual bit wires into a group.
@@ -438,7 +461,7 @@ Between rising edges, the register **holds** its value no matter what happens on
 
 ### SRAM (Static Random Access Memory)
 
-A 256-byte memory array. You give it an address (0-255) and it gives you the byte stored there. You can also write a byte to any address.
+A 1024-byte memory array. You give it an address (0-1023) and it gives you the byte stored there. You can also write a byte to any address.
 
 ```
   a0-a7 ────┐ (8-bit address: which byte?)
@@ -447,6 +470,8 @@ A 256-byte memory array. You give it an address (0-255) and it gives you the byt
             ├── q0-q7 (8-bit data output: what's stored there?)
   we ───────┘ (write enable: save the data?)
 ```
+
+**Note:** Although the address bus shown in hardware is 8-bit (a0-a7), the SRAM internally supports 1024 bytes (10-bit address space). When the software CPU is loaded, the full 10-bit addresses are used.
 
 **Behavior:**
 
@@ -460,13 +485,13 @@ A 256-byte memory array. You give it an address (0-255) and it gives you the byt
 **How it's organized internally:**
 
 ```
-  Address 0x00: [8 bits]
-  Address 0x01: [8 bits]
-  Address 0x02: [8 bits]
+  Address 0x000: [8 bits]
+  Address 0x001: [8 bits]
+  Address 0x002: [8 bits]
   ...
-  Address 0xFF: [8 bits]
+  Address 0x3FF: [8 bits]
 
-  Total: 256 addresses x 8 bits = 256 bytes = 2048 bits
+  Total: 1024 addresses x 8 bits = 1024 bytes = 8192 bits
 ```
 
 The SRAM node displays the current address and the data at that address for debugging.
@@ -478,7 +503,7 @@ The SRAM node displays the current address and the data at that address for debu
 
   Registers       SRAM           (Real computers also have:
   (inside CPU)    (on chip)       L1 cache, L2 cache, RAM, SSD, HDD)
-  8 bits each     256 bytes
+  8 bits each     1024 bytes
   1 per register  1 block
 ```
 
@@ -509,6 +534,8 @@ The clock is a signal that **toggles between 0 and 1** at a regular frequency. I
 The clock uses a **threshold-based tick counter**: it counts simulation ticks (at 20 Hz) and toggles when enough ticks have accumulated for the desired frequency.
 
 **Why it matters:** Without a clock, a register would capture data continuously. The clock creates discrete **moments** where things happen, which makes the circuit predictable and synchronized.
+
+**Hardware CPU speed:** When a program is loaded from the Software tab, the CPU run loop is paced by the clock node's frequency. Setting the clock to 2 Hz means the CPU executes instructions at 2 Hz (multiplied by the "i/tick" slider value). A speed indicator shows the effective instructions per second.
 
 ---
 
@@ -642,29 +669,36 @@ Stores one byte. 8 copies of the 1-bit D-Latch sharing one Write Enable.
 
 ## 11. The Default Scene — A Working Computer
 
-When you open the simulator, you see a pre-built circuit that forms a **simple 8-bit computer**. Here's what it contains:
+When you open the simulator, you see a pre-built circuit that forms a **complete 8-bit von Neumann computer**. Here's what it contains:
 
 ### Architecture
 
 ```
-  ┌──────────┐    ┌─────┐    ┌─────────┐    ┌─────────┐
-  │ DATA IN  │───→│     │    │         │───→│ DISPLAY │
-  │  (8-bit) │    │ ALU │───→│   ACC   │    │ (8-bit) │
-  └──────────┘    │     │    │(register│    └─────────┘
-                  │     │    │)        │
-  ┌──────────┐    │     │    └────┬────┘
-  │ OP CODE  │───→│     │         │
-  │ (3 bits) │    └─────┘    ┌────┴────┐
-  └──────────┘               │ feedback│
-                             └─────────┘
-                                ↓
-  ┌─────┐                  ┌──────┐    ┌─────────┐
-  │ CLK │─────────────────→│ SRAM │───→│ MEM OUT │
-  └─────┘                  │256x8 │    │ (8-bit) │
-  ┌──────┐                 └──────┘    └─────────┘
-  │ LOAD │──→ ACC.load
-  │ RST  │──→ ACC.rst
-  └──────┘
+  ┌──────┐   ┌──────────┐   ┌────────┐   ┌──────┐
+  │  PC  │──→│ ADDR MUX │──→│  SRAM  │──→│  IR  │
+  └──────┘   └──────────┘   │1024×8  │   └──────┘
+      ↑           ↑         └────────┘
+  [PC+1]    [SP/OP MUX]        │ ↑
+                               │ │
+                               ↓ │
+               ┌──────────┐  ┌───┴──┐     ┌─────┐
+               │ DATA MUX │  │  A   │────→│     │
+               └──────────┘→→│(ACC) │     │ ALU │──→ FLAGS (Z, C, N)
+                   ↑         └──────┘     │     │
+                ALU.R        ┌──────┐────→│     │
+                             │  B   │     └─────┘
+                             └──────┘
+
+  CLOCK ──→ all registers (CLK)
+  Control switches: LOAD enables, MUX selects, MEM_WE, ALU_OP, RST
+
+  I/O Peripherals:
+  ┌──────────────┐     ┌──────────┐
+  │   CONSOLE    │     │ PLOTTER  │
+  │ (text I/O)   │     │ (256×256)│
+  │ D0-D7 → text │     └──────────┘
+  │ Q0-Q7 ← input│       A → X, B → Y
+  └──────────────┘       DRAW strobe
 ```
 
 ### Components
@@ -672,18 +706,70 @@ When you open the simulator, you see a pre-built circuit that forms a **simple 8
 | Node | Type | Purpose |
 |------|------|---------|
 | **clk** | Clock (2 Hz) | Heartbeat of the system |
-| **dataIn** | InputNumber (default: 7) | Number to feed into ALU |
-| **op0, op1, op2** | Input (switches) | Select ALU operation |
-| **alu** | ALU8 | Performs the selected operation |
-| **acc** | Register8 | Stores the current result (accumulator) |
-| **load** | Input (default: 1) | Enables register loading |
-| **rst** | Input (default: 0) | Resets register to 0 |
-| **accOut** | OutputNumber | Shows accumulator value |
+| **pc** | Register8 | Program Counter — next instruction address |
+| **pcDisp** | OutputNumber | Shows PC value |
+| **pcInc** | Adder8 | PC + 1 incrementer |
+| **pcOne** | InputNumber (=1) | Constant 1 for PC increment |
+| **pcSrcMux** | MUX8 | Selects PC source: PC+1 (sequential) or operand (jump) |
+| **addrMux** | MUX8 | Selects memory address: PC (fetch) or operand (data access) |
+| **addrSel** | Input | Address MUX select control |
+| **operand** | InputNumber | Manual operand address / immediate value |
+| **sram** | SRAM8 (1024×8) | Main memory (code + data + stack) |
+| **memWE** | Input | Memory write enable |
+| **memDisp** | OutputNumber | Shows SRAM read value |
+| **ir** | Register8 | Instruction Register — holds current opcode |
+| **irLoad** | Input | IR load enable |
+| **irDisp** | OutputNumber | Shows IR value |
+| **dataMux** | MUX8 | Selects register data: ALU result or memory data |
+| **dataSel** | Input | Data MUX select control |
+| **aReg** | Register8 | Accumulator — main register |
+| **aLoad** | Input | A register load enable |
+| **aDisp** | OutputNumber | Shows accumulator value |
+| **bReg** | Register8 | B register — secondary for ALU |
+| **bLoad** | Input | B register load enable |
+| **bDisp** | OutputNumber | Shows B register value |
+| **alu** | ALU8 | Arithmetic Logic Unit (8 operations) |
+| **op0, op1, op2** | Input (switches) | Select ALU operation (3-bit code) |
+| **aluBMux** | MUX8 | ALU B source: B register or immediate |
+| **aluImm** | Input | ALU immediate select |
 | **flagZ, flagC, flagN** | Output (LEDs) | ALU status flags |
-| **memAddr** | InputNumber | SRAM address selector |
-| **memWE** | Input | SRAM write enable |
-| **sram** | SRAM8 | 256-byte memory |
-| **memOut** | OutputNumber | Shows SRAM read value |
+| **sp** | Register8 | Stack Pointer (starts at 0xFF/255) |
+| **spLoad** | Input | SP load enable |
+| **spDisp** | OutputNumber | Shows SP value |
+| **spOpMux** | MUX8 | Address B source: operand or SP |
+| **spSel** | Input | SP/Operand select |
+| **pcJmp** | Input | PC jump select (sequential or jump target) |
+| **rst** | Input | Global reset for all registers |
+
+### I/O Peripherals
+
+| Node | Type | Purpose |
+|------|------|---------|
+| **console** | Console | Text display + keyboard input |
+| **consoleWr** | Input | Console write strobe |
+| **consoleMode** | Input | Console mode: 0=ASCII, 1=decimal |
+| **consoleClear** | Input | Clear console display |
+| **consoleRd** | Input | Console read strobe (for INA instruction) |
+| **plotter** | Plotter | 256×256 pixel display |
+| **plotDraw** | Input | Plotter draw strobe |
+| **plotClear** | Input | Clear plotter display |
+
+### Console Node Details
+
+The console node is a **bidirectional** peripheral with both input and output capabilities:
+
+**Left side (inputs):**
+- **D0-D7**: 8-bit data input bus (character to display)
+- **WR**: Write strobe — on rising edge, displays the character on D0-D7
+- **MODE**: 0 = ASCII character, 1 = decimal number
+- **CLR**: Clear the display
+
+**Right side (outputs + read strobe):**
+- **Q0-Q7**: 8-bit data output bus (character read from input buffer)
+- **AVAIL**: 1 if input buffer has data available, 0 if empty
+- **RD**: Read strobe — on rising edge, pops next character from buffer
+
+The console also has a **keyboard input field** at the bottom. Text typed there and submitted with Enter is queued in the input buffer. The CPU reads from this buffer using the INA instruction.
 
 ### How to Use It
 
@@ -696,6 +782,8 @@ When you open the simulator, you see a pre-built circuit that forms a **simple 8
 4. **Store to memory:** Set memAddr to an address, memWE to 1. The current ACC value is written to SRAM at that address.
 
 5. **Read from memory:** Set memAddr, memWE to 0. memOut shows the stored value.
+
+6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. The program is loaded into SRAM and the CPU executes it step-by-step, with all control signals, data paths, and wires animating in real time.
 
 ---
 
@@ -765,11 +853,14 @@ src/
     InputNumberNode.tsx    8-bit number input (0-255)
     OutputNumberNode.tsx   8-bit number display
     Adder8Node.tsx         8-bit parallel adder
+    MUX8Node.tsx           8-bit 2-to-1 multiplexer
     Bus8Node.tsx           8-bit wire bundler
     ALU8Node.tsx           8-operation ALU with flags
-    SRAM8Node.tsx          256x8 memory with address/data/WE
+    SRAM8Node.tsx          1024x8 memory with address/data/WE
     Register8Node.tsx      8-bit edge-triggered register
     ClockNode.tsx          Programmable clock oscillator
+    ConsoleNode.tsx        Text I/O peripheral (output + keyboard input)
+    PlotterNode.tsx        256×256 pixel display peripheral
     GroupNode.tsx           Custom module container
 
   data/
@@ -798,6 +889,7 @@ src/
 | **Group** | Multiple nodes combined into a single reusable module |
 | **Handle** | A connection point on a node (input or output) |
 | **Latch** | A 1-bit memory element built from cross-coupled gates |
+| **MUX** | Multiplexer — selects one of multiple inputs based on a select signal |
 | **Node** | A component in the circuit (gate, register, ALU, etc.) |
 | **Opcode** | A number that selects which operation to perform |
 | **Register** | Fast storage that captures data on clock edge |
