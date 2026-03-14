@@ -545,9 +545,11 @@ export function generate(program: Program): {
     const t3 = TEMP_BASE + 2; // result accumulator
 
     emitExpr(expr.left, ctx);
-    emit(`  STA ${fmt(t1)}`);
+    emit(`  PUSH`); // save left on stack (safe from right-side evaluation)
     emitExpr(expr.right, ctx);
     emit(`  STA ${fmt(t2)}`);
+    emit(`  POP`); // recover left
+    emit(`  STA ${fmt(t1)}`);
     emit(`  LDA 0`);
     emit(`  STA ${fmt(t3)}`);
 
@@ -584,9 +586,11 @@ export function generate(program: Program): {
     const t3 = TEMP_BASE + 2; // quotient
 
     emitExpr(expr.left, ctx);
-    emit(`  STA ${fmt(t1)}`);
+    emit(`  PUSH`); // save dividend on stack (safe from right-side evaluation)
     emitExpr(expr.right, ctx);
     emit(`  STA ${fmt(t2)}`);
+    emit(`  POP`); // recover dividend
+    emit(`  STA ${fmt(t1)}`);
     emit(`  LDA 0`);
     emit(`  STA ${fmt(t3)}`);
 
@@ -630,9 +634,11 @@ export function generate(program: Program): {
     const t5 = TEMP_BASE + 4; // counter (8 → 0)
 
     emitExpr(expr.left, ctx);
-    emit(`  STA ${fmt(t1)}`);
+    emit(`  PUSH`); // save left on stack (safe from right-side evaluation)
     emitExpr(expr.right, ctx);
     emit(`  STA ${fmt(t2)}`);
+    emit(`  POP`); // recover left
+    emit(`  STA ${fmt(t1)}`);
     emit(`  LDA 0`);
     emit(`  STA ${fmt(t3)}`); // result = 0
     emit(`  LDA 1`);

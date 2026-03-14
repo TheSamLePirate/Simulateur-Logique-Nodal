@@ -8,7 +8,7 @@ This document covers the bugs found, the fixes applied, and the comprehensive te
 
 1. [Bug Fix: `>=` and `>` Comparison Operators](#1-bug-fix--and--comparison-operators)
 2. [Bug Fix: Global Variables Off-by-One](#2-bug-fix-global-variables-off-by-one)
-3. [Known Limitation: Sinusoïdes Example](#3-known-limitation-sinusoïdes-example)
+3. [Bug Fix: Scratch Register Conflicts in Nested Expressions](#3-bug-fix-scratch-register-conflicts-in-nested-expressions)
 4. [Test Suite Overview](#4-test-suite-overview)
 5. [Running Tests](#5-running-tests)
 6. [Memory Audit Summary](#6-memory-audit-summary)
@@ -133,27 +133,71 @@ globalAddr++;
 
 ---
 
-## 3. Known Limitation: Sinusoïdes Example
+## 3. Bug Fix: Scratch Register Conflicts in Nested Expressions
 
-The "Sinusoïdes" example generates **1640 bytes** of ASM code, exceeding the 512-byte code area. This is a fundamental limitation of the compiler's multiply implementation.
+**File:** `src/cpu/compiler/codegen.ts` — `emitMultiply()`, `emitDivMod()`, `emitBitwiseOp()`
 
-### Why It's So Large
+### The Bug
 
-The program calls `sq()` and `hw()` — both contain `a * b` multiplications. Each multiply expands to a ~25-byte inline loop. Combined with:
-- Multiple function calls (save/restore locals and scratch temps ~40 bytes each)
-- Many if/else branches in the main loop
-- Two separate wave calculations per pixel
+Expressions like `(a >> 2) * (b >> 2)` produced completely wrong results. For example, `(0 >> 2) * ((127 - 0) >> 2)` returned **193** instead of **0**.
 
-This produces 1640 bytes — 3.2x the 512-byte limit.
+**Impact:** Any program combining `*`, `/`, `%`, `&`, `|`, or `^` with nested shift or arithmetic subexpressions produced incorrect results. The "Courbe" (wave) example drew garbage instead of a smooth parabolic curve.
 
-### Status
+### Root Cause
 
-The example is kept for **educational purposes** (it demonstrates harmonic synthesis and parabolic approximation). The C compilation succeeds and produces valid ASM, but assembly fails with "Programme trop grand".
+The code generators for multiply, divide/modulo, and bitwise operations all followed this pattern:
 
-The test suite correctly handles this:
-- C compilation is expected to succeed
-- Assembly is expected to fail with code overflow
-- No execution or output tests are attempted
+```typescript
+// BEFORE (buggy):
+emitExpr(expr.left, ctx);     // evaluate left → result in A
+emit(`  STA ${fmt(t1)}`);     // save left at TEMP_BASE
+emitExpr(expr.right, ctx);    // evaluate right → ⚠️ CLOBBERS TEMP_BASE!
+emit(`  STA ${fmt(t2)}`);     // save right at TEMP_BASE+1
+```
+
+The problem: evaluating the right operand can itself use TEMP_BASE (e.g., if it contains a `>>` shift, which stores intermediate values at TEMP_BASE). This **overwrites** the left operand saved at TEMP_BASE.
+
+### Concrete Example
+
+For `(t >> 2) * ((127 - t) >> 2)` with `t = 0`:
+
+1. Evaluate left `(0 >> 2)`: shift loop runs, result = 0 in A
+2. `STA TEMP_BASE` → TEMP_BASE = 0 (left saved)
+3. Evaluate right `((127 - 0) >> 2)`: shift loop stores 127 → TEMP_BASE, then shifts → **TEMP_BASE = 31** (left overwritten!)
+4. Multiply loop uses TEMP_BASE (now 31) × TEMP_BASE+1 (31) = 31 × 31 = 961 → **193** (mod 256)
+
+### The Fix
+
+Use `PUSH`/`POP` (the stack) to save the left operand before evaluating the right side:
+
+```typescript
+// AFTER (fixed):
+emitExpr(expr.left, ctx);     // evaluate left → result in A
+emit(`  PUSH`);               // save left ON STACK (safe from subexpressions)
+emitExpr(expr.right, ctx);    // evaluate right → can safely use TEMP_BASE
+emit(`  STA ${fmt(t2)}`);     // save right
+emit(`  POP`);                // recover left from stack
+emit(`  STA ${fmt(t1)}`);     // save left at TEMP_BASE (now safe)
+```
+
+The stack is immune to scratch register conflicts because each operation that uses the stack properly balances `PUSH`/`POP`. This fix was applied to all three affected functions:
+- `emitMultiply()` — `*` operator
+- `emitDivMod()` — `/` and `%` operators
+- `emitBitwiseOp()` — `&`, `|`, `^` operators
+
+### Why Other Operators Were Not Affected
+
+The standard binary operators (`+`, `-`, `<<`, `>>`) already used the safe pattern:
+
+```typescript
+emitExpr(expr.left, ctx);
+emit(`  PUSH`);               // ← already using stack!
+emitExpr(expr.right, ctx);
+emit(`  TAB`);
+emit(`  POP`);
+```
+
+Only the "complex" operations (multiply, divide, bitwise) that use TEMP_BASE for their loop variables had this bug, because they were also saving operands to TEMP_BASE before the loop.
 
 ---
 
@@ -161,7 +205,7 @@ The test suite correctly handles this:
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 88 tests, all green
+**Total:** 91 tests, all green
 
 ### Test Architecture
 
@@ -178,7 +222,7 @@ compileOnly(source)              // compile → assemble without running
 
 #### 4.1 — C Examples: Compilation (14 examples)
 
-Tests that **every** C example compiles without errors. For the 13 normal-size examples, also verifies assembly succeeds and code fits in 512 bytes. For "Sinusoïdes", verifies C compilation succeeds but assembly correctly fails (code overflow).
+Tests that **every** C example compiles without errors and assembles within 512 bytes.
 
 ```
 "Hello World"               compiles → ✓  assembles → ✓
@@ -187,7 +231,7 @@ Tests that **every** C example compiles without errors. For the 13 normal-size e
 "Factorielle"               compiles → ✓  assembles → ✓
 "Calcul"                    compiles → ✓  assembles → ✓
 "Plotter"                   compiles → ✓  assembles → ✓
-"Sinusoïdes"                compiles → ✓  assembles → ✗ (expected: too large)
+"Courbe"                    compiles → ✓  assembles → ✓
 "Echo (Saisie)"             compiles → ✓  assembles → ✓
 "Compteur de lettres"       compiles → ✓  assembles → ✓
 "Calculatrice"              compiles → ✓  assembles → ✓
@@ -207,7 +251,7 @@ Validates the `MemoryLayout` structure for every example:
 - `stackSize` is always 256
 - Total data (`globals + scratch + locals`) never exceeds 256
 
-#### 4.3 — C Examples: Output Verification (13 programs)
+#### 4.3 — C Examples: Output Verification (14 programs)
 
 Runs each program and verifies exact output:
 
@@ -219,6 +263,7 @@ Runs each program and verifies exact output:
 | Factorielle | `"5! = 120"` |
 | Calcul | 7 lines of arithmetic (`3+5=8`, `10-3=7`, etc.) |
 | Plotter | > 100 pixels, diagonal (0,0)→(79,79), frame corners |
+| Courbe | > 200 pixels, upper wave (y<100 for x<128), lower wave (y>156 for x≥128) |
 | Echo | Echoes `"Hi"` with console input |
 | Compteur de lettres | `"Longueur: 3"` for input `"abc\n"` |
 | Calculatrice | `"= 8"` for `"3+5\n"`, `"= 63"` for `"9*7\n"` |
@@ -258,7 +303,7 @@ Fine-grained tests for individual compiler features:
 
 Verifies runtime behavior:
 
-- **10 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Horloge, Spirale, Nombres premiers, Test Mémoire)
+- **11 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Horloge, Spirale, Nombres premiers, Test Mémoire)
 - **3 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice)
 
 ---
@@ -282,10 +327,10 @@ npx vitest run --reporter verbose
 Expected output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (88 tests) 1.3s
+ ✓ src/cpu/__tests__/cexamples.test.ts (91 tests) 1.2s
 
  Test Files  1 passed (1)
-      Tests  88 passed (88)
+      Tests  91 passed (91)
 ```
 
 ---

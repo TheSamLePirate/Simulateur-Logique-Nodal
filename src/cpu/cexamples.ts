@@ -134,78 +134,38 @@ int main() {
 }`,
   },
   {
-    name: "Sinusoïdes",
-    description: "Synthèse harmonique (fondamentale + harm. 4)",
-    code: `// Synthese harmonique : fondamentale + harmonique 4
-// Approximation parabolique des demi-ondes
-
-int sq(int t) {
-  // Quart d'onde longue (t: 0..63 -> 0..124)
-  int a;
-  int b;
-  a = t >> 1;
-  b = (128 - t) >> 4;
-  return a * b;
-}
-
-int hw(int t) {
-  // Demi-onde courte (t: 0..31 -> 0..64)
-  int a;
-  int b;
-  a = t >> 1;
-  b = (32 - t) >> 1;
-  return a * b;
-}
+    name: "Courbe",
+    description: "Onde parabolique approchant une sinusoïde",
+    code: `// Onde parabolique sur le plotter
+// Approxime une sinusoide par des arches de paraboles
+// Formule : h = (t/4) * ((127-t)/4) pour chaque demi-onde
+// Le produit reste dans [0..240] : pas de depassement 8 bits
 
 int main() {
   int x;
   int y;
-  int p;
-  int f;
+  int t;
   int h;
 
   clear();
 
-  // Axe central
+  // Courbe parabolique
   for (x = 0; x < 255; x++) {
-    draw(x, 128);
-  }
-  draw(255, 128);
+    // Position dans la demi-onde (0..127)
+    t = x & 127;
 
-  // Onde composite
-  p = 0;
-  for (x = 0; x < 255; x++) {
-    // Fondamentale (T=256, A=62)
-    if (x < 64) {
-      f = sq(x) >> 1;
-      y = 128 - f;
-    } else if (x < 128) {
-      f = sq(127 - x) >> 1;
-      y = 128 - f;
-    } else if (x < 192) {
-      f = sq(x - 128) >> 1;
-      y = 128 + f;
-    } else {
-      f = sq(255 - x) >> 1;
-      y = 128 + f;
-    }
+    // Hauteur parabolique (max 240, rentre dans 8 bits)
+    h = (t >> 2) * ((127 - t) >> 2);
 
-    // Harmonique 4 (T=64, A=32)
-    if (p < 32) {
-      h = hw(p) >> 1;
-      y = y - h;
+    // Alterner arche haute et arche basse
+    if (x < 128) {
+      y = 128 - (h >> 1);
     } else {
-      h = hw(p - 32) >> 1;
-      y = y + h;
+      y = 128 + (h >> 1);
     }
 
     draw(x, y);
-    p = p + 1;
-    if (p > 63) {
-      p = 0;
-    }
   }
-  draw(255, 128);
 
   return 0;
 }`,

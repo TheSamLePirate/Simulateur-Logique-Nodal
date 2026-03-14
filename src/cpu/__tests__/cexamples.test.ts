@@ -93,40 +93,26 @@ function compileOnly(source: string) {
 //  Test suite: All C examples compile and run
 // ═══════════════════════════════════════════════════════════
 
-// "Sinusoïdes" compiles to valid ASM but the generated code exceeds 512 bytes
-// (multiply operations expand to large inline loops — 1640 bytes total).
-// It's kept as an example for educational purposes but cannot run on the 8-bit CPU.
-const OVERSIZED_EXAMPLES = ["Sinusoïdes"];
-
 describe("C Examples — Compilation", () => {
   for (const example of C_EXAMPLES) {
     it(`"${example.name}" compiles without errors`, () => {
       const { compile: cr, asm: ar } = compileOnly(example.code);
 
-      // C compilation should succeed for ALL examples
       expect(cr.success).toBe(true);
       expect(cr.errors).toHaveLength(0);
       expect(cr.assembly).toBeTruthy();
       expect(cr.memoryLayout).toBeDefined();
 
-      if (OVERSIZED_EXAMPLES.includes(example.name)) {
-        // Known oversized: assembly should fail with code overflow
-        expect(ar).not.toBeNull();
-        expect(ar!.success).toBe(false);
-      } else {
-        // Assembly should also succeed
-        expect(ar).not.toBeNull();
-        expect(ar!.success).toBe(true);
-        expect(ar!.errors).toHaveLength(0);
-      }
+      // Assembly should also succeed
+      expect(ar).not.toBeNull();
+      expect(ar!.success).toBe(true);
+      expect(ar!.errors).toHaveLength(0);
     });
 
-    if (!OVERSIZED_EXAMPLES.includes(example.name)) {
-      it(`"${example.name}" code fits in ${CODE_SIZE} bytes`, () => {
-        const { asm: ar } = compileOnly(example.code);
-        expect(ar!.bytes.length).toBeLessThanOrEqual(CODE_SIZE);
-      });
-    }
+    it(`"${example.name}" code fits in ${CODE_SIZE} bytes`, () => {
+      const { asm: ar } = compileOnly(example.code);
+      expect(ar!.bytes.length).toBeLessThanOrEqual(CODE_SIZE);
+    });
   }
 });
 
@@ -217,7 +203,30 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.has((99 << 8) | 99)).toBe(true); // bottom-right
   });
 
-  // "Sinusoïdes" is skipped here — too large for 512-byte code area (see Compilation tests)
+  it('"Courbe" draws parabolic wave on plotter', () => {
+    const r = compileAndRun(C_EXAMPLES[6].code, { maxCycles: 50_000_000 });
+    expect(r.halted).toBe(true);
+    // Should have drawn ~255 pixels (one per x)
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
+    // Pixel key = (y << 8) | x  (DRAW stores (B << 8) | A, draw(x,y) → A=x, B=y)
+    // Endpoints at y=128 (t=0 → h=0 → y=128)
+    expect(r.cpu.plotterPixels.has((128 << 8) | 0)).toBe(true); // draw(0, 128)
+    // Wave should reach above y=128 in first half (x<128)
+    // At x=64 (midpoint of first arch), t=64, h=(16*15)=240, y=128-(120)=8
+    const hasUpperWave = Array.from(r.cpu.plotterPixels).some((key) => {
+      const x = key & 0xff;
+      const y = (key >> 8) & 0xff;
+      return x < 128 && y < 100;
+    });
+    expect(hasUpperWave).toBe(true);
+    // Wave should reach below y=128 in second half (x>=128)
+    const hasLowerWave = Array.from(r.cpu.plotterPixels).some((key) => {
+      const x = key & 0xff;
+      const y = (key >> 8) & 0xff;
+      return x >= 128 && y > 156;
+    });
+    expect(hasLowerWave).toBe(true);
+  });
 
   it('"Echo" echoes input back', () => {
     const r = compileAndRun(C_EXAMPLES[7].code, {
@@ -634,7 +643,6 @@ describe("Compiler — Edge Cases", () => {
 
 describe("C Examples — Execution Properties", () => {
   // Programs that should halt (not input-dependent)
-  // "Sinusoïdes" excluded — too large for 512-byte code area
   const haltingExamples = [
     "Hello World",
     "Compteur",
@@ -642,6 +650,7 @@ describe("C Examples — Execution Properties", () => {
     "Factorielle",
     "Calcul",
     "Plotter",
+    "Courbe",
     "Horloge",
     "Spirale",
     "Tableau de nombres premiers",
