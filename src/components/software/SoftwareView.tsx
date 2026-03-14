@@ -332,14 +332,14 @@ export function SoftwareView({
     [setCode],
   );
 
-  // Memory total for status display
-  const memTotal = memLayout
-    ? codeSize +
-      memLayout.globals +
-      memLayout.scratch +
-      memLayout.locals +
-      memLayout.stackSize
+  // Memory layout metrics
+  // Architecture: Code 512B (50%) | Data 256B (25%) | Stack 256B (25%)
+  // Data area = globals(16) + scratch(8) + locals(232) = 256B
+  const dataUsed = memLayout
+    ? memLayout.globals + memLayout.scratch + memLayout.locals
     : 0;
+  const dataMax = 256; // 0x200-0x2FF
+  const dataFree = memLayout ? dataMax - dataUsed : 0;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
@@ -467,47 +467,53 @@ export function SoftwareView({
               {memLayout && (
                 <>
                   <span className="text-[10px] font-mono text-slate-500">
-                    Var:{memLayout.globals + memLayout.locals}
+                    Data {dataUsed}/{dataMax}
                   </span>
+                  {/* Memory bar: fixed regions (50% code, 25% data, 25% stack) */}
                   <div
-                    className="flex h-2.5 w-24 rounded-sm overflow-hidden bg-slate-900 border border-slate-700"
-                    title={`Code: ${codeSize}B\nGlobales: ${memLayout.globals}B\nScratch: ${memLayout.scratch}B\nLocales: ${memLayout.locals}B\nStack: ${memLayout.stackSize}B\n─────────\nTotal: ${memTotal}/${MEMORY_SIZE}B`}
+                    className="flex h-3 w-28 rounded-sm overflow-hidden border border-slate-700"
+                    title={`── Code (0x000-0x1FF) ──\nProgramme: ${codeSize}/${CODE_SIZE}B\n\n── Data (0x200-0x2FF) ──\nGlobales: ${memLayout.globals}/16B\nScratch: ${memLayout.scratch}/8B (fixe)\nLocales: ${memLayout.locals}/232B\nLibre: ${dataFree}B\n\n── Stack (0x300-0x3FF) ──\nRéservé: ${memLayout.stackSize}B (fixe)`}
                   >
+                    {/* Code region: 512/1024 = 50% */}
                     <div
-                      style={{ width: `${(codeSize / MEMORY_SIZE) * 100}%` }}
-                      className="bg-blue-500"
-                    />
+                      className="relative bg-blue-950/80"
+                      style={{ width: "50%" }}
+                    >
+                      <div
+                        className="absolute inset-y-0 left-0 bg-blue-500"
+                        style={{
+                          width: `${Math.min(100, (codeSize / CODE_SIZE) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    {/* Data region: 256/1024 = 25% */}
                     <div
-                      style={{
-                        width: `${(memLayout.globals / MEMORY_SIZE) * 100}%`,
-                      }}
-                      className="bg-emerald-500"
-                    />
+                      className="relative bg-emerald-950/80"
+                      style={{ width: "25%" }}
+                    >
+                      <div
+                        className="absolute inset-y-0 left-0 bg-emerald-500"
+                        style={{
+                          width: `${Math.min(100, (dataUsed / dataMax) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    {/* Stack region: 256/1024 = 25% (always reserved) */}
                     <div
-                      style={{
-                        width: `${(memLayout.scratch / MEMORY_SIZE) * 100}%`,
-                      }}
-                      className="bg-yellow-500"
-                    />
-                    <div
-                      style={{
-                        width: `${(memLayout.locals / MEMORY_SIZE) * 100}%`,
-                      }}
-                      className="bg-purple-500"
-                    />
-                    <div
-                      style={{
-                        width: `${(memLayout.stackSize / MEMORY_SIZE) * 100}%`,
-                      }}
-                      className="bg-orange-500"
+                      className="bg-orange-500/50"
+                      style={{ width: "25%" }}
                     />
                   </div>
                   <span
                     className={`text-[10px] font-mono ${
-                      memTotal > MEMORY_SIZE ? "text-red-400" : "text-slate-500"
+                      dataFree <= 0
+                        ? "text-red-400"
+                        : dataFree < 50
+                          ? "text-yellow-400"
+                          : "text-slate-500"
                     }`}
                   >
-                    {memTotal}/{MEMORY_SIZE}
+                    Libre:{dataFree}
                   </span>
                 </>
               )}

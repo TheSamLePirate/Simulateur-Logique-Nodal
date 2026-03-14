@@ -131,14 +131,15 @@ export function generate(program: Program): {
       });
       continue;
     }
-    globals.set(g.name, globalAddr);
-    globalAddr++;
     if (globalAddr > 0x20f) {
       errors.push({
         line: g.line,
         message: "Trop de variables globales (max 16)",
       });
+      continue;
     }
+    globals.set(g.name, globalAddr);
+    globalAddr++;
   }
 
   // ═══════════════════════════════════════

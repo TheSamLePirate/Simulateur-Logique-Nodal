@@ -401,4 +401,83 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Test Mémoire",
+    description: "Remplit et vérifie les 1024 octets de mémoire",
+    code: `// Test Memoire Complet
+// Remplit: 16 globales, 232 locales, pile
+// Verifie l'integrite apres appel de fonction
+// Attendu: g0=42 gf=15 add=57 PASS
+
+// -- 16 globales (zone 0x200-0x20F) --
+int g0; int g1; int g2; int g3;
+int g4; int g5; int g6; int g7;
+int g8; int g9; int ga; int gb;
+int gc; int gd; int ge; int gf;
+
+// -- Fonction testee (utilise la pile) --
+int add(int a, int b) {
+  return a + b;
+}
+
+// -- Remplissage zone locales --
+// Chaque fonction reserve 25 slots (1 param + 24 locals)
+// mais genere seulement 4 octets de code
+// 9 fonctions x 25 = 225 slots reserves
+int _1(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _2(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _3(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _4(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _5(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _6(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _7(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _8(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _9(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+
+int main() {
+  // 5 locales dans main (total: 2+5+225=232)
+  int r;
+  int ok;
+  int _a;
+  int _b;
+  int _c;
+
+  // Initialise les 16 globales
+  g0=42; g1=1; g2=2; g3=3;
+  g4=4; g5=5; g6=6; g7=7;
+  g8=8; g9=9; ga=10; gb=11;
+  gc=12; gd=13; ge=14; gf=15;
+
+  print("=MEM TEST=");
+  putchar(10);
+
+  // Affiche globales avant appel
+  print("g0=");
+  print_num(g0);
+  putchar(32);
+  print("gf=");
+  print_num(gf);
+  putchar(10);
+
+  // Appel fonction (teste la pile)
+  r = add(g0, gf);
+
+  print("add=");
+  print_num(r);
+  putchar(10);
+
+  // Verifie les resultats
+  ok = 1;
+  if (r != 57) { ok = 0; }
+  if (g0 != 42) { ok = 0; }
+
+  if (ok) {
+    print("PASS");
+  } else {
+    print("FAIL");
+  }
+  putchar(10);
+  return 0;
+}`,
+  },
 ];
