@@ -363,6 +363,60 @@ export const initialNodes: Node[] = [
   },
 
   // ═════════════════════════════════
+  //  PC SOURCE MUX
+  // ═════════════════════════════════
+  // sel=0 → PC+1 (sequential), sel=1 → OPERAND (jump/call target)
+  {
+    id: "pcSrcMux",
+    type: "mux8",
+    position: { x: -100, y: 350 },
+    data: { label: "PC SRC MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
+  },
+  // PC jump select control
+  {
+    id: "pcJmp",
+    type: "input",
+    position: { x: -220, y: 260 },
+    data: { label: "PC_JMP", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  ALU B SOURCE MUX
+  // ═════════════════════════════════
+  // sel=0 → B register, sel=1 → OPERAND (immediate value)
+  {
+    id: "aluBMux",
+    type: "mux8",
+    position: { x: 1680, y: 320 },
+    data: { label: "ALU B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
+  },
+  // ALU immediate select control
+  {
+    id: "aluImm",
+    type: "input",
+    position: { x: 1580, y: 230 },
+    data: { label: "ALU_IMM", value: 0 },
+  },
+
+  // ═════════════════════════════════
+  //  SP/OPERAND MUX (Address B source)
+  // ═════════════════════════════════
+  // sel=0 → OPERAND (data address), sel=1 → SP (stack address)
+  {
+    id: "spOpMux",
+    type: "mux8",
+    position: { x: 300, y: 400 },
+    data: { label: "ADDR B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
+  },
+  // SP/Operand select control
+  {
+    id: "spSel",
+    type: "input",
+    position: { x: 200, y: 340 },
+    data: { label: "SP_SEL", value: 0 },
+  },
+
+  // ═════════════════════════════════
   //  I/O PERIPHERALS
   // ═════════════════════════════════
 
@@ -442,8 +496,17 @@ export const initialEdges: Edge[] = [
   // PC output → Address MUX input A (fetch mode)
   ...bus8("e-pc-amux-a", "pc", "addrMux", "q", "a"),
 
-  // Operand input → Address MUX input B (data access mode)
-  ...bus8("e-op-amux-b", "operand", "addrMux", "out", "b"),
+  // Operand → SP/OP MUX input A (data address)
+  ...bus8("e-op-spopmux-a", "operand", "spOpMux", "out", "a"),
+
+  // SP → SP/OP MUX input B (stack address)
+  ...bus8("e-sp-spopmux-b", "sp", "spOpMux", "q", "b"),
+
+  // SP/OP MUX output → Address MUX input B
+  ...bus8("e-spopmux-amux-b", "spOpMux", "addrMux", "out", "b"),
+
+  // SP select → SP/OP MUX sel
+  wire("e-spsel", "spSel", "spOpMux", "out", "sel"),
 
   // Address MUX output → SRAM address
   ...bus8("e-amux-sram-a", "addrMux", "sram", "out", "a"),
@@ -464,8 +527,17 @@ export const initialEdges: Edge[] = [
   // Constant 1 → Adder input B
   ...bus8("e-one-inc-b", "pcOne", "pcInc", "out", "b"),
 
-  // Adder sum → PC data input (PC ← PC + 1)
-  ...bus8("e-inc-pc-d", "pcInc", "pc", "s", "d"),
+  // Adder sum → PC Source MUX input A (sequential: PC+1)
+  ...bus8("e-inc-pcmux-a", "pcInc", "pcSrcMux", "s", "a"),
+
+  // Operand → PC Source MUX input B (jump/call target)
+  ...bus8("e-op-pcmux-b", "operand", "pcSrcMux", "out", "b"),
+
+  // PC Source MUX output → PC data input
+  ...bus8("e-pcmux-pc-d", "pcSrcMux", "pc", "out", "d"),
+
+  // Jump select → PC Source MUX sel
+  wire("e-pcjmp", "pcJmp", "pcSrcMux", "out", "sel"),
 
   // ══════════════════════════════════════
   //  DATA PATH: SRAM/ALU → DATA_MUX → A
@@ -490,8 +562,17 @@ export const initialEdges: Edge[] = [
   // A register → ALU operand A
   ...bus8("e-a-alu-a", "aReg", "alu", "q", "a"),
 
-  // B register → ALU operand B
-  ...bus8("e-b-alu-b", "bReg", "alu", "q", "b"),
+  // B register → ALU B MUX input A (register mode)
+  ...bus8("e-b-alubmux-a", "bReg", "aluBMux", "q", "a"),
+
+  // Operand → ALU B MUX input B (immediate mode)
+  ...bus8("e-op-alubmux-b", "operand", "aluBMux", "out", "b"),
+
+  // ALU B MUX output → ALU operand B
+  ...bus8("e-alubmux-alu-b", "aluBMux", "alu", "out", "b"),
+
+  // Immediate select → ALU B MUX sel
+  wire("e-aluimm", "aluImm", "aluBMux", "out", "sel"),
 
   // ALU operation select switches
   wire("e-op0", "op0", "alu", "out", "op0"),

@@ -993,6 +993,38 @@ export default function App() {
     const plotDraw = op === Opcode.DRAW ? 1 : 0;
     const plotClr = op === Opcode.CLR ? 1 : 0;
 
+    // PC jump control (sel=1 routes jump target to PC via pcSrcMux)
+    let pcJmpSig = 0;
+    if (op === Opcode.JMP || op === Opcode.CALL) pcJmpSig = 1;
+    else if (op === Opcode.JZ && s.flags.z) pcJmpSig = 1;
+    else if (op === Opcode.JNZ && !s.flags.z) pcJmpSig = 1;
+    else if (op === Opcode.JC && s.flags.c) pcJmpSig = 1;
+    else if (op === Opcode.JNC && !s.flags.c) pcJmpSig = 1;
+    else if (op === Opcode.JN && s.flags.n) pcJmpSig = 1;
+    else if (op === Opcode.RET) pcJmpSig = 1;
+
+    // ALU immediate select (sel=1 routes operand to ALU B instead of B register)
+    const aluImmSig = [
+      Opcode.ADD,
+      Opcode.SUB,
+      Opcode.AND,
+      Opcode.OR,
+      Opcode.XOR,
+      Opcode.CMP,
+    ].includes(op)
+      ? 1
+      : 0;
+
+    // SP/Operand address select (sel=1 routes SP to address bus B)
+    const spSelSig = [
+      Opcode.PUSH,
+      Opcode.POP,
+      Opcode.CALL,
+      Opcode.RET,
+    ].includes(op)
+      ? 1
+      : 0;
+
     // ALU op bits (3-bit encoding matching ALU8 simulation)
     let aluOp = 0b000; // ADD
     if ([Opcode.SUB, Opcode.SUBB, Opcode.CMP, Opcode.DEC].includes(op))
@@ -1066,12 +1098,20 @@ export default function App() {
           case "console":
             return {
               ...node,
-              data: { ...node.data, text: cpu.consoleOutput.join("") },
+              data: {
+                ...node.data,
+                text: cpu.consoleOutput.join(""),
+                prevWr: conWr,
+              },
             };
           case "plotter":
             return {
               ...node,
-              data: { ...node.data, pixels: Array.from(cpu.plotterPixels) },
+              data: {
+                ...node.data,
+                pixels: Array.from(cpu.plotterPixels),
+                prevDraw: plotDraw,
+              },
             };
 
           // ── Clock (toggles each CPU step) ──
@@ -1132,6 +1172,54 @@ export default function App() {
           // ── Reset ──
           case "rst":
             return { ...node, data: { ...node.data, value: 0 } };
+
+          // ── PC Source MUX ──
+          case "pcSrcMux": {
+            const pcMuxOut = s.pc & 0xff;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                sel: pcJmpSig,
+                outVal: pcMuxOut,
+                out: toBits(pcMuxOut),
+              },
+            };
+          }
+          // ── ALU B Source MUX ──
+          case "aluBMux": {
+            const aluBOut = aluImmSig ? cpu.lastOperand & 0xff : s.b;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                sel: aluImmSig,
+                outVal: aluBOut,
+                out: toBits(aluBOut),
+              },
+            };
+          }
+          // ── SP/Operand MUX ──
+          case "spOpMux": {
+            const spOpOut = spSelSig ? s.sp & 0xff : cpu.lastOperand & 0xff;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                sel: spSelSig,
+                outVal: spOpOut,
+                out: toBits(spOpOut),
+              },
+            };
+          }
+
+          // ── New control switches ──
+          case "pcJmp":
+            return { ...node, data: { ...node.data, value: pcJmpSig } };
+          case "aluImm":
+            return { ...node, data: { ...node.data, value: aluImmSig } };
+          case "spSel":
+            return { ...node, data: { ...node.data, value: spSelSig } };
 
           // ── Display outputs (updated via bus8 edges from registers) ──
           default:
