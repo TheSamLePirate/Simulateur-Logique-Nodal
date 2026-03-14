@@ -65,6 +65,12 @@ export default function App() {
   const [hwRunSpeed, setHwRunSpeed] = useState(10);
   const hwRunIntervalRef = useRef<number | null>(null);
 
+  // Derive clock frequency from clock node (used to pace the hardware CPU run loop)
+  const hwClockFreq = useMemo(() => {
+    const clkNode = nodes.find((n) => n.id === "clk");
+    return (clkNode?.data as any)?.frequency ?? 1;
+  }, [nodes]);
+
   // Load saved modules from localStorage
   const [savedModules, setSavedModules] = useState<SavedModule[]>(() => {
     try {
@@ -165,13 +171,18 @@ export default function App() {
     if (!isRunning) return;
 
     const simulate = () => {
-      setNodes((nds) => simulateNodes(nds, edges));
+      // When hardware CPU is loaded, skip node simulation entirely
+      // (CPU drives all state via syncHwCpuToNodes — clock, registers, MUXes, etc.)
+      // Only update edge styles to reflect current data flow.
+      if (!hwCpuLoaded) {
+        setNodes((nds) => simulateNodes(nds, edges));
+      }
       setEdges((eds) => updateEdgeStyles(nodes, eds));
     };
 
     const interval = setInterval(simulate, 50);
     return () => clearInterval(interval);
-  }, [edges, nodes, isRunning, setNodes, setEdges]);
+  }, [edges, nodes, isRunning, hwCpuLoaded, setNodes, setEdges]);
 
   // --- Handlers ---
   const onConnect = useCallback(
@@ -1268,7 +1279,10 @@ export default function App() {
     syncHwCpuToNodes();
   }, [syncHwCpuToNodes]);
 
-  // Hardware CPU run loop
+  // Hardware CPU run loop — paced by the clock node's frequency
+  // At clock=1Hz, i/tick=1 → 1 instruction per second
+  // At clock=10Hz, i/tick=1 → 10 instructions per second
+  // At clock=1Hz, i/tick=5 → 5 instructions per second
   useEffect(() => {
     if (!hwCpuRunning) {
       if (hwRunIntervalRef.current !== null) {
@@ -1277,6 +1291,10 @@ export default function App() {
       }
       return;
     }
+
+    // interval = 1000 / clockFreq (ms per clock tick)
+    // minimum 16ms (~60fps) to avoid locking the browser
+    const intervalMs = Math.max(16, Math.round(1000 / hwClockFreq));
 
     hwRunIntervalRef.current = window.setInterval(() => {
       const cpu = hwCpuRef.current;
@@ -1288,7 +1306,7 @@ export default function App() {
         }
       }
       syncHwCpuToNodes();
-    }, 50);
+    }, intervalMs);
 
     return () => {
       if (hwRunIntervalRef.current !== null) {
@@ -1296,7 +1314,7 @@ export default function App() {
         hwRunIntervalRef.current = null;
       }
     };
-  }, [hwCpuRunning, hwRunSpeed, syncHwCpuToNodes]);
+  }, [hwCpuRunning, hwRunSpeed, hwClockFreq, syncHwCpuToNodes]);
 
   const hasSelection = nodes.some((n) => n.selected);
 
@@ -1655,8 +1673,15 @@ export default function App() {
                   onChange={(e) => setHwRunSpeed(parseInt(e.target.value))}
                   className="w-20 accent-blue-500"
                 />
-                <span className="text-[10px] text-slate-500 font-mono w-16">
+                <span className="text-[10px] text-slate-500 font-mono w-20">
                   {hwRunSpeed} i/tick
+                </span>
+                <span className="text-[10px] text-slate-600 font-mono">
+                  (
+                  {hwClockFreq >= 1
+                    ? `${Math.round(hwClockFreq * hwRunSpeed)} i/s`
+                    : `${(hwClockFreq * hwRunSpeed).toFixed(1)} i/s`}
+                  )
                 </span>
               </div>
 
