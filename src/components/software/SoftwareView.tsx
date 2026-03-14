@@ -29,13 +29,18 @@ export interface HardwareSyncData {
   flags: { z: boolean; c: boolean; n: boolean };
   consoleText: string;
   plotterPixels: number[];
+  halted: boolean;
 }
 
 interface SoftwareViewProps {
   onHardwareSync?: (data: HardwareSyncData) => void;
+  onProgramLoaded?: (bytes: number[]) => void;
 }
 
-export function SoftwareView({ onHardwareSync }: SoftwareViewProps) {
+export function SoftwareView({
+  onHardwareSync,
+  onProgramLoaded,
+}: SoftwareViewProps) {
   // CPU instance (persists across renders)
   const cpuRef = useRef(new CPU());
 
@@ -135,6 +140,7 @@ export function SoftwareView({ onHardwareSync }: SoftwareViewProps) {
       setIsRunning(false);
       setErrors([]);
       setMemHighlights(new Set());
+      onProgramLoaded?.(asmResult.bytes);
     } else {
       // ASM mode: direct assemble
       const result = assemble(asmCode);
@@ -155,11 +161,12 @@ export function SoftwareView({ onHardwareSync }: SoftwareViewProps) {
         setAssembled(true);
         setIsRunning(false);
         setMemHighlights(new Set());
+        onProgramLoaded?.(result.bytes);
       } else {
         setAssembled(false);
       }
     }
-  }, [cCode, asmCode, language]);
+  }, [cCode, asmCode, language, onProgramLoaded]);
 
   // ─── Step ───
   const handleStep = useCallback(() => {
@@ -198,6 +205,7 @@ export function SoftwareView({ onHardwareSync }: SoftwareViewProps) {
       flags: { ...cpu.state.flags },
       consoleText: cpu.consoleOutput.join(""),
       plotterPixels: Array.from(cpu.plotterPixels),
+      halted: cpu.state.halted,
     });
 
     if (cpu.state.halted) {

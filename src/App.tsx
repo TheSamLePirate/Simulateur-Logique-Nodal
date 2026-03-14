@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -26,6 +26,9 @@ import {
   GitFork,
   Terminal,
   Grid3X3,
+  SkipForward,
+  RotateCcw,
+  Gauge,
 } from "lucide-react";
 
 import type {
@@ -44,6 +47,7 @@ import {
   SoftwareView,
   type HardwareSyncData,
 } from "./components/software/SoftwareView";
+import { CPU } from "./cpu/cpu";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -51,6 +55,15 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>("hardware");
   const [inspecting, setInspecting] = useState<string | null>(null);
+
+  // ── Hardware CPU for running programs on the hardware view ──
+  const hwCpuRef = useRef(new CPU());
+  const [hwCpuLoaded, setHwCpuLoaded] = useState(false);
+  const [hwCpuRunning, setHwCpuRunning] = useState(false);
+  const [hwCpuHalted, setHwCpuHalted] = useState(false);
+  const [hwRunSpeed, setHwRunSpeed] = useState(10);
+  const hwRunIntervalRef = useRef<number | null>(null);
+
   // Load saved modules from localStorage
   const [savedModules, setSavedModules] = useState<SavedModule[]>(() => {
     try {
@@ -929,6 +942,153 @@ export default function App() {
     [setNodes],
   );
 
+  // =============================================
+  //  HARDWARE CPU – program load & execution
+  // =============================================
+  const syncHwCpuToNodes = useCallback(() => {
+    const cpu = hwCpuRef.current;
+    const s = cpu.state;
+    const toBits = (val: number, bits = 8) =>
+      Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        switch (node.id) {
+          case "pc":
+            return {
+              ...node,
+              data: { ...node.data, value: s.pc, q: toBits(s.pc) },
+            };
+          case "ir":
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                value: s.memory[s.pc] || 0,
+                q: toBits(s.memory[s.pc] || 0),
+              },
+            };
+          case "aReg":
+            return {
+              ...node,
+              data: { ...node.data, value: s.a, q: toBits(s.a) },
+            };
+          case "bReg":
+            return {
+              ...node,
+              data: { ...node.data, value: s.b, q: toBits(s.b) },
+            };
+          case "sp":
+            return {
+              ...node,
+              data: { ...node.data, value: s.sp, q: toBits(s.sp) },
+            };
+          case "sram":
+            return {
+              ...node,
+              data: { ...node.data, memory: Array.from(s.memory) },
+            };
+          case "flagZ":
+            return {
+              ...node,
+              data: { ...node.data, value: s.flags.z ? 1 : 0 },
+            };
+          case "flagC":
+            return {
+              ...node,
+              data: { ...node.data, value: s.flags.c ? 1 : 0 },
+            };
+          case "flagN":
+            return {
+              ...node,
+              data: { ...node.data, value: s.flags.n ? 1 : 0 },
+            };
+          case "console":
+            return {
+              ...node,
+              data: { ...node.data, text: cpu.consoleOutput.join("") },
+            };
+          case "plotter":
+            return {
+              ...node,
+              data: { ...node.data, pixels: Array.from(cpu.plotterPixels) },
+            };
+          default:
+            return node;
+        }
+      }),
+    );
+  }, [setNodes]);
+
+  const handleProgramLoaded = useCallback(
+    (bytes: number[]) => {
+      const cpu = hwCpuRef.current;
+      cpu.reset();
+      cpu.loadProgram(bytes);
+      setHwCpuLoaded(true);
+      setHwCpuRunning(false);
+      setHwCpuHalted(false);
+      syncHwCpuToNodes();
+    },
+    [syncHwCpuToNodes],
+  );
+
+  const hwStep = useCallback(() => {
+    if (!hwCpuLoaded || hwCpuHalted) return;
+    const cpu = hwCpuRef.current;
+    cpu.step();
+    if (cpu.state.halted) setHwCpuHalted(true);
+    syncHwCpuToNodes();
+  }, [hwCpuLoaded, hwCpuHalted, syncHwCpuToNodes]);
+
+  const hwRun = useCallback(() => {
+    if (!hwCpuLoaded || hwCpuHalted) return;
+    setHwCpuRunning(true);
+  }, [hwCpuLoaded, hwCpuHalted]);
+
+  const hwStop = useCallback(() => {
+    setHwCpuRunning(false);
+  }, []);
+
+  const hwReset = useCallback(() => {
+    const cpu = hwCpuRef.current;
+    cpu.reset();
+    setHwCpuLoaded(false);
+    setHwCpuRunning(false);
+    setHwCpuHalted(false);
+    syncHwCpuToNodes();
+  }, [syncHwCpuToNodes]);
+
+  // Hardware CPU run loop
+  useEffect(() => {
+    if (!hwCpuRunning) {
+      if (hwRunIntervalRef.current !== null) {
+        clearInterval(hwRunIntervalRef.current);
+        hwRunIntervalRef.current = null;
+      }
+      return;
+    }
+
+    hwRunIntervalRef.current = window.setInterval(() => {
+      const cpu = hwCpuRef.current;
+      for (let i = 0; i < hwRunSpeed; i++) {
+        if (!cpu.step()) {
+          setHwCpuRunning(false);
+          setHwCpuHalted(true);
+          break;
+        }
+      }
+      syncHwCpuToNodes();
+    }, 50);
+
+    return () => {
+      if (hwRunIntervalRef.current !== null) {
+        clearInterval(hwRunIntervalRef.current);
+        hwRunIntervalRef.current = null;
+      }
+    };
+  }, [hwCpuRunning, hwRunSpeed, syncHwCpuToNodes]);
+
   const hasSelection = nodes.some((n) => n.selected);
 
   return (
@@ -1003,7 +1163,10 @@ export default function App() {
 
       {/* Main Workspace */}
       {activeTab === "software" ? (
-        <SoftwareView onHardwareSync={handleHardwareSync} />
+        <SoftwareView
+          onHardwareSync={handleHardwareSync}
+          onProgramLoaded={handleProgramLoaded}
+        />
       ) : (
         <div className="flex-1 flex relative">
           {inspecting && (
@@ -1231,22 +1394,104 @@ export default function App() {
             </div>
           </div>
 
-          {/* Canvas */}
-          <div className="flex-1 h-full bg-slate-950">
-            <ReactFlow
-              nodes={nodesWithHandlers}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              nodeTypes={nodeTypes}
-              fitView
-              className="bg-slate-950"
-              colorMode="dark"
-            >
-              <Background color="#334155" gap={20} size={1} />
-              <Controls className="bg-slate-800 border-slate-700 fill-slate-300" />
-            </ReactFlow>
+          {/* Canvas + HW CPU controls */}
+          <div className="flex-1 flex flex-col h-full bg-slate-950">
+            {/* Hardware CPU control bar */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 border-b border-slate-800 shrink-0">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">
+                CPU
+              </span>
+
+              <button
+                onClick={hwStep}
+                disabled={!hwCpuLoaded || hwCpuRunning || hwCpuHalted}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <SkipForward size={14} /> Step
+              </button>
+
+              {hwCpuRunning ? (
+                <button
+                  onClick={hwStop}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30"
+                >
+                  <Square size={14} /> Stop
+                </button>
+              ) : (
+                <button
+                  onClick={hwRun}
+                  disabled={!hwCpuLoaded || hwCpuHalted}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Play size={14} /> Run
+                </button>
+              )}
+
+              <button
+                onClick={hwReset}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700"
+              >
+                <RotateCcw size={14} /> Reset
+              </button>
+
+              <div className="w-px h-6 bg-slate-700 mx-1" />
+
+              <div className="flex items-center gap-2">
+                <Gauge size={14} className="text-slate-500" />
+                <input
+                  type="range"
+                  min={1}
+                  max={100000}
+                  value={hwRunSpeed}
+                  onChange={(e) => setHwRunSpeed(parseInt(e.target.value))}
+                  className="w-20 accent-blue-500"
+                />
+                <span className="text-[10px] text-slate-500 font-mono w-16">
+                  {hwRunSpeed} i/tick
+                </span>
+              </div>
+
+              {/* Status */}
+              <div className="ml-auto flex items-center gap-2">
+                {!hwCpuLoaded && (
+                  <span className="text-xs text-slate-500">
+                    Assemblez un programme dans l'onglet Logiciel
+                  </span>
+                )}
+                {hwCpuHalted && (
+                  <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">
+                    HALTED
+                  </span>
+                )}
+                {hwCpuRunning && (
+                  <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/30 animate-pulse">
+                    RUNNING
+                  </span>
+                )}
+                {hwCpuLoaded && !hwCpuRunning && !hwCpuHalted && (
+                  <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/30">
+                    READY
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <ReactFlow
+                nodes={nodesWithHandlers}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodeTypes}
+                fitView
+                className="bg-slate-950"
+                colorMode="dark"
+              >
+                <Background color="#334155" gap={20} size={1} />
+                <Controls className="bg-slate-800 border-slate-700 fill-slate-300" />
+              </ReactFlow>
+            </div>
           </div>
         </div>
       )}
