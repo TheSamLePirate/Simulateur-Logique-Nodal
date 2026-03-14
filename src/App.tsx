@@ -32,6 +32,7 @@ import {
   SkipForward,
   RotateCcw,
   Gauge,
+  ChevronDown,
 } from "lucide-react";
 
 import type {
@@ -61,6 +62,7 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>("hardware");
   const [inspecting, setInspecting] = useState<string | null>(null);
+  const [scenesOpen, setScenesOpen] = useState(false);
 
   // ── Hardware CPU for running programs on the hardware view ──
   const hwCpuRef = useRef(new CPU());
@@ -1664,51 +1666,62 @@ export default function App() {
 
           {/* Sidebar / Toolbar */}
           <div className="w-64 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-6 overflow-y-auto z-10">
-            {/* Scene presets */}
+            {/* Scene presets (collapsible) */}
             <div>
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                <Layout size={12} className="inline mr-1.5 -mt-0.5" />
-                Scènes
-              </h3>
-              <div className="flex flex-col gap-2">
-                {allScenes.map((scene) => (
-                  <div
-                    key={scene.id}
-                    className="bg-slate-800 hover:bg-slate-700 border border-yellow-900/50 rounded p-2.5 text-sm flex items-center gap-2 transition-colors group"
-                  >
-                    <FolderOpen
-                      size={14}
-                      className="text-yellow-400 shrink-0"
-                    />
-                    <button
-                      onClick={() => loadScene(scene)}
-                      className="font-bold truncate text-left flex-1"
-                      title={`Charger « ${scene.name} »`}
+              <button
+                onClick={() => setScenesOpen((o) => !o)}
+                className="w-full flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 hover:text-slate-300 transition-colors"
+              >
+                <span>
+                  <Layout size={12} className="inline mr-1.5 -mt-0.5" />
+                  Scènes
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${scenesOpen ? "rotate-0" : "-rotate-90"}`}
+                />
+              </button>
+              {scenesOpen && (
+                <div className="flex flex-col gap-2 mt-2">
+                  {allScenes.map((scene) => (
+                    <div
+                      key={scene.id}
+                      className="bg-slate-800 hover:bg-slate-700 border border-yellow-900/50 rounded p-2.5 text-sm flex items-center gap-2 transition-colors group"
                     >
-                      {scene.name}
-                    </button>
-                    {!scene.builtIn && (
+                      <FolderOpen
+                        size={14}
+                        className="text-yellow-400 shrink-0"
+                      />
                       <button
-                        onClick={() =>
-                          setSavedScenes((prev) =>
-                            prev.filter((s) => s.id !== scene.id),
-                          )
-                        }
-                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                        title="Supprimer cette scène"
+                        onClick={() => loadScene(scene)}
+                        className="font-bold truncate text-left flex-1"
+                        title={`Charger « ${scene.name} »`}
                       >
-                        <Trash2 size={14} />
+                        {scene.name}
                       </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={saveCurrentScene}
-                  className="bg-slate-800/50 hover:bg-slate-700 border border-dashed border-yellow-900/50 rounded p-2 text-xs flex items-center justify-center gap-1.5 transition-colors text-slate-400 hover:text-yellow-400"
-                >
-                  <Save size={12} /> Sauvegarder la scène
-                </button>
-              </div>
+                      {!scene.builtIn && (
+                        <button
+                          onClick={() =>
+                            setSavedScenes((prev) =>
+                              prev.filter((s) => s.id !== scene.id),
+                            )
+                          }
+                          className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                          title="Supprimer cette scène"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    onClick={saveCurrentScene}
+                    className="bg-slate-800/50 hover:bg-slate-700 border border-dashed border-yellow-900/50 rounded p-2 text-xs flex items-center justify-center gap-1.5 transition-colors text-slate-400 hover:text-yellow-400"
+                  >
+                    <Save size={12} /> Sauvegarder la scène
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
