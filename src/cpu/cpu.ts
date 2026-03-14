@@ -25,6 +25,7 @@ export class CPU {
   state: CPUState;
   consoleOutput: string[];
   plotterPixels: Set<number>;
+  consoleInputBuffer: number[];
   onConsoleOutput?: (text: string) => void;
 
   /** Last executed opcode (for hardware visualization) */
@@ -38,6 +39,7 @@ export class CPU {
     this.state = createInitialState();
     this.consoleOutput = [];
     this.plotterPixels = new Set();
+    this.consoleInputBuffer = [];
   }
 
   /** Reset CPU to initial state, clearing memory */
@@ -45,6 +47,7 @@ export class CPU {
     this.state = createInitialState();
     this.consoleOutput = [];
     this.plotterPixels = new Set();
+    this.consoleInputBuffer = [];
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
@@ -112,6 +115,11 @@ export class CPU {
   private output(text: string): void {
     this.consoleOutput.push(text);
     this.onConsoleOutput?.(text);
+  }
+
+  /** Push a character into the console input buffer */
+  pushInput(char: number): void {
+    this.consoleInputBuffer.push(char & 0xff);
   }
 
   // ─── Execution ───
@@ -234,6 +242,15 @@ export class CPU {
 
       case Opcode.CLR:
         this.plotterPixels = new Set();
+        break;
+
+      case Opcode.INA:
+        if (this.consoleInputBuffer.length > 0) {
+          this.state.a = this.consoleInputBuffer.shift()!;
+        } else {
+          this.state.a = 0;
+        }
+        this.updateFlags(this.state.a);
         break;
 
       // ─── Arithmetic/Logic with immediate (3-byte, uses low byte only) ───

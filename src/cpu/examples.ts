@@ -156,4 +156,67 @@ v_loop:
 
   HLT`,
   },
+  {
+    name: "Echo (Saisie)",
+    description: "Lit des caractères au clavier et les réaffiche",
+    code: `; Echo - Lit des caracteres et les reaffiche
+; Tapez du texte dans le champ de saisie et appuyez sur Entree
+  OUT 'T'
+  OUT 'a'
+  OUT 'p'
+  OUT 'e'
+  OUT 'z'
+  OUT ':'
+  OUT ' '
+
+loop:
+  INA          ; lire un caractere du buffer
+  CMP 0        ; buffer vide ?
+  JZ loop      ; oui -> attendre
+  CMP 10       ; newline ?
+  JZ newline
+  OUTA         ; afficher le caractere
+  JMP loop
+
+newline:
+  OUT 10       ; saut de ligne
+  JMP loop`,
+  },
+  {
+    name: "Majuscules (Saisie)",
+    description: "Convertit les minuscules en majuscules",
+    code: `; Convertisseur majuscules
+; Les lettres minuscules (a-z) deviennent majuscules (A-Z)
+  OUT '>'
+  OUT ' '
+
+loop:
+  INA          ; lire un caractere
+  CMP 0
+  JZ loop      ; attendre si vide
+  CMP 10       ; newline ?
+  JZ newline
+  ; Verifier si c'est une minuscule (97-122)
+  PUSH         ; sauvegarder le char
+  SUB 97       ; A = char - 'a'
+  JN not_lower ; si negatif, pas minuscule
+  CMP 26       ; >= 26 ?
+  JNC not_lower
+  ; C'est une minuscule: convertir
+  POP          ; A = char original
+  SUB 32       ; A = majuscule (A-Z = a-z - 32)
+  OUTA
+  JMP loop
+
+not_lower:
+  POP          ; A = char original
+  OUTA
+  JMP loop
+
+newline:
+  OUT 10       ; nouvelle ligne
+  OUT '>'
+  OUT ' '
+  JMP loop`,
+  },
 ];

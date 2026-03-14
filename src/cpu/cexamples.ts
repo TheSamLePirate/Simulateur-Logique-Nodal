@@ -210,4 +210,53 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Echo (Saisie)",
+    description: "Lit et réaffiche les caractères saisis",
+    code: `// Echo - lit et reaffiche les caracteres
+// Tapez du texte et appuyez sur Entree
+int main() {
+  int c;
+  print("Tapez: ");
+
+  while (1) {
+    c = getchar();
+    if (c == 10) {
+      putchar(10);
+    } else {
+      putchar(c);
+    }
+  }
+  return 0;
+}`,
+  },
+  {
+    name: "Compteur de lettres",
+    description: "Compte les caractères dans une ligne saisie",
+    code: `// Compte les caracteres dans la saisie
+// Tapez du texte et appuyez sur Entree
+
+int main() {
+  int c;
+  int count;
+
+  while (1) {
+    count = 0;
+    print("> ");
+
+    c = getchar();
+    while (c != 10) {
+      count += 1;
+      putchar(c);
+      c = getchar();
+    }
+
+    putchar(10);
+    print("Longueur: ");
+    print_num(count);
+    putchar(10);
+  }
+  return 0;
+}`,
+  },
 ];

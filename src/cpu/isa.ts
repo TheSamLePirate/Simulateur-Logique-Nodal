@@ -32,6 +32,7 @@ export const Opcode = {
   TBA: 0x07, // A ← B
   ADDB: 0x08, // A ← A + B
   SUBB: 0x09, // A ← A - B
+  INA: 0x0a, // A ← console input (0 if empty, sets Z)
 
   // Stack (1-byte)
   RET: 0x10,
@@ -99,6 +100,11 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
   [Opcode.TBA]: { mnemonic: "TBA", size: 1, description: "A ← B" },
   [Opcode.ADDB]: { mnemonic: "ADDB", size: 1, description: "A ← A + B" },
   [Opcode.SUBB]: { mnemonic: "SUBB", size: 1, description: "A ← A - B" },
+  [Opcode.INA]: {
+    mnemonic: "INA",
+    size: 1,
+    description: "A ← console input (0 if empty)",
+  },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },
   [Opcode.PUSH]: { mnemonic: "PUSH", size: 1, description: "push A" },

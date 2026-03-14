@@ -1,13 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Trash2, Terminal } from "lucide-react";
 
 interface ConsolePanelProps {
   output: string[];
   onClear: () => void;
+  onInput?: (text: string) => void;
 }
 
-export function ConsolePanel({ output, onClear }: ConsolePanelProps) {
+export function ConsolePanel({ output, onClear, onInput }: ConsolePanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [inputText, setInputText] = useState("");
 
   // Auto-scroll to bottom when new output arrives
   useEffect(() => {
@@ -17,6 +19,13 @@ export function ConsolePanel({ output, onClear }: ConsolePanelProps) {
   }, [output]);
 
   const displayText = output.join("");
+
+  const handleInputSubmit = () => {
+    if (inputText && onInput) {
+      onInput(inputText);
+      setInputText("");
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-900 border border-slate-700 rounded-md overflow-hidden">
@@ -47,6 +56,28 @@ export function ConsolePanel({ output, onClear }: ConsolePanelProps) {
         )}
         <span className="inline-block w-2 h-4 bg-green-400 animate-pulse ml-0.5 align-text-bottom" />
       </div>
+
+      {/* Input field */}
+      {onInput && (
+        <div className="flex items-center gap-1 px-2 py-1.5 bg-slate-900 border-t border-slate-700">
+          <span className="text-green-400 text-xs font-mono font-bold">
+            &gt;
+          </span>
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleInputSubmit();
+              }
+            }}
+            className="flex-1 bg-black text-green-400 text-sm font-mono px-2 py-1 border border-slate-700 rounded outline-none focus:border-green-500"
+            placeholder="Saisie + Entrée..."
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -150,6 +150,20 @@ export default function App() {
     return () => window.removeEventListener("rename-module", handleRename);
   }, [setNodes]);
 
+  // Listen for console-input events from ConsoleNode (hardware view)
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { text } = e.detail;
+      const cpu = hwCpuRef.current;
+      for (let i = 0; i < text.length; i++) {
+        cpu.pushInput(text.charCodeAt(i));
+      }
+      cpu.pushInput(10); // newline
+    };
+    window.addEventListener("console-input", handler);
+    return () => window.removeEventListener("console-input", handler);
+  }, []);
+
   // Listen for clock-frequency change events from ClockNode
   useEffect(() => {
     const handler = (e: any) => {
@@ -982,6 +996,7 @@ export default function App() {
       Opcode.SUBB,
       Opcode.POP,
       Opcode.LDM,
+      Opcode.INA,
     ].includes(op)
       ? 1
       : 0;
@@ -1003,6 +1018,7 @@ export default function App() {
     const conMode = op === Opcode.OUTD ? 1 : 0;
     const plotDraw = op === Opcode.DRAW ? 1 : 0;
     const plotClr = op === Opcode.CLR ? 1 : 0;
+    const conRd = op === Opcode.INA ? 1 : 0;
 
     // PC jump control (sel=1 routes jump target to PC via pcSrcMux)
     let pcJmpSig = 0;
@@ -1113,6 +1129,7 @@ export default function App() {
                 ...node.data,
                 text: cpu.consoleOutput.join(""),
                 prevWr: conWr,
+                inputBufferSize: cpu.consoleInputBuffer.length,
               },
             };
           case "plotter":
@@ -1173,6 +1190,10 @@ export default function App() {
           case "plotClear":
             return { ...node, data: { ...node.data, value: plotClr } };
 
+          // ── Console read control ──
+          case "consoleRd":
+            return { ...node, data: { ...node.data, value: conRd } };
+
           // ── Operand address (for memory access instructions) ──
           case "operand":
             return {
@@ -1232,7 +1253,149 @@ export default function App() {
           case "spSel":
             return { ...node, data: { ...node.data, value: spSelSig } };
 
-          // ── Display outputs (updated via bus8 edges from registers) ──
+          // ── Number displays (outputNumber nodes) ──
+          case "pcDisp":
+            return { ...node, data: { ...node.data, value: s.pc & 0xff } };
+          case "irDisp":
+            return {
+              ...node,
+              data: { ...node.data, value: s.memory[s.pc] || 0 },
+            };
+          case "aDisp":
+            return { ...node, data: { ...node.data, value: s.a } };
+          case "bDisp":
+            return { ...node, data: { ...node.data, value: s.b } };
+          case "spDisp":
+            return { ...node, data: { ...node.data, value: s.sp & 0xff } };
+          case "memDisp": {
+            // Memory output: what the SRAM outputs on its data bus
+            const addr = addrSel
+              ? spSelSig
+                ? s.sp & 0xff
+                : cpu.lastOperand & 0xff
+              : s.pc & 0xff;
+            return {
+              ...node,
+              data: { ...node.data, value: s.memory[addr] || 0 },
+            };
+          }
+
+          // ── ALU (compute result from current A, B/imm, and op) ──
+          case "alu": {
+            const aluA = s.a;
+            const aluB = aluImmSig ? cpu.lastOperand & 0xff : s.b;
+            let aluResult = 0;
+            let aluCarry = 0;
+            const opNames = [
+              "ADD",
+              "SUB",
+              "AND",
+              "OR",
+              "XOR",
+              "NOT",
+              "SHL",
+              "SHR",
+            ];
+            switch (aluOp) {
+              case 0b000: {
+                const sum = aluA + aluB;
+                aluResult = sum & 0xff;
+                aluCarry = sum > 255 ? 1 : 0;
+                break;
+              }
+              case 0b001: {
+                const diff = aluA - aluB;
+                aluResult = diff & 0xff;
+                aluCarry = diff < 0 ? 1 : 0;
+                break;
+              }
+              case 0b010:
+                aluResult = aluA & aluB & 0xff;
+                break;
+              case 0b011:
+                aluResult = (aluA | aluB) & 0xff;
+                break;
+              case 0b100:
+                aluResult = (aluA ^ aluB) & 0xff;
+                break;
+              case 0b101:
+                aluResult = ~aluA & 0xff;
+                break;
+              case 0b110:
+                aluCarry = aluA & 0x80 ? 1 : 0;
+                aluResult = (aluA << 1) & 0xff;
+                break;
+              case 0b111:
+                aluCarry = aluA & 0x01 ? 1 : 0;
+                aluResult = (aluA >> 1) & 0xff;
+                break;
+            }
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                a: aluA,
+                b: aluB,
+                result: aluResult,
+                r: toBits(aluResult),
+                zero: aluResult === 0 ? 1 : 0,
+                carry: aluCarry,
+                negative: aluResult & 0x80 ? 1 : 0,
+                opName: opNames[aluOp] || "ADD",
+              },
+            };
+          }
+
+          // ── Address MUX (sel=0 → PC, sel=1 → operand/SP via spOpMux) ──
+          case "addrMux": {
+            const addrOut = addrSel
+              ? spSelSig
+                ? s.sp & 0xff
+                : cpu.lastOperand & 0xff
+              : s.pc & 0xff;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                sel: addrSel,
+                outVal: addrOut,
+                out: toBits(addrOut),
+              },
+            };
+          }
+
+          // ── Data MUX (sel=0 → ALU result, sel=1 → memory data) ──
+          case "dataMux": {
+            const memAddr = addrSel
+              ? spSelSig
+                ? s.sp & 0xff
+                : cpu.lastOperand & 0xff
+              : s.pc & 0xff;
+            const dataOut = dataSel ? s.memory[memAddr] || 0 : s.a;
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                sel: dataSel,
+                outVal: dataOut,
+                out: toBits(dataOut),
+              },
+            };
+          }
+
+          // ── PC Incrementer (adder showing PC+1) ──
+          case "pcInc": {
+            const nextPc = (s.pc + 1) & 0xff;
+            return {
+              ...node,
+              data: { ...node.data, sum: toBits(nextPc), cout: 0 },
+            };
+          }
+
+          // ── Constant 1 for PC increment ──
+          case "pcOne":
+            return { ...node, data: { ...node.data, value: 1 } };
+
           default:
             return node;
         }

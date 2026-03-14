@@ -448,6 +448,13 @@ export const initialNodes: Node[] = [
     position: { x: 2050, y: 80 },
     data: { label: "CON_CLR", value: 0 },
   },
+  // Console read strobe (for INA instruction)
+  {
+    id: "consoleRd",
+    type: "input",
+    position: { x: 2350, y: -60 },
+    data: { label: "CON_RD", value: 0 },
+  },
 
   // Plotter output — plots pixels at (A, B) coordinates
   {
@@ -667,6 +674,7 @@ export const initialEdges: Edge[] = [
   wire("e-con-wr", "consoleWr", "console", "out", "wr"),
   wire("e-con-mode", "consoleMode", "console", "out", "mode"),
   wire("e-con-clr", "consoleClear", "console", "out", "clr"),
+  wire("e-con-rd", "consoleRd", "console", "out", "rd"),
 
   // ══════════════════════════════════════
   //  PLOTTER: A → X, B → Y, control wires

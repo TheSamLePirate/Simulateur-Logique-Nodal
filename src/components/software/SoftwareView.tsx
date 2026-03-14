@@ -284,6 +284,15 @@ export function SoftwareView({
     setConsoleOutput([]);
   }, []);
 
+  // ─── Console input ───
+  const handleConsoleInput = useCallback((text: string) => {
+    const cpu = cpuRef.current;
+    for (let i = 0; i < text.length; i++) {
+      cpu.pushInput(text.charCodeAt(i));
+    }
+    cpu.pushInput(10); // newline
+  }, []);
+
   // ─── Plotter clear ───
   const handleClearPlotter = useCallback(() => {
     cpuRef.current.plotterPixels = new Set();
@@ -460,6 +469,7 @@ export function SoftwareView({
                 <ConsolePanel
                   output={consoleOutput}
                   onClear={handleClearConsole}
+                  onInput={handleConsoleInput}
                 />
               </div>
               <div className="h-1/2 overflow-hidden">

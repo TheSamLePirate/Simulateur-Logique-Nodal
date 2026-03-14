@@ -817,6 +817,16 @@ export function generate(program: Program): {
       return;
     }
 
+    // ── Built-in: getchar() — read one char from console input (blocking) ──
+    if (expr.name === "getchar") {
+      const waitLabel = newLabel();
+      emit(`${waitLabel}:`);
+      emit(`  INA`);
+      emit(`  CMP 0`);
+      emit(`  JZ ${waitLabel}`);
+      return;
+    }
+
     // ── User function call ──
     const calleeInfo = funcTable.get(expr.name);
     if (!calleeInfo) {
