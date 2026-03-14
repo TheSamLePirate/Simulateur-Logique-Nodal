@@ -13,6 +13,7 @@ import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
 import { MemoryView } from "./MemoryView";
 import { ConsolePanel } from "./ConsolePanel";
+import { PlotterPanel } from "./PlotterPanel";
 
 interface EditorError {
   line: number;
@@ -37,6 +38,7 @@ export function SoftwareView() {
   // CPU state (snapshot for React rendering)
   const [cpuState, setCpuState] = useState<CPUState>(createInitialState());
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [plotterPixels, setPlotterPixels] = useState<Set<number>>(new Set());
 
   // Source map for line highlighting (ASM line → PC mapping)
   const sourceMapRef = useRef<Map<number, number>>(new Map());
@@ -170,6 +172,7 @@ export function SoftwareView() {
 
     setCpuState(cpu.snapshot());
     setConsoleOutput([...cpu.consoleOutput]);
+    setPlotterPixels(new Set(cpu.plotterPixels));
 
     if (cpu.state.halted) {
       setIsRunning(false);
@@ -206,6 +209,7 @@ export function SoftwareView() {
       }
       setCpuState(cpu.snapshot());
       setConsoleOutput([...cpu.consoleOutput]);
+      setPlotterPixels(new Set(cpu.plotterPixels));
     }, 50);
 
     return () => {
@@ -222,6 +226,7 @@ export function SoftwareView() {
     cpu.reset();
     setCpuState(cpu.snapshot());
     setConsoleOutput([]);
+    setPlotterPixels(new Set());
     setAssembled(false);
     setIsRunning(false);
     setErrors([]);
@@ -232,6 +237,12 @@ export function SoftwareView() {
   const handleClearConsole = useCallback(() => {
     cpuRef.current.consoleOutput = [];
     setConsoleOutput([]);
+  }, []);
+
+  // ─── Plotter clear ───
+  const handleClearPlotter = useCallback(() => {
+    cpuRef.current.plotterPixels = new Set();
+    setPlotterPixels(new Set());
   }, []);
 
   // ─── Example select ───
@@ -245,6 +256,7 @@ export function SoftwareView() {
       cpu.reset();
       setCpuState(cpu.snapshot());
       setConsoleOutput([]);
+      setPlotterPixels(new Set());
       setMemHighlights(new Set());
     },
     [setCode],
@@ -333,7 +345,7 @@ export function SoftwareView() {
           <input
             type="range"
             min={1}
-            max={100}
+            max={100000}
             value={runSpeed}
             onChange={(e) => setRunSpeed(parseInt(e.target.value))}
             className="w-20 accent-blue-500"
@@ -397,12 +409,20 @@ export function SoftwareView() {
               />
             </div>
 
-            {/* Console */}
-            <div className="w-1/2 overflow-hidden">
-              <ConsolePanel
-                output={consoleOutput}
-                onClear={handleClearConsole}
-              />
+            {/* Console + Plotter stacked */}
+            <div className="w-1/2 flex flex-col gap-2 overflow-hidden">
+              <div className="h-1/2 overflow-hidden">
+                <ConsolePanel
+                  output={consoleOutput}
+                  onClear={handleClearConsole}
+                />
+              </div>
+              <div className="h-1/2 overflow-hidden">
+                <PlotterPanel
+                  pixels={plotterPixels}
+                  onClear={handleClearPlotter}
+                />
+              </div>
             </div>
           </div>
         </div>

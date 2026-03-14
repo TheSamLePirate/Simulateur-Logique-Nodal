@@ -480,20 +480,23 @@ export function generate(program: Program): {
         emit(`  JNZ ${trueLabel}`);
         break;
       case "<":
-        emit(`  JN ${trueLabel}`);
+        // unsigned: left < right ↔ borrow (carry) on left - right
+        emit(`  JC ${trueLabel}`);
         break;
       case ">":
-        // not zero AND not negative
+        // unsigned: left > right ↔ no borrow AND not zero
         emit(`  JZ ${endLabel}`);
-        emit(`  JN ${endLabel}`);
+        emit(`  JC ${endLabel}`);
         emit(`  JMP ${trueLabel}`);
         break;
       case "<=":
+        // unsigned: left <= right ↔ borrow OR zero
         emit(`  JZ ${trueLabel}`);
-        emit(`  JN ${trueLabel}`);
+        emit(`  JC ${trueLabel}`);
         break;
       case ">=":
-        emit(`  JN ${endLabel}`);
+        // unsigned: left >= right ↔ no borrow
+        emit(`  JC ${endLabel}`);
         emit(`  JMP ${trueLabel}`);
         break;
     }
@@ -792,6 +795,25 @@ export function generate(program: Program): {
           emit(`  OUT ${ch.charCodeAt(0)}`);
         }
       }
+      return;
+    }
+
+    // ── Built-in: draw(x, y) ──
+    if (expr.name === "draw") {
+      if (expr.args.length >= 2) {
+        emitExpr(expr.args[0], ctx); // x → A
+        emit(`  PUSH`); // save x
+        emitExpr(expr.args[1], ctx); // y → A
+        emit(`  TAB`); // y → B
+        emit(`  POP`); // x → A
+        emit(`  DRAW`);
+      }
+      return;
+    }
+
+    // ── Built-in: clear() ──
+    if (expr.name === "clear") {
+      emit(`  CLR`);
       return;
     }
 
