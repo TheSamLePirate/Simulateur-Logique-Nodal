@@ -9,9 +9,10 @@ This document covers the bugs found, the fixes applied, and the comprehensive te
 1. [Bug Fix: `>=` and `>` Comparison Operators](#1-bug-fix--and--comparison-operators)
 2. [Bug Fix: Global Variables Off-by-One](#2-bug-fix-global-variables-off-by-one)
 3. [Bug Fix: Scratch Register Conflicts in Nested Expressions](#3-bug-fix-scratch-register-conflicts-in-nested-expressions)
-4. [Test Suite Overview](#4-test-suite-overview)
-5. [Running Tests](#5-running-tests)
-6. [Memory Audit Summary](#6-memory-audit-summary)
+4. [Bug Fix: Unsigned Division with Large Dividends](#4-bug-fix-unsigned-division-with-large-dividends)
+5. [Test Suite Overview](#5-test-suite-overview)
+6. [Running Tests](#6-running-tests)
+7. [Memory Audit Summary](#7-memory-audit-summary)
 
 ---
 
@@ -201,11 +202,78 @@ Only the "complex" operations (multiply, divide, bitwise) that use TEMP_BASE for
 
 ---
 
-## 4. Test Suite Overview
+## 4. Bug Fix: Unsigned Division with Large Dividends
+
+**File:** `src/cpu/compiler/codegen.ts` — `emitDivMod()`
+
+### The Bug
+
+Division and modulo returned **0** for any dividend ≥ 128. For example, `130 / 2` returned **0** instead of **65**, and `200 % 3` returned **200** instead of **2**.
+
+**Impact:** Any program dividing a value ≥ 128 got wrong results. The "Traceur de droite" example plotted `y = 0` for all x ≥ 128 because the intermediate value `a * x` (e.g., `2 * 128 = 256 → 0 mod 256` but even when avoiding overflow via DDA, division of accumulated values ≥ 128 failed).
+
+### Root Cause
+
+The division loop used `JN` (Jump if Negative = sign bit set) to detect when the dividend was exhausted:
+
+```asm
+; BEFORE (buggy):
+  LDM dividend        ; A = dividend
+  LBM divisor         ; B = divisor
+  SUBB                ; A = dividend - divisor
+  JN endLabel          ; if "negative" → done   ← BUG!
+  STA dividend        ; dividend -= divisor
+  ; quotient++
+  JMP loopLabel
+```
+
+`JN` checks bit 7 of the result. In unsigned 8-bit arithmetic, any result ≥ 128 has bit 7 set. So `130 - 2 = 128` was treated as "negative" because `128 & 0x80 = 1`, and the loop exited immediately with quotient = 0.
+
+The correct check for unsigned "less than" is the **carry flag** (borrow), not the sign bit.
+
+### The Fix
+
+Replace `JN` with `JC` (Jump if Carry = unsigned borrow):
+
+```asm
+; AFTER (fixed):
+  LDM dividend
+  LBM divisor
+  SUBB
+  JC endLabel          ; unsigned: if borrow (dividend < divisor) → done  ✓
+  STA dividend
+  ; quotient++
+  JMP loopLabel
+```
+
+`JC` fires when `dividend < divisor` (subtraction produces a borrow), which is the correct unsigned exit condition.
+
+### Concrete Example
+
+For `130 / 2`:
+
+| Iteration | dividend | dividend - divisor | Bit 7? | Borrow? | JN exits? | JC exits? |
+|-----------|----------|-------------------|--------|---------|-----------|-----------|
+| 1 | 130 | 128 | **YES** | No | **YES** ✗ | No ✓ |
+| 2 | 128 | 126 | No | No | No | No |
+| ... | ... | ... | ... | ... | ... | ... |
+| 65 | 2 | 0 | No | No | No | No |
+| 66 | 0 | -2 (254) | YES | **YES** | YES | **YES** ✓ |
+
+With `JN`: exits at iteration 1, quotient = 0. **Wrong.**
+With `JC`: exits at iteration 66, quotient = 65. **Correct.**
+
+### Why Comparisons Were Not Affected
+
+The comparison operators (`<`, `>`, `<=`, `>=`) in `emitComparison()` already used `JC` for unsigned logic, having been fixed earlier (see Bug #1). Only `emitDivMod()` still used the signed `JN` instruction.
+
+---
+
+## 5. Test Suite Overview
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 91 tests, all green
+**Total:** 98 tests, all green
 
 ### Test Architecture
 
@@ -220,7 +288,7 @@ compileOnly(source)              // compile → assemble without running
 
 ### Test Suites
 
-#### 4.1 — C Examples: Compilation (14 examples)
+#### 5.1 — C Examples: Compilation (15 examples)
 
 Tests that **every** C example compiles without errors and assembles within 512 bytes.
 
@@ -235,13 +303,14 @@ Tests that **every** C example compiles without errors and assembles within 512 
 "Echo (Saisie)"             compiles → ✓  assembles → ✓
 "Compteur de lettres"       compiles → ✓  assembles → ✓
 "Calculatrice"              compiles → ✓  assembles → ✓
+"Traceur de droite"         compiles → ✓  assembles → ✓
 "Horloge"                   compiles → ✓  assembles → ✓
 "Spirale"                   compiles → ✓  assembles → ✓
 "Tableau de nombres premiers" compiles → ✓  assembles → ✓
 "Test Mémoire"              compiles → ✓  assembles → ✓
 ```
 
-#### 4.2 — C Examples: Memory Layout (14 examples)
+#### 5.2 — C Examples: Memory Layout (15 examples)
 
 Validates the `MemoryLayout` structure for every example:
 
@@ -251,7 +320,7 @@ Validates the `MemoryLayout` structure for every example:
 - `stackSize` is always 256
 - Total data (`globals + scratch + locals`) never exceeds 256
 
-#### 4.3 — C Examples: Output Verification (14 programs)
+#### 5.3 — C Examples: Output Verification (16 programs)
 
 Runs each program and verifies exact output:
 
@@ -267,12 +336,13 @@ Runs each program and verifies exact output:
 | Echo | Echoes `"Hi"` with console input |
 | Compteur de lettres | `"Longueur: 3"` for input `"abc\n"` |
 | Calculatrice | `"= 8"` for `"3+5\n"`, `"= 63"` for `"9*7\n"` |
+| Traceur de droite | DDA plot y=2x (input "210"), b=0 error (input "10"), wraps past x=128 |
 | Horloge | 3600 lines from `"00:00"` to `"59:59"` |
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
 | Test Mémoire | `"PASS"`, 16 globals, 232 locals, memory[0x200]=42 |
 
-#### 4.4 — Compiler Edge Cases (17 tests)
+#### 5.4 — Compiler Edge Cases (18 tests)
 
 Fine-grained tests for individual compiler features:
 
@@ -291,6 +361,7 @@ Fine-grained tests for individual compiler features:
 | **>= and > operators** | 6 cases: `5>=5=Y, 5>=3=Y, 5>=10=N, 5>3=Y, 5>5=N, 5>10=N` |
 | **<= and < operators** | 5 cases: `5<=5=Y, 5<=10=Y, 5<=3=N, 5<10=Y, 5<5=N` |
 | Multiply/divide | `7*8=56, 100/7=14, 100%7=2` |
+| **Unsigned division (≥128)** | `130/2=65, 200/4=50, 255/5=51, 128/1=128, 200%3=2` |
 | #define | `#define VAL 42` substitution |
 | Char literals | `putchar('A')` → `"ABC"` |
 | getchar | Input `"XY"` → output `"XY"` |
@@ -299,16 +370,16 @@ Fine-grained tests for individual compiler features:
 | 17th global error | Correctly rejected with error |
 | Code size overflow | 40 functions × 50 chars → compile error detected |
 
-#### 4.5 — Execution Properties (13 programs)
+#### 5.5 — Execution Properties (14 programs)
 
 Verifies runtime behavior:
 
 - **11 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Horloge, Spirale, Nombres premiers, Test Mémoire)
-- **3 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice)
+- **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
 
 ---
 
-## 5. Running Tests
+## 6. Running Tests
 
 ```bash
 # Run all tests once
@@ -327,15 +398,15 @@ npx vitest run --reporter verbose
 Expected output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (91 tests) 1.2s
+ ✓ src/cpu/__tests__/cexamples.test.ts (98 tests) 1.4s
 
  Test Files  1 passed (1)
-      Tests  91 passed (91)
+      Tests  98 passed (98)
 ```
 
 ---
 
-## 6. Memory Audit Summary
+## 7. Memory Audit Summary
 
 A full audit was performed tracing memory usage from the ISA through the CPU, assembler, and code generator. Key findings:
 

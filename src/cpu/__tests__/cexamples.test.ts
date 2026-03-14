@@ -266,8 +266,38 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("= 63");
   });
 
+  it('"Traceur de droite" plots y=2x (a=2, b=1, c=0) with DDA', () => {
+    const r = compileAndRun(C_EXAMPLES[10].code, {
+      input: "210",
+      maxCycles: 50_000_000,
+    });
+    expect(r.halted).toBe(true);
+    // Should have drawn ~255 pixels (one per x)
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
+    // Pixel key = (y << 8) | x  (DRAW stores (B << 8) | A, draw(x,y) → A=x, B=y)
+    // DDA: y increments by 2 each step (a=2, b=1)
+    // x=1: y=2 → draw(1, 2) → key = (2 << 8) | 1
+    expect(r.cpu.plotterPixels.has((2 << 8) | 1)).toBe(true);
+    // x=10: y=20 → draw(10, 20) → key = (20 << 8) | 10
+    expect(r.cpu.plotterPixels.has((20 << 8) | 10)).toBe(true);
+    // x=200: y = (2*200) mod 256 = 144 → draw(200, 144)
+    // DDA wraps smoothly through 255→0 (no jump discontinuity at x=128)
+    expect(r.cpu.plotterPixels.has((144 << 8) | 200)).toBe(true);
+  });
+
+  it('"Traceur de droite" handles b=0 error', () => {
+    const r = compileAndRun(C_EXAMPLES[10].code, {
+      input: "10",
+      maxCycles: 100_000,
+    });
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("Err: b=0");
+    // Should NOT have drawn any pixels (program exits before clear/draw)
+    expect(r.cpu.plotterPixels.size).toBe(0);
+  });
+
   it('"Horloge" starts at 00:00 and increments', () => {
-    const r = compileAndRun(C_EXAMPLES[10].code, { maxCycles: 50_000_000 });
+    const r = compileAndRun(C_EXAMPLES[11].code, { maxCycles: 50_000_000 });
     const lines = r.output.split("\n").filter(Boolean);
     expect(lines[0]).toBe("00:00");
     expect(lines[1]).toBe("00:01");
@@ -279,7 +309,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Spirale" draws spiral pixels and halts', () => {
-    const r = compileAndRun(C_EXAMPLES[11].code);
+    const r = compileAndRun(C_EXAMPLES[12].code);
     expect(r.halted).toBe(true);
     // Should have drawn many pixels
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
@@ -288,7 +318,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Tableau de nombres premiers" finds 25 primes up to 100', () => {
-    const r = compileAndRun(C_EXAMPLES[12].code);
+    const r = compileAndRun(C_EXAMPLES[13].code);
     expect(r.output).toContain("Nombres premiers:");
     expect(r.output).toContain("Total: 25");
     // Check a few known primes are present
@@ -299,7 +329,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Test Mémoire" fills all memory and passes', () => {
-    const r = compileAndRun(C_EXAMPLES[13].code);
+    const r = compileAndRun(C_EXAMPLES[14].code);
 
     // Verify output
     expect(r.output).toContain("=MEM TEST=");
@@ -527,6 +557,26 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("unsigned division with large dividends (>= 128)", () => {
+    // Bug fix: JN→JC in emitDivMod — JN treated results >= 128 as negative
+    const r = compileAndRun(`
+      int main() {
+        print_num(130 / 2);   // 65: was returning 0 (130-2=128, bit7 set → JN fired)
+        putchar(32);
+        print_num(200 / 4);   // 50
+        putchar(32);
+        print_num(255 / 5);   // 51
+        putchar(32);
+        print_num(128 / 1);   // 128
+        putchar(32);
+        print_num(200 % 3);   // 2 (200 = 66*3 + 2)
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("65 50 51 128 2");
+    expect(r.halted).toBe(true);
+  });
+
   it("#define preprocessor works", () => {
     const r = compileAndRun(`
       #define VAL 42
@@ -671,6 +721,7 @@ describe("C Examples — Execution Properties", () => {
     "Echo (Saisie)",
     "Compteur de lettres",
     "Calculatrice",
+    "Traceur de droite",
   ];
 
   for (const name of inputExamples) {

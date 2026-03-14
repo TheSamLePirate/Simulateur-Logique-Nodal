@@ -599,7 +599,7 @@ export function generate(program: Program): {
     emit(`  LDM ${fmt(t1)}`);
     emit(`  LBM ${fmt(t2)}`);
     emit(`  SUBB`);
-    emit(`  JN ${endLabel}`); // if negative → done
+    emit(`  JC ${endLabel}`); // unsigned: if borrow (dividend < divisor) → done
     // dividend = A (dividend - divisor)
     emit(`  STA ${fmt(t1)}`);
     // quotient++

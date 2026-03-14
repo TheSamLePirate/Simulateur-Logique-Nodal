@@ -262,6 +262,58 @@ int main() {
 }`,
   },
   {
+    name: "Traceur de droite",
+    description: "Trace y=a*x/b+c sur le plotter",
+    code: `// Traceur de droite y=a*x/b+c
+// Saisir a, b, c (chiffres 0-9)
+// Algorithme DDA : accumule la pente
+// sans jamais calculer a*x (overflow)
+
+int main() {
+  int a;
+  int b;
+  int c;
+  int x;
+  int y;
+  int err;
+
+  print("a=");
+  a = getchar() - 48;
+  putchar(a + 48);
+  putchar(10);
+
+  print("b=");
+  b = getchar() - 48;
+  putchar(b + 48);
+  putchar(10);
+
+  if (b == 0) {
+    print("Err: b=0");
+    return 0;
+  }
+
+  print("c=");
+  c = getchar() - 48;
+  putchar(c + 48);
+  putchar(10);
+
+  clear();
+
+  y = c;
+  err = 0;
+  for (x = 0; x < 255; x++) {
+    draw(x, y);
+    err = err + a;
+    while (err >= b) {
+      err = err - b;
+      y = y + 1;
+    }
+  }
+
+  return 0;
+}`,
+  },
+  {
     name: "Horloge",
     description: "Chronomètre MM:SS qui défile",
     code: `// Chronometre MM:SS
