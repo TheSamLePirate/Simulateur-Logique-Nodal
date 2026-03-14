@@ -345,7 +345,7 @@ export function SoftwareView() {
           <input
             type="range"
             min={1}
-            max={100}
+            max={100000}
             value={runSpeed}
             onChange={(e) => setRunSpeed(parseInt(e.target.value))}
             className="w-20 accent-blue-500"

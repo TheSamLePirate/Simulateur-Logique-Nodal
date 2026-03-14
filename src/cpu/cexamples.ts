@@ -133,4 +133,81 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Sinusoïdes",
+    description: "Synthèse harmonique (fondamentale + harm. 4)",
+    code: `// Synthese harmonique : fondamentale + harmonique 4
+// Approximation parabolique des demi-ondes
+
+int sq(int t) {
+  // Quart d'onde longue (t: 0..63 -> 0..124)
+  int a;
+  int b;
+  a = t >> 1;
+  b = (128 - t) >> 4;
+  return a * b;
+}
+
+int hw(int t) {
+  // Demi-onde courte (t: 0..31 -> 0..64)
+  int a;
+  int b;
+  a = t >> 1;
+  b = (32 - t) >> 1;
+  return a * b;
+}
+
+int main() {
+  int x;
+  int y;
+  int p;
+  int f;
+  int h;
+
+  clear();
+
+  // Axe central
+  for (x = 0; x < 255; x++) {
+    draw(x, 128);
+  }
+  draw(255, 128);
+
+  // Onde composite
+  p = 0;
+  for (x = 0; x < 255; x++) {
+    // Fondamentale (T=256, A=62)
+    if (x < 64) {
+      f = sq(x) >> 1;
+      y = 128 - f;
+    } else if (x < 128) {
+      f = sq(127 - x) >> 1;
+      y = 128 - f;
+    } else if (x < 192) {
+      f = sq(x - 128) >> 1;
+      y = 128 + f;
+    } else {
+      f = sq(255 - x) >> 1;
+      y = 128 + f;
+    }
+
+    // Harmonique 4 (T=64, A=32)
+    if (p < 32) {
+      h = hw(p) >> 1;
+      y = y - h;
+    } else {
+      h = hw(p - 32) >> 1;
+      y = y + h;
+    }
+
+    draw(x, y);
+    p = p + 1;
+    if (p > 63) {
+      p = 0;
+    }
+  }
+  draw(255, 128);
+
+  return 0;
+}`,
+  },
 ];

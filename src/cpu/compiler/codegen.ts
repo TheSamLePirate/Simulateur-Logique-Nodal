@@ -480,20 +480,23 @@ export function generate(program: Program): {
         emit(`  JNZ ${trueLabel}`);
         break;
       case "<":
-        emit(`  JN ${trueLabel}`);
+        // unsigned: left < right ↔ borrow (carry) on left - right
+        emit(`  JC ${trueLabel}`);
         break;
       case ">":
-        // not zero AND not negative
+        // unsigned: left > right ↔ no borrow AND not zero
         emit(`  JZ ${endLabel}`);
-        emit(`  JN ${endLabel}`);
+        emit(`  JC ${endLabel}`);
         emit(`  JMP ${trueLabel}`);
         break;
       case "<=":
+        // unsigned: left <= right ↔ borrow OR zero
         emit(`  JZ ${trueLabel}`);
-        emit(`  JN ${trueLabel}`);
+        emit(`  JC ${trueLabel}`);
         break;
       case ">=":
-        emit(`  JN ${endLabel}`);
+        // unsigned: left >= right ↔ no borrow
+        emit(`  JC ${endLabel}`);
         emit(`  JMP ${trueLabel}`);
         break;
     }
