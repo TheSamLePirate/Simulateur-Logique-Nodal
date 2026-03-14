@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Terminal } from "lucide-react";
 
-export const ConsoleNode = ({ data }: any) => {
+export const ConsoleNode = ({ id, data }: any) => {
   const text = (data.text as string) || "";
   const lastChar = data.lastChar || 0;
   const inputBufferSize = data.inputBufferSize || 0;
@@ -39,7 +39,7 @@ export const ConsoleNode = ({ data }: any) => {
               if (inputText) {
                 window.dispatchEvent(
                   new CustomEvent("console-input", {
-                    detail: { text: inputText },
+                    detail: { text: inputText, nodeId: id },
                   }),
                 );
                 setInputText("");

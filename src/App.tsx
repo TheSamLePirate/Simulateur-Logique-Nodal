@@ -176,16 +176,44 @@ export default function App() {
   // Listen for console-input events from ConsoleNode (hardware view)
   useEffect(() => {
     const handler = (e: any) => {
-      const { text } = e.detail;
+      const { text, nodeId } = e.detail;
+      // Push to hardware CPU input buffer (for software-driven execution)
       const cpu = hwCpuRef.current;
       for (let i = 0; i < text.length; i++) {
         cpu.pushInput(text.charCodeAt(i));
       }
       cpu.pushInput(10); // newline
+
+      // Also push to the console node's inputBuffer (for hardware-wired rd/avail)
+      if (nodeId) {
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id === nodeId && n.type === "console") {
+              const buf = (n.data.inputBuffer as number[]) || [];
+              const chars: number[] = [];
+              for (let i = 0; i < text.length; i++) {
+                chars.push(text.charCodeAt(i));
+              }
+              chars.push(10); // newline
+              const newBuf = [...buf, ...chars];
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  inputBuffer: newBuf,
+                  inputBufferSize: newBuf.length,
+                  avail: 1,
+                },
+              };
+            }
+            return n;
+          }),
+        );
+      }
     };
     window.addEventListener("console-input", handler);
     return () => window.removeEventListener("console-input", handler);
-  }, []);
+  }, [setNodes]);
 
   // Listen for clock-frequency change events from ClockNode
   useEffect(() => {

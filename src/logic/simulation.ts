@@ -80,6 +80,14 @@ export const getInputValue = (
       return ((sourceNode.data.out as Bit[])?.[idx] || 0) as Bit;
     }
   }
+  if (sourceNode.type === "console") {
+    if (edge.sourceHandle?.startsWith("q")) {
+      const idx = parseInt(edge.sourceHandle.replace("q", ""));
+      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
+    }
+    if (edge.sourceHandle === "avail")
+      return (sourceNode.data.avail as Bit) || 0;
+  }
   return 0;
 };
 
@@ -409,10 +417,46 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         textChanged = true;
       }
 
-      if (textChanged || node.data.prevWr !== wr) {
+      // ── READ: RD strobe → dequeue from inputBuffer → output on q0-q7 ──
+      const rd = getVal(node.id, "rd");
+      const prevRd = (node.data.prevRd as Bit) || 0;
+      let inputBuffer = (node.data.inputBuffer as number[]) || [];
+      let q = (node.data.q as Bit[]) || Array(8).fill(0);
+      let avail: Bit = inputBuffer.length > 0 ? 1 : 0;
+      let readChanged = false;
+
+      if (prevRd === 0 && rd === 1 && inputBuffer.length > 0) {
+        // Rising edge of RD: dequeue next character
+        inputBuffer = [...inputBuffer];
+        const charCode = inputBuffer.shift()!;
+        q = Array.from(
+          { length: 8 },
+          (_, i) => (charCode & (1 << i) ? 1 : 0) as Bit,
+        );
+        avail = inputBuffer.length > 0 ? 1 : 0;
+        readChanged = true;
+      }
+
+      if (
+        textChanged ||
+        readChanged ||
+        node.data.prevWr !== wr ||
+        node.data.prevRd !== rd ||
+        node.data.avail !== avail
+      ) {
         newNodes[index] = {
           ...node,
-          data: { ...node.data, text, lastChar, prevWr: wr },
+          data: {
+            ...node.data,
+            text,
+            lastChar,
+            prevWr: wr,
+            prevRd: rd,
+            inputBuffer,
+            q,
+            avail,
+            inputBufferSize: inputBuffer.length,
+          },
         };
         changed = true;
       }
