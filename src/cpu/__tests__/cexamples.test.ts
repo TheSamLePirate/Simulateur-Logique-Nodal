@@ -354,8 +354,17 @@ describe("C Examples — Output Verification", () => {
     expect(r.halted).toBe(true);
   });
 
+  it('"Étoiles" draws random stars with break', () => {
+    const r = compileAndRun(C_EXAMPLES[16].code, { maxCycles: 5_000_000 });
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("Stars: ");
+    // Should have drawn pixels (random positions, some skipped by continue)
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
+    expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(64);
+  });
+
   it('"Test Mémoire" fills all memory and passes', () => {
-    const r = compileAndRun(C_EXAMPLES[16].code);
+    const r = compileAndRun(C_EXAMPLES[17].code);
 
     // Verify output
     expect(r.output).toContain("=MEM TEST=");
@@ -731,6 +740,183 @@ describe("Compiler — Edge Cases", () => {
     expect(cr.errors.some((e) => e.message.includes("max 16"))).toBe(true);
   });
 
+  it("break exits while loop early", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i = 0;
+        while (1) {
+          if (i >= 5) { break; }
+          i = i + 1;
+        }
+        print_num(i);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("break exits for loop early", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i;
+        int sum = 0;
+        for (i = 0; i < 100; i++) {
+          if (i >= 5) { break; }
+          sum = sum + i;
+        }
+        print_num(sum);
+        putchar(32);
+        print_num(i);
+        return 0;
+      }
+    `);
+    // sum = 0+1+2+3+4 = 10, i = 5 when break fires
+    expect(r.output).toBe("10 5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("continue skips to next iteration in while loop", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i = 0;
+        int sum = 0;
+        while (i < 10) {
+          i = i + 1;
+          if (i == 3) { continue; }
+          if (i == 7) { continue; }
+          sum = sum + i;
+        }
+        print_num(sum);
+        return 0;
+      }
+    `);
+    // 1+2+4+5+6+8+9+10 = 45 (skipped 3 and 7)
+    expect(r.output).toBe("45");
+    expect(r.halted).toBe(true);
+  });
+
+  it("continue in for loop jumps to update", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i;
+        int sum = 0;
+        for (i = 0; i < 10; i++) {
+          if (i == 3) { continue; }
+          if (i == 7) { continue; }
+          sum = sum + i;
+        }
+        print_num(sum);
+        return 0;
+      }
+    `);
+    // 0+1+2+4+5+6+8+9 = 35 (skipped 3 and 7)
+    expect(r.output).toBe("35");
+    expect(r.halted).toBe(true);
+  });
+
+  it("nested break only exits inner loop", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i = 0;
+        int j;
+        int count = 0;
+        while (i < 3) {
+          j = 0;
+          while (1) {
+            if (j >= 2) { break; }
+            count = count + 1;
+            j = j + 1;
+          }
+          i = i + 1;
+        }
+        print_num(count);
+        return 0;
+      }
+    `);
+    // 3 outer iterations × 2 inner iterations = 6
+    expect(r.output).toBe("6");
+    expect(r.halted).toBe(true);
+  });
+
+  it("break outside loop produces error", () => {
+    const cr = compile(`
+      int main() {
+        break;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("boucle"))).toBe(true);
+  });
+
+  it("continue outside loop produces error", () => {
+    const cr = compile(`
+      int main() {
+        continue;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("boucle"))).toBe(true);
+  });
+
+  it("rand() returns pseudo-random values", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a;
+        int b;
+        int c;
+        a = rand();
+        b = rand();
+        c = rand();
+        // All three should be different (LFSR sequence)
+        if (a != b) { putchar('Y'); } else { putchar('N'); }
+        if (b != c) { putchar('Y'); } else { putchar('N'); }
+        if (a != c) { putchar('Y'); } else { putchar('N'); }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("YYY");
+    expect(r.halted).toBe(true);
+  });
+
+  it("rand() values are in 0-255 range", () => {
+    const r = compileAndRun(`
+      int main() {
+        int i;
+        int v;
+        int ok = 1;
+        for (i = 0; i < 20; i++) {
+          v = rand();
+          if (v > 255) { ok = 0; }
+        }
+        if (ok) { putchar('Y'); } else { putchar('N'); }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("Y");
+    expect(r.halted).toBe(true);
+  });
+
+  it("sleep() delays execution by N cycles", () => {
+    // Run two programs: one with sleep, one without, compare cycle counts
+    const r1 = compileAndRun(`
+      int main() {
+        return 0;
+      }
+    `);
+    const r2 = compileAndRun(`
+      int main() {
+        sleep(100);
+        return 0;
+      }
+    `);
+    // sleep(100) should add ~100 cycles
+    expect(r2.cycles - r1.cycles).toBeGreaterThanOrEqual(100);
+    expect(r2.halted).toBe(true);
+  });
+
   it("code size overflow is detected", () => {
     // Generate a program that's way too big (lots of print statements)
     let code = "int main() {\n";
@@ -766,6 +952,7 @@ describe("C Examples — Execution Properties", () => {
     "Horloge",
     "Spirale",
     "Tableau de nombres premiers",
+    "Étoiles",
     "Test Mémoire",
   ];
 

@@ -300,8 +300,11 @@ export function SoftwareView({
     setConsoleOutput([]);
   }, []);
 
-  // ─── Keyboard input (arrow keys + Enter) ───
+  // ─── Keyboard input (arrow keys + Enter) — only while CPU is running ───
   useEffect(() => {
+    if (!isRunning) return;
+
+    const cpu = cpuRef.current;
     const keyMap: Record<string, number> = {
       ArrowLeft: 0,
       ArrowRight: 1,
@@ -314,14 +317,14 @@ export function SoftwareView({
       const index = keyMap[e.key];
       if (index !== undefined) {
         e.preventDefault();
-        cpuRef.current.keyState[index] = 1;
+        cpu.keyState[index] = 1;
       }
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
       const index = keyMap[e.key];
       if (index !== undefined) {
-        cpuRef.current.keyState[index] = 0;
+        cpu.keyState[index] = 0;
       }
     };
 
@@ -330,8 +333,10 @@ export function SoftwareView({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      // Reset key state when stopping
+      cpu.keyState = [0, 0, 0, 0, 0];
     };
-  }, []);
+  }, [isRunning]);
 
   // ─── Console input ───
   const handleConsoleInput = useCallback((text: string) => {

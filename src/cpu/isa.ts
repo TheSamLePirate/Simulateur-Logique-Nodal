@@ -35,6 +35,8 @@ export const Opcode = {
   SUBB: 0x09, // A ← A - B
   INA: 0x0a, // A ← console input (0 if empty, sets Z)
   GETKEY: 0x0b, // A ← key state (key index in A: 0=left,1=right,2=up,3=down,4=enter)
+  RAND: 0x0c, // A ← pseudo-random 8-bit value (LFSR)
+  SLEEP: 0x0d, // sleep for A cycles (busy wait)
 
   // Stack (1-byte)
   RET: 0x10,
@@ -111,6 +113,16 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "GETKEY",
     size: 1,
     description: "A ← key state (key index in A)",
+  },
+  [Opcode.RAND]: {
+    mnemonic: "RAND",
+    size: 1,
+    description: "A ← random 8-bit (LFSR)",
+  },
+  [Opcode.SLEEP]: {
+    mnemonic: "SLEEP",
+    size: 1,
+    description: "Sleep for A cycles",
   },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },

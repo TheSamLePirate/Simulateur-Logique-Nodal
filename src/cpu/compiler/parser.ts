@@ -44,6 +44,8 @@ export type Stmt =
   | WhileStmt
   | ForStmt
   | ReturnStmt
+  | BreakStmt
+  | ContinueStmt
   | ExprStmt
   | Block;
 
@@ -74,6 +76,16 @@ export interface ForStmt {
 export interface ReturnStmt {
   kind: "ReturnStmt";
   value: Expr | null;
+  line: number;
+}
+
+export interface BreakStmt {
+  kind: "BreakStmt";
+  line: number;
+}
+
+export interface ContinueStmt {
+  kind: "ContinueStmt";
   line: number;
 }
 
@@ -335,6 +347,20 @@ export function parse(tokens: Token[]): {
 
     // Return
     if (check(TokenType.RETURN)) return parseReturnStmt();
+
+    // Break
+    if (check(TokenType.BREAK)) {
+      const tok = advance();
+      expect(TokenType.SEMICOLON, "';' attendu après 'break'");
+      return { kind: "BreakStmt", line: tok.line } as BreakStmt;
+    }
+
+    // Continue
+    if (check(TokenType.CONTINUE)) {
+      const tok = advance();
+      expect(TokenType.SEMICOLON, "';' attendu après 'continue'");
+      return { kind: "ContinueStmt", line: tok.line } as ContinueStmt;
+    }
 
     // Expression statement
     return parseExprStmt();

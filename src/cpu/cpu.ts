@@ -35,6 +35,10 @@ export class CPU {
   lastOperand = 0;
   /** Clock toggle bit (flips each step) */
   clockBit = 0;
+  /** LFSR seed for RAND instruction (non-zero) */
+  randSeed = 0xac;
+  /** Sleep counter (decrements each step, CPU idles while > 0) */
+  sleepCounter = 0;
 
   constructor() {
     this.state = createInitialState();
@@ -54,6 +58,8 @@ export class CPU {
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
+    this.randSeed = 0xac;
+    this.sleepCounter = 0;
   }
 
   /** Load a program (byte array) into memory starting at startAddr */
@@ -132,6 +138,13 @@ export class CPU {
    */
   step(): boolean {
     if (this.state.halted) return false;
+
+    // Sleep: idle for remaining cycles
+    if (this.sleepCounter > 0) {
+      this.sleepCounter--;
+      this.state.cycles++;
+      return true;
+    }
 
     const opcode = this.read(this.state.pc);
     const info = INSTRUCTION_INFO[opcode];
@@ -259,6 +272,22 @@ export class CPU {
       case Opcode.GETKEY:
         this.state.a = this.keyState[this.state.a] || 0;
         this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.RAND: {
+        // 8-bit Galois LFSR (polynomial x^8+x^6+x^5+x^4+1, taps 0xB8)
+        let s = this.randSeed;
+        const bit = s & 1;
+        s >>= 1;
+        if (bit) s ^= 0xb8;
+        this.randSeed = s;
+        this.state.a = s & 0xff;
+        this.updateFlags(this.state.a);
+        break;
+      }
+
+      case Opcode.SLEEP:
+        this.sleepCounter = this.state.a;
         break;
 
       // ─── Arithmetic/Logic with immediate (3-byte, uses low byte only) ───

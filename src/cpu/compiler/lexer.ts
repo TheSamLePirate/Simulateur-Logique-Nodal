@@ -18,6 +18,8 @@ export enum TokenType {
   WHILE,
   FOR,
   RETURN,
+  BREAK,
+  CONTINUE,
   // Operators
   PLUS,
   MINUS,
@@ -70,6 +72,8 @@ const KEYWORDS: Record<string, TokenType> = {
   while: TokenType.WHILE,
   for: TokenType.FOR,
   return: TokenType.RETURN,
+  break: TokenType.BREAK,
+  continue: TokenType.CONTINUE,
 };
 
 export interface LexerError {

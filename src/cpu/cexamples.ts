@@ -535,6 +535,43 @@ int main() {
 }`,
   },
   {
+    name: "Étoiles",
+    description: "Ciel étoilé aléatoire (rand, sleep, break)",
+    code: `// Ciel etoile aleatoire
+// Dessine 64 etoiles a des positions aleatoires
+// Utilise rand(), sleep() et break
+
+int main() {
+  int i;
+  int x;
+  int y;
+
+  i = 0;
+  while (1) {
+    if (i >= 64) {
+      break;
+    }
+    x = rand();
+    y = rand();
+
+    // Saute les coins (continue)
+    if (x < 10) {
+      if (y < 10) {
+        continue;
+      }
+    }
+
+    draw(x, y);
+    sleep(5);
+    i = i + 1;
+  }
+
+  print("Stars: ");
+  print_num(i);
+  return 0;
+}`,
+  },
+  {
     name: "Test Mémoire",
     description: "Remplit et vérifie les 1024 octets de mémoire",
     code: `// Test Memoire Complet

@@ -66,6 +66,9 @@ export function generate(program: Program): {
   const globals = new Map<string, number>(); // name → address
   const funcTable = new Map<string, FuncInfo>();
 
+  // Loop context stack for break/continue
+  const loopStack: { breakLabel: string; continueLabel: string }[] = [];
+
   // ─── Helpers ───
 
   function newLabel(): string {
@@ -266,6 +269,26 @@ export function generate(program: Program): {
       case "ForStmt":
         emitForStmt(stmt, ctx);
         break;
+      case "BreakStmt":
+        if (loopStack.length === 0) {
+          errors.push({
+            line: stmt.line,
+            message: "'break' en dehors d'une boucle",
+          });
+        } else {
+          emit(`  JMP ${loopStack[loopStack.length - 1].breakLabel}`);
+        }
+        break;
+      case "ContinueStmt":
+        if (loopStack.length === 0) {
+          errors.push({
+            line: stmt.line,
+            message: "'continue' en dehors d'une boucle",
+          });
+        } else {
+          emit(`  JMP ${loopStack[loopStack.length - 1].continueLabel}`);
+        }
+        break;
       case "Block":
         emitBlock(stmt, ctx);
         break;
@@ -300,7 +323,10 @@ export function generate(program: Program): {
     emit(`  CMP 0`);
     emit(`  JZ ${endLabel}`);
 
+    loopStack.push({ breakLabel: endLabel, continueLabel: loopLabel });
     emitStmt(stmt.body, ctx);
+    loopStack.pop();
+
     emit(`  JMP ${loopLabel}`);
     emit(`${endLabel}:`);
   }
@@ -311,6 +337,7 @@ export function generate(program: Program): {
     }
 
     const loopLabel = newLabel();
+    const updateLabel = newLabel();
     const endLabel = newLabel();
 
     emit(`${loopLabel}:`);
@@ -321,8 +348,11 @@ export function generate(program: Program): {
       emit(`  JZ ${endLabel}`);
     }
 
+    loopStack.push({ breakLabel: endLabel, continueLabel: updateLabel });
     emitStmt(stmt.body, ctx);
+    loopStack.pop();
 
+    emit(`${updateLabel}:`);
     if (stmt.update) {
       emitExpr(stmt.update, ctx);
     }
@@ -864,6 +894,21 @@ export function generate(program: Program): {
       if (expr.args.length >= 1) {
         emitExpr(expr.args[0], ctx); // key index → A
         emit(`  GETKEY`);
+      }
+      return;
+    }
+
+    // ── Built-in: rand() — pseudo-random 8-bit value (LFSR) ──
+    if (expr.name === "rand") {
+      emit(`  RAND`);
+      return;
+    }
+
+    // ── Built-in: sleep(n) — pause for n CPU cycles ──
+    if (expr.name === "sleep") {
+      if (expr.args.length >= 1) {
+        emitExpr(expr.args[0], ctx); // cycle count → A
+        emit(`  SLEEP`);
       }
       return;
     }
