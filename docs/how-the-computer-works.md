@@ -333,6 +333,8 @@ The C compiler lets you write programs in a simplified version of the C language
 
 **Files:** `src/cpu/compiler/` directory
 
+If you want a practical "how to write programs" guide, read [docs/c-language-guide.md](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/docs/c-language-guide.md). This section focuses on how the compiler works internally.
+
 ### The Compilation Pipeline
 
 ```

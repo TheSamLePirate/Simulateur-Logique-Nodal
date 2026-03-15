@@ -730,4 +730,75 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Pong",
+    description: "Pong 1 joueur contre IA (UP/DOWN)",
+    code: `// Pong - 1 joueur contre ordinateur
+// UP/DOWN pour la raquette gauche
+// Vitesse: ~2000 instr/tick
+
+int main() {
+  int bx; int by;
+  int bdx; int bdy;
+  int py; int ay;
+  int i; int tmp;
+
+  bx = 128; by = 128;
+  bdx = 1; bdy = 1;
+  py = 118; ay = 118;
+
+  while (1) {
+    clear();
+
+    // Joueur (vitesse 2)
+    if (getKey(2)) { if (py > 1) { py -= 2; } }
+    if (getKey(3)) { if (py < 236) { py += 2; } }
+
+    // IA (vitesse 1)
+    tmp = ay + 10;
+    if (by > tmp) { if (ay < 236) { ay++; } }
+    if (by < tmp) { if (ay > 0) { ay--; } }
+
+    // Balle
+    if (bdx) { bx++; } else { bx--; }
+    if (bdy) { by++; } else { by--; }
+
+    // Murs haut/bas
+    if (by < 2) { bdy = 1; }
+    if (by > 253) { bdy = 0; }
+
+    // Raquette joueur (x=8)
+    if (bx < 10) {
+      if (by >= py) {
+        tmp = py + 20;
+        if (by < tmp) { bdx = 1; bx = 10; }
+      }
+    }
+
+    // Raquette IA (x=248)
+    if (bx > 246) {
+      if (by >= ay) {
+        tmp = ay + 20;
+        if (by < tmp) { bdx = 0; bx = 246; }
+      }
+    }
+
+    // But: reset balle
+    if (bx < 1) { bx = 128; by = 128; bdx = 1; }
+    if (bx > 254) { bx = 128; by = 128; bdx = 0; }
+
+    // Raquettes (1x20)
+    for (i = 0; i < 20; i++) {
+      draw(8, py + i);
+      draw(248, ay + i);
+    }
+
+    // Balle
+    draw(bx, by);
+
+    sleep(255);
+  }
+  return 0;
+}`,
+  },
 ];

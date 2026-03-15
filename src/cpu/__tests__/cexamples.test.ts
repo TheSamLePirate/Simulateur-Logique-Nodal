@@ -402,6 +402,18 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Avant: 64 25 12 22 11 90 33 44");
     expect(r.output).toContain("Apres: 11 12 22 25 33 44 64 90");
   });
+
+  it('"Pong" runs game loop with plotter output', () => {
+    // Simulate pressing DOWN key — player paddle moves
+    const r = compileAndRun(C_EXAMPLES[19].code, {
+      maxCycles: 500_000,
+      keyState: [0, 0, 0, 1, 0],
+    });
+    // Game loop runs continuously — does not halt in limited cycles
+    expect(r.halted).toBe(false);
+    // Should have drawn pixels (paddles + ball)
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════

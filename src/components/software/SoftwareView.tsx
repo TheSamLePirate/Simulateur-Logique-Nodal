@@ -467,8 +467,19 @@ export function SoftwareView({
             onChange={(e) => setRunSpeed(parseInt(e.target.value))}
             className="w-20 accent-blue-500"
           />
-          <span className="text-[10px] text-slate-500 font-mono w-16">
-            {runSpeed} instr/tick
+          <input
+            type="number"
+            min={1}
+            max={100000}
+            value={runSpeed}
+            onChange={(e) => {
+              const v = parseInt(e.target.value);
+              if (!isNaN(v) && v >= 1 && v <= 100000) setRunSpeed(v);
+            }}
+            className="w-16 text-[10px] text-slate-300 font-mono bg-slate-800 border border-slate-600 rounded px-1.5 py-0.5 text-center focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+          <span className="text-[10px] text-slate-500 font-mono">
+            instr/tick
           </span>
         </div>
 
