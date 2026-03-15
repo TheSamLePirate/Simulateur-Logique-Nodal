@@ -388,6 +388,13 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.state.memory[0x20f]).toBe(15); // gf
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1); // stack restored (0x3FF)
   });
+
+  it('"Tableau (Tri)" sorts 8 elements correctly', () => {
+    const r = compileAndRun(C_EXAMPLES[18].code, { maxCycles: 5_000_000 });
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("Avant: 64 25 12 22 11 90 33 44");
+    expect(r.output).toContain("Apres: 11 12 22 25 33 44 64 90");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -935,6 +942,212 @@ describe("Compiler — Edge Cases", () => {
 });
 
 // ═══════════════════════════════════════════════════════════
+//  Test suite: Arrays
+// ═══════════════════════════════════════════════════════════
+
+describe("Compiler — Arrays", () => {
+  it("basic array write and read", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a[3];
+        a[0] = 10;
+        a[1] = 20;
+        a[2] = 30;
+        print_num(a[0]);
+        putchar(32);
+        print_num(a[1]);
+        putchar(32);
+        print_num(a[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("10 20 30");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array fill and read in loop", () => {
+    const r = compileAndRun(`
+      int main() {
+        int arr[5];
+        int i;
+        for (i = 0; i < 5; i++) {
+          arr[i] = i * 3;
+        }
+        for (i = 0; i < 5; i++) {
+          print_num(arr[i]);
+          putchar(32);
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("0 3 6 9 12 ");
+    expect(r.halted).toBe(true);
+  });
+
+  it("complex index expression arr[j+1]", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a[4];
+        int j;
+        a[0] = 10;
+        a[1] = 20;
+        a[2] = 30;
+        a[3] = 40;
+        for (j = 0; j < 3; j++) {
+          print_num(a[j + 1]);
+          putchar(32);
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("20 30 40 ");
+    expect(r.halted).toBe(true);
+  });
+
+  it("global array", () => {
+    const r = compileAndRun(`
+      int g[3];
+      int main() {
+        g[0] = 100;
+        g[1] = 200;
+        g[2] = 50;
+        print_num(g[0]);
+        putchar(32);
+        print_num(g[1]);
+        putchar(32);
+        print_num(g[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("100 200 50");
+    expect(r.halted).toBe(true);
+  });
+
+  it("local array in function", () => {
+    const r = compileAndRun(`
+      int sum3(int x, int y, int z) {
+        int buf[3];
+        buf[0] = x;
+        buf[1] = y;
+        buf[2] = z;
+        return buf[0] + buf[1] + buf[2];
+      }
+      int main() {
+        print_num(sum3(10, 20, 30));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("60");
+    expect(r.halted).toBe(true);
+  });
+
+  it("global array accessed from function", () => {
+    const r = compileAndRun(`
+      int data[3];
+      void fill() {
+        data[0] = 5;
+        data[1] = 10;
+        data[2] = 15;
+      }
+      int main() {
+        fill();
+        print_num(data[0] + data[1] + data[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("30");
+    expect(r.halted).toBe(true);
+  });
+
+  it("swap via array (bubble sort pattern)", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a[2];
+        int tmp;
+        a[0] = 99;
+        a[1] = 11;
+        if (a[0] > a[1]) {
+          tmp = a[0];
+          a[0] = a[1];
+          a[1] = tmp;
+        }
+        print_num(a[0]);
+        putchar(32);
+        print_num(a[1]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("11 99");
+    expect(r.halted).toBe(true);
+  });
+
+  // ─── Error cases ───
+
+  it("array size 0 is rejected", () => {
+    const cr = compile(`
+      int main() {
+        int a[0];
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("taille"))).toBe(true);
+  });
+
+  it("global array too large is rejected", () => {
+    const cr = compile(`
+      int big[17];
+      int main() { return 0; }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("globale"))).toBe(true);
+  });
+
+  it("array name without index is rejected", () => {
+    const cr = compile(`
+      int main() {
+        int a[3];
+        int x;
+        x = a;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("tableau"))).toBe(true);
+  });
+
+  it("index on non-array variable is rejected", () => {
+    const cr = compile(`
+      int main() {
+        int x;
+        x = 5;
+        print_num(x[0]);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(
+      cr.errors.some(
+        (e) => e.message.includes("tableau") || e.message.includes("Tableau"),
+      ),
+    ).toBe(true);
+  });
+
+  it("array initializer is rejected", () => {
+    const cr = compile(`
+      int main() {
+        int a[3] = {1, 2, 3};
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("Initialisation"))).toBe(
+      true,
+    );
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
 //  Test suite: CPU execution properties
 // ═══════════════════════════════════════════════════════════
 
@@ -954,6 +1167,7 @@ describe("C Examples — Execution Properties", () => {
     "Tableau de nombres premiers",
     "Étoiles",
     "Test Mémoire",
+    "Tableau (Tri)",
   ];
 
   for (const name of haltingExamples) {

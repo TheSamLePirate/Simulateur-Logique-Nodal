@@ -29,6 +29,7 @@ export interface VarDecl {
   kind: "VarDecl";
   name: string;
   initializer: Expr | null;
+  arraySize: number | null; // null = scalar, N = array of N elements
   line: number;
 }
 
@@ -101,6 +102,8 @@ export type Expr =
   | CallExpr
   | AssignExpr
   | CompoundAssignExpr
+  | IndexExpr
+  | IndexAssignExpr
   | NumberLiteral
   | CharLiteral
   | StringLiteral
@@ -147,6 +150,21 @@ export interface CompoundAssignExpr {
   kind: "CompoundAssignExpr";
   op: string; // "+=" or "-="
   name: string;
+  value: Expr;
+  line: number;
+}
+
+export interface IndexExpr {
+  kind: "IndexExpr";
+  arrayName: string;
+  index: Expr;
+  line: number;
+}
+
+export interface IndexAssignExpr {
+  kind: "IndexAssignExpr";
+  arrayName: string;
+  index: Expr;
   value: Expr;
   line: number;
 }
@@ -257,6 +275,43 @@ export function parse(tokens: Token[]): {
         // Function: int/void name(...)
         if (check(TokenType.LPAREN)) {
           functions.push(parseFunctionDecl(returnType, nameToken));
+        } else if (check(TokenType.LBRACKET)) {
+          // Global array: int name[SIZE];
+          advance(); // consume '['
+          const sizeTok = peek();
+          let arraySize = 1;
+          if (check(TokenType.NUMBER)) {
+            arraySize = parseInt(advance().value, 10);
+            if (arraySize <= 0) {
+              errors.push({
+                line: sizeTok.line,
+                message: "La taille du tableau doit être > 0",
+              });
+              arraySize = 1;
+            }
+          } else {
+            errors.push({
+              line: sizeTok.line,
+              message: "Taille du tableau attendue (constante entière)",
+            });
+          }
+          expect(TokenType.RBRACKET, "']' attendu");
+          if (check(TokenType.ASSIGN)) {
+            errors.push({
+              line: peek().line,
+              message: "Initialisation de tableau non supportée",
+            });
+            while (!check(TokenType.SEMICOLON) && !check(TokenType.EOF))
+              advance();
+          }
+          expect(TokenType.SEMICOLON, "';' attendu après déclaration globale");
+          globals.push({
+            kind: "VarDecl",
+            name: nameToken.value,
+            initializer: null,
+            arraySize,
+            line: nameToken.line,
+          });
         } else {
           // Global variable: int name = expr;
           let initializer: Expr | null = null;
@@ -268,6 +323,7 @@ export function parse(tokens: Token[]): {
             kind: "VarDecl",
             name: nameToken.value,
             initializer,
+            arraySize: null,
             line: nameToken.line,
           });
         }
@@ -369,6 +425,46 @@ export function parse(tokens: Token[]): {
   function parseVarDecl(): VarDecl {
     const tok = advance(); // consume 'int'
     const nameToken = expect(TokenType.IDENTIFIER, "Nom de variable attendu");
+
+    // Array declaration: int name[SIZE];
+    if (match(TokenType.LBRACKET)) {
+      const sizeTok = peek();
+      let arraySize = 1;
+      if (check(TokenType.NUMBER)) {
+        arraySize = parseInt(advance().value, 10);
+        if (arraySize <= 0) {
+          errors.push({
+            line: sizeTok.line,
+            message: "La taille du tableau doit être > 0",
+          });
+          arraySize = 1;
+        }
+      } else {
+        errors.push({
+          line: sizeTok.line,
+          message: "Taille du tableau attendue (constante entière)",
+        });
+      }
+      expect(TokenType.RBRACKET, "']' attendu après taille du tableau");
+      // Forbid initializers on arrays
+      if (check(TokenType.ASSIGN)) {
+        errors.push({
+          line: peek().line,
+          message: "Initialisation de tableau non supportée",
+        });
+        while (!check(TokenType.SEMICOLON) && !check(TokenType.EOF)) advance();
+      }
+      expect(TokenType.SEMICOLON, "';' attendu après déclaration de tableau");
+      return {
+        kind: "VarDecl",
+        name: nameToken.value,
+        initializer: null,
+        arraySize,
+        line: tok.line,
+      };
+    }
+
+    // Scalar declaration: int name [= expr];
     let initializer: Expr | null = null;
     if (match(TokenType.ASSIGN)) {
       initializer = parseExpression();
@@ -378,6 +474,7 @@ export function parse(tokens: Token[]): {
       kind: "VarDecl",
       name: nameToken.value,
       initializer,
+      arraySize: null,
       line: tok.line,
     };
   }
@@ -471,6 +568,19 @@ export function parse(tokens: Token[]): {
 
   function parseAssignment(): Expr {
     const expr = parseOr();
+
+    // Check for indexed assignment: arr[i] = expr
+    if (check(TokenType.ASSIGN) && expr.kind === "IndexExpr") {
+      advance();
+      const value = parseAssignment(); // right-associative
+      return {
+        kind: "IndexAssignExpr",
+        arrayName: expr.arrayName,
+        index: expr.index,
+        value,
+        line: expr.line,
+      };
+    }
 
     // Check for assignment: identifier = expr
     if (check(TokenType.ASSIGN) && expr.kind === "Identifier") {
@@ -677,7 +787,7 @@ export function parse(tokens: Token[]): {
       return { kind: "StringLiteral", value: tok.value, line: tok.line };
     }
 
-    // Identifier or function call
+    // Identifier, function call, or array indexing
     if (check(TokenType.IDENTIFIER)) {
       advance();
       // Check for function call: name(...)
@@ -694,6 +804,18 @@ export function parse(tokens: Token[]): {
           kind: "CallExpr",
           name: tok.value,
           args,
+          line: tok.line,
+        };
+      }
+      // Check for array indexing: name[expr]
+      if (check(TokenType.LBRACKET)) {
+        advance(); // consume '['
+        const index = parseExpression();
+        expect(TokenType.RBRACKET, "']' attendu après index");
+        return {
+          kind: "IndexExpr",
+          arrayName: tok.value,
+          index,
           line: tok.line,
         };
       }

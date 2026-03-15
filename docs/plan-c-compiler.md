@@ -38,6 +38,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Unary | `!`, `~`, `++`, `--` | |
 | Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
 | Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
+| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes |
 | Built-in Plotter | `draw(x, y)`, `clear()` | Pixel drawing |
 | Comments | `//` and `/* */` | |
 | Constants | `#define NAME value` | Preprocessed |
@@ -54,7 +55,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | `clear()` | Clear all pixels on plotter | `CLR` |
 
 ### NOT Supported
-- Arrays, pointers, structs, strings as values, switch/case, float
+- Pointers, structs, strings as values, switch/case, float, array initializers, 2D arrays
 
 ---
 
@@ -72,9 +73,11 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 - AST node types:
   - `Program { defines, globals, functions }`
   - `FunctionDecl { name, params, returnType, body }`
-  - `VarDecl { name, initializer? }`
+  - `VarDecl { name, initializer?, arraySize? }`
   - `IfStmt`, `WhileStmt`, `ForStmt`, `ReturnStmt`, `ExprStmt`, `Block`
   - `BinaryExpr`, `UnaryExpr`, `CallExpr`, `AssignExpr`, `NumberLiteral`, `Identifier`, `StringLiteral`
+  - `IndexExpr { arrayName, index }` — array read: `arr[i]`
+  - `IndexAssignExpr { arrayName, index, value }` — array write: `arr[i] = expr`
 - Error collection with source line numbers
 
 ### 3. `src/cpu/compiler/codegen.ts` (~350 lines)
@@ -91,6 +94,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 - **Calling convention**: caller saves own vars + temps to stack, writes args to callee param addresses, CALL, return value in A, caller restores temps + vars
 - **Built-in recognition**: `putchar(expr)` → `OUTA`, `print_num(expr)` → `OUTD`, `print("str")` → series of `OUT`, `getchar()` → `INA; CMP 0; JZ` busy-wait, `draw(x,y)` → `DRAW`, `clear()` → `CLR`
 - **Multiply/Divide**: emitted as inline ASM loops (no function call overhead)
+- **Arrays**: contiguous byte allocation in global/local regions, indexed via `LDAI` (read: A ← MEM[base+A]) and `STAI` (write: MEM[base+B] ← A)
 - Emits `JMP __main` at start, function bodies with labels, `HLT` after main returns
 
 ### 4. `src/cpu/compiler/index.ts` (~40 lines)
@@ -100,7 +104,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 - Aggregates errors from all phases
 - Returns: `{ success, assembly, errors, generatedASM }`
 
-### 5. `src/cpu/cexamples.ts` (~260 lines)
+### 5. `src/cpu/cexamples.ts` (~350 lines)
 - `C_EXAMPLES: { name, description, code }[]`
 - Examples:
   1. **"Hello World"** — `print("Hello World!");`
@@ -112,6 +116,8 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
   7. **"Sinusoïdes"** — harmonic synthesis with parabolic wave approximation
   8. **"Echo (Saisie)"** — reads chars with `getchar()` and echoes them
   9. **"Compteur de lettres"** — counts characters per line of input
+  10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire]*
+  19. **"Tableau (Tri)"** — bubble sort of 8 elements using arrays and indexed addressing
 
 ---
 

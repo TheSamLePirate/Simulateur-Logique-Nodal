@@ -650,4 +650,52 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Tableau (Tri)",
+    description: "Tri à bulles d'un tableau de 8 éléments",
+    code: `// Tri a bulles (Bubble Sort)
+// Remplit un tableau, le trie, puis l'affiche
+
+int main() {
+  int t[8];
+  int i;
+  int j;
+  int tmp;
+
+  t[0] = 64;
+  t[1] = 25;
+  t[2] = 12;
+  t[3] = 22;
+  t[4] = 11;
+  t[5] = 90;
+  t[6] = 33;
+  t[7] = 44;
+
+  print("Avant: ");
+  for (i = 0; i < 8; i++) {
+    print_num(t[i]);
+    putchar(32);
+  }
+  putchar(10);
+
+  for (i = 0; i < 7; i++) {
+    for (j = 0; j < 7 - i; j++) {
+      if (t[j] > t[j + 1]) {
+        tmp = t[j];
+        t[j] = t[j + 1];
+        t[j + 1] = tmp;
+      }
+    }
+  }
+
+  print("Apres: ");
+  for (i = 0; i < 8; i++) {
+    print_num(t[i]);
+    putchar(32);
+  }
+  putchar(10);
+
+  return 0;
+}`,
+  },
 ];

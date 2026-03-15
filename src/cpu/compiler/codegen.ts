@@ -39,11 +39,17 @@ export interface MemoryLayout {
   stackSize: number; // stack area size (fixed)
 }
 
+interface ArrayInfo {
+  baseAddr: number;
+  size: number;
+}
+
 interface FuncInfo {
   isMain: boolean;
   paramAddrs: Map<string, number>; // param name → memory address
   localAddrs: Map<string, number>; // local name → memory address
   allVarAddrs: number[]; // all param+local addresses (for save/restore)
+  arrays: Map<string, ArrayInfo>; // array name → base address + size
 }
 
 // Scratch memory constants
@@ -64,6 +70,7 @@ export function generate(program: Program): {
   let varAddr = 0x218; // for locals and params (after scratch area)
 
   const globals = new Map<string, number>(); // name → address
+  const globalArrays = new Map<string, ArrayInfo>(); // array name → info
   const funcTable = new Map<string, FuncInfo>();
 
   // Loop context stack for break/continue
@@ -98,13 +105,19 @@ export function generate(program: Program): {
     return varAddr++;
   }
 
-  // ─── Collect local variable names declared inside a block ───
+  // ─── Collect local variable info declared inside a block ───
 
-  function collectLocals(block: Block): string[] {
-    const names: string[] = [];
+  interface LocalInfo {
+    name: string;
+    arraySize: number | null; // null = scalar, N = array
+  }
+
+  function collectLocals(block: Block): LocalInfo[] {
+    const infos: LocalInfo[] = [];
     function scan(stmts: Stmt[]) {
       for (const s of stmts) {
-        if (s.kind === "VarDecl") names.push(s.name);
+        if (s.kind === "VarDecl")
+          infos.push({ name: s.name, arraySize: s.arraySize });
         if (s.kind === "Block") scan(s.statements);
         if (s.kind === "IfStmt") {
           if (s.thenBranch.kind === "Block") scan(s.thenBranch.statements);
@@ -113,13 +126,14 @@ export function generate(program: Program): {
         if (s.kind === "WhileStmt" && s.body.kind === "Block")
           scan(s.body.statements);
         if (s.kind === "ForStmt") {
-          if (s.init?.kind === "VarDecl") names.push(s.init.name);
+          if (s.init?.kind === "VarDecl")
+            infos.push({ name: s.init.name, arraySize: s.init.arraySize });
           if (s.body.kind === "Block") scan(s.body.statements);
         }
       }
     }
     scan(block.statements);
-    return names;
+    return infos;
   }
 
   // ═══════════════════════════════════════
@@ -127,22 +141,36 @@ export function generate(program: Program): {
   // ═══════════════════════════════════════
 
   for (const g of program.globals) {
-    if (globals.has(g.name)) {
+    if (globals.has(g.name) || globalArrays.has(g.name)) {
       errors.push({
         line: g.line,
         message: `Variable globale "${g.name}" déjà déclarée`,
       });
       continue;
     }
-    if (globalAddr > 0x20f) {
-      errors.push({
-        line: g.line,
-        message: "Trop de variables globales (max 16)",
-      });
-      continue;
+    if (g.arraySize !== null) {
+      // Array: allocate contiguous bytes
+      if (globalAddr + g.arraySize - 1 > 0x20f) {
+        errors.push({
+          line: g.line,
+          message: `Tableau global "${g.name}" trop grand (dépasse la zone globale, max 16 octets)`,
+        });
+        continue;
+      }
+      globalArrays.set(g.name, { baseAddr: globalAddr, size: g.arraySize });
+      globalAddr += g.arraySize;
+    } else {
+      // Scalar
+      if (globalAddr > 0x20f) {
+        errors.push({
+          line: g.line,
+          message: "Trop de variables globales (max 16)",
+        });
+        continue;
+      }
+      globals.set(g.name, globalAddr);
+      globalAddr++;
     }
-    globals.set(g.name, globalAddr);
-    globalAddr++;
   }
 
   // ═══════════════════════════════════════
@@ -155,20 +183,44 @@ export function generate(program: Program): {
       paramAddrs.set(p.name, allocVar());
     }
 
-    const localNames = collectLocals(fn.body);
+    const localInfos = collectLocals(fn.body);
     const localAddrs = new Map<string, number>();
-    for (const name of localNames) {
-      if (!paramAddrs.has(name) && !localAddrs.has(name)) {
-        localAddrs.set(name, allocVar());
+    const arrays = new Map<string, ArrayInfo>();
+    for (const info of localInfos) {
+      if (
+        paramAddrs.has(info.name) ||
+        localAddrs.has(info.name) ||
+        arrays.has(info.name)
+      )
+        continue;
+      if (info.arraySize !== null) {
+        // Array: allocate contiguous bytes
+        const baseAddr = varAddr;
+        for (let i = 0; i < info.arraySize; i++) {
+          allocVar();
+        }
+        arrays.set(info.name, { baseAddr, size: info.arraySize });
+      } else {
+        localAddrs.set(info.name, allocVar());
       }
     }
 
-    const allVarAddrs = [...paramAddrs.values(), ...localAddrs.values()];
+    // allVarAddrs: scalars + all array element addresses (for save/restore)
+    const allScalarAddrs = [...paramAddrs.values(), ...localAddrs.values()];
+    const allArrayAddrs: number[] = [];
+    for (const arrInfo of arrays.values()) {
+      for (let i = 0; i < arrInfo.size; i++) {
+        allArrayAddrs.push(arrInfo.baseAddr + i);
+      }
+    }
+    const allVarAddrs = [...allScalarAddrs, ...allArrayAddrs];
+
     funcTable.set(fn.name, {
       isMain: fn.name === "main",
       paramAddrs,
       localAddrs,
       allVarAddrs,
+      arrays,
     });
   }
 
@@ -412,6 +464,34 @@ export function generate(program: Program): {
       case "PostfixExpr":
         emitPostfixExpr(expr, ctx);
         break;
+
+      case "IndexExpr": {
+        // arr[i] read: evaluate index → A, then LDAI base
+        const base = resolveArray(expr.arrayName, ctx, expr.line);
+        if (base !== null) {
+          emitExpr(expr.index, ctx); // A = index
+          emit(`  LDAI ${fmt(base)}`); // A = MEM[base + A]
+        }
+        break;
+      }
+
+      case "IndexAssignExpr": {
+        // arr[i] = expr write:
+        //   evaluate value → A, PUSH
+        //   evaluate index → A, TAB (B = index)
+        //   POP (A = value)
+        //   STAI base (MEM[base + B] = A)
+        const base2 = resolveArray(expr.arrayName, ctx, expr.line);
+        if (base2 !== null) {
+          emitExpr(expr.value, ctx); // A = value
+          emit(`  PUSH`); // save value
+          emitExpr(expr.index, ctx); // A = index
+          emit(`  TAB`); // B = index
+          emit(`  POP`); // A = value
+          emit(`  STAI ${fmt(base2)}`); // MEM[base + B] = A
+        }
+        break;
+      }
 
       case "CallExpr":
         emitCallExpr(expr, ctx);
@@ -978,9 +1058,37 @@ export function generate(program: Program): {
     emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
   }
 
+  // ─── Array access helpers ───
+
+  function isArray(name: string, ctx: FuncInfo): boolean {
+    return ctx.arrays.has(name) || globalArrays.has(name);
+  }
+
+  function resolveArray(
+    name: string,
+    ctx: FuncInfo,
+    line: number,
+  ): number | null {
+    const localArr = ctx.arrays.get(name);
+    if (localArr) return localArr.baseAddr;
+    const globalArr = globalArrays.get(name);
+    if (globalArr) return globalArr.baseAddr;
+    errors.push({ line, message: `Tableau non défini: "${name}"` });
+    return null;
+  }
+
   // ─── Variable access helpers ───
 
   function loadVar(name: string, ctx: FuncInfo, line: number) {
+    if (isArray(name, ctx)) {
+      errors.push({
+        line,
+        message: `"${name}" est un tableau, utilisez ${name}[index]`,
+      });
+      emit(`  LDA 0`);
+      return;
+    }
+
     const addr =
       ctx.localAddrs.get(name) ?? ctx.paramAddrs.get(name) ?? globals.get(name);
 
@@ -993,6 +1101,8 @@ export function generate(program: Program): {
   }
 
   function storeVar(name: string, ctx: FuncInfo) {
+    if (isArray(name, ctx)) return;
+
     const addr =
       ctx.localAddrs.get(name) ?? ctx.paramAddrs.get(name) ?? globals.get(name);
 

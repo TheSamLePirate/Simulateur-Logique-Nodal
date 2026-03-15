@@ -64,6 +64,8 @@ export const Opcode = {
   LDM: 0x91,
   STB: 0x92,
   LBM: 0x93,
+  LDAI: 0x94, // A ← MEM[addr + A] (indexed load)
+  STAI: 0x95, // MEM[addr + B] ← A (indexed store)
 
   // Jumps (3-byte, operand = 16-bit target address)
   JMP: 0xa0,
@@ -167,6 +169,16 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
   [Opcode.LDM]: { mnemonic: "LDM", size: 3, description: "A ← MEM[addr]" },
   [Opcode.STB]: { mnemonic: "STB", size: 3, description: "MEM[addr] ← B" },
   [Opcode.LBM]: { mnemonic: "LBM", size: 3, description: "B ← MEM[addr]" },
+  [Opcode.LDAI]: {
+    mnemonic: "LDAI",
+    size: 3,
+    description: "A ← MEM[addr + A]",
+  },
+  [Opcode.STAI]: {
+    mnemonic: "STAI",
+    size: 3,
+    description: "MEM[addr + B] ← A",
+  },
 
   [Opcode.JMP]: { mnemonic: "JMP", size: 3, description: "PC ← addr" },
   [Opcode.JZ]: { mnemonic: "JZ", size: 3, description: "if Z: PC ← addr" },

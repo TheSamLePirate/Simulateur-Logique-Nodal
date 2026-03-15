@@ -51,6 +51,8 @@ export enum TokenType {
   RPAREN,
   LBRACE,
   RBRACE,
+  LBRACKET,
+  RBRACKET,
   COMMA,
   SEMICOLON,
   // Special
@@ -384,6 +386,8 @@ export function tokenize(source: string): {
       ")": TokenType.RPAREN,
       "{": TokenType.LBRACE,
       "}": TokenType.RBRACE,
+      "[": TokenType.LBRACKET,
+      "]": TokenType.RBRACKET,
       ",": TokenType.COMMA,
       ";": TokenType.SEMICOLON,
     };

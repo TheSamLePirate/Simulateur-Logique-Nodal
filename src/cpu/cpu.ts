@@ -367,6 +367,21 @@ export class CPU {
         this.state.b = this.read(operand);
         break;
 
+      case Opcode.LDAI: {
+        // Indexed load: A ← MEM[operand + A]
+        const addr = (operand + this.state.a) & ADDR_MASK;
+        this.state.a = this.read(addr);
+        this.updateFlags(this.state.a);
+        break;
+      }
+
+      case Opcode.STAI: {
+        // Indexed store: MEM[operand + B] ← A
+        const addr = (operand + this.state.b) & ADDR_MASK;
+        this.write(addr, this.state.a);
+        break;
+      }
+
       // ─── Jumps (2-byte) ───
       case Opcode.JMP:
         nextPC = operand;

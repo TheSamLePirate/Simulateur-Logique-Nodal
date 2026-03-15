@@ -233,6 +233,8 @@ wait:
 | `LDM addr` | 0x91  | 3     | A = MEM[addr]             |
 | `STB addr` | 0x92  | 3     | MEM[addr] = B             |
 | `LBM addr` | 0x93  | 3     | B = MEM[addr]             |
+| `LDAI addr`| 0x94  | 3     | A = MEM[addr + A] (indexed load)  |
+| `STAI addr`| 0x95  | 3     | MEM[addr + B] = A (indexed store) |
 
 #### Jumps (Conditional & Unconditional)
 
@@ -251,8 +253,8 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 | Updates flags?  | Instructions                             |
 |-----------------|------------------------------------------|
-| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, INA, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM |
-| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, NOP, HLT |
+| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, INA, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI |
+| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, NOP, HLT |
 
 **Critical rule:** Never put a flag-modifying instruction between a comparison (CMP) and a conditional jump (JZ/JNZ). Example of a **bug**:
 
@@ -578,6 +580,41 @@ Similar loop, but using **repeated subtraction**:
   a / b  →  count how many times b fits into a
 ```
 
+#### How Arrays Work (Indirect Addressing)
+
+Arrays use two special opcodes for **indexed memory access**:
+
+- `LDAI base` — Indexed load: `A ← MEM[base + A]` (index in A)
+- `STAI base` — Indexed store: `MEM[base + B] ← A` (index in B, value in A)
+
+Arrays are allocated as contiguous bytes in the same memory regions as scalars (globals at 0x200+, locals at 0x218+).
+
+**Reading** `x = arr[i]`:
+
+```asm
+  ; compute index → A
+  LDM 0x21A       ; A = i
+  LDAI 0x218      ; A = MEM[0x218 + A]  (arr[i])
+  STA 0x21B       ; x = result
+```
+
+**Writing** `arr[i] = expr`:
+
+```asm
+  ; compute value → A
+  LDM 0x21B       ; A = value
+  PUSH            ; save value on stack
+  ; compute index → A
+  LDM 0x21A       ; A = i
+  TAB             ; B = index
+  POP             ; A = value (restored)
+  STAI 0x218      ; MEM[0x218 + B] = A  (arr[i] = value)
+```
+
+**Complex index** `arr[j+1]` works because the index expression is fully evaluated into A before the LDAI/STAI instruction.
+
+Array element addresses are included in the save/restore list during function calls, so **recursion with arrays** works correctly.
+
 ### Supported C Features
 
 | Feature | Example | Notes |
@@ -594,6 +631,7 @@ Similar loop, but using **repeated subtraction**:
 | Logical | `&& \|\|` | Short-circuit |
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
+| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
 | Input | `getchar()` | Reads one character (blocking) |
 | Plotter | `draw(x, y)`, `clear()` | Drawing built-ins |
@@ -626,7 +664,7 @@ __wait:
 
 ### NOT Supported
 
-Arrays, pointers, structs, strings as values, switch/case, float, sizeof.
+Pointers, structs, strings as values, switch/case, float, sizeof, array initializers, 2D arrays.
 
 ---
 
@@ -640,14 +678,14 @@ src/cpu/
   cpu.ts              The CPU simulator (fetch-execute loop)
   assembler.ts        Two-pass assembler (ASM text → bytes)
   examples.ts         Example ASM programs
-  cexamples.ts        Example C programs
+  cexamples.ts        Example C programs (19 examples)
   compiler/
     lexer.ts          Tokenizer (text → tokens)
     parser.ts         Parser (tokens → AST)
     codegen.ts        Code generator (AST → ASM text)
     index.ts          Compiler entry point (chains all phases)
   __tests__/
-    cexamples.test.ts Unit tests for all C examples (88 tests)
+    cexamples.test.ts Unit tests for all C examples (141 tests)
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
@@ -802,6 +840,47 @@ int main() {
 
 This program reads a line of text, echoes each character, then displays the character count. `getchar()` busy-waits until a character is available, and the newline character (ASCII 10) marks the end of a line.
 
+### Example 6: Bubble Sort (C — Arrays)
+
+```c
+int main() {
+  int t[8];
+  int i;
+  int j;
+  int tmp;
+
+  t[0] = 64; t[1] = 25; t[2] = 12; t[3] = 22;
+  t[4] = 11; t[5] = 90; t[6] = 33; t[7] = 44;
+
+  // Bubble sort
+  for (i = 0; i < 7; i++) {
+    for (j = 0; j < 7 - i; j++) {
+      if (t[j] > t[j + 1]) {
+        tmp = t[j];
+        t[j] = t[j + 1];
+        t[j + 1] = tmp;
+      }
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    print_num(t[i]);
+    putchar(32);
+  }
+  return 0;
+}
+```
+
+What happens under the hood:
+
+1. `int t[8]` allocates 8 contiguous bytes starting at address 0x218
+2. `t[0] = 64` compiles to: `LDA 64; STAI 0x218` (with B=0, from index expression)
+3. `t[j]` compiles to: load `j` into A → `LDAI 0x218` (A = MEM[0x218 + j])
+4. `t[j+1] = tmp` compiles to: load `tmp` → PUSH → load `j+1` → TAB → POP → `STAI 0x218`
+5. The comparison `t[j] > t[j+1]` evaluates both indexed reads, compares, and branches
+
+The LDAI/STAI opcodes make array access efficient — each read or write is a single 3-byte instruction, with the index register doing the address arithmetic in hardware.
+
 ---
 
 ## Glossary
@@ -812,6 +891,7 @@ This program reads a line of text, echoes each character, then displays the char
 | **AST** | Abstract Syntax Tree — tree representation of parsed code |
 | **Carry flag** | Set when a result goes past 255 or below 0 |
 | **Fetch-Execute** | The fundamental cycle: read instruction → do it → repeat |
+| **Indexed addressing** | Memory access where the address = base + register (LDAI, STAI) |
 | **ISA** | Instruction Set Architecture — all the CPU's instructions |
 | **Label** | A name for a memory address (e.g., `loop:`) |
 | **Lexer** | Tokenizer — breaks text into words, numbers, symbols |
@@ -844,20 +924,20 @@ npm run test:watch
 npx vitest run -t "Fibonacci"
 ```
 
-### What Is Tested (88 tests)
+### What Is Tested (141 tests)
 
-#### Compilation (14 tests)
+#### Compilation (19 tests)
 
 Every C example program is compiled and assembled. This catches regressions in the lexer, parser, and code generator.
 
 ```
-For each of the 14 C examples:
+For each of the 19 C examples:
   ✓ C compilation succeeds (no errors)
   ✓ ASM assembly succeeds (code fits in 512 bytes)
   Exception: "Sinusoïdes" correctly reports code overflow (1640 bytes > 512)
 ```
 
-#### Memory Layout (14 tests)
+#### Memory Layout (19 tests)
 
 Validates the memory allocation for every example:
 
@@ -870,7 +950,7 @@ For each example:
   ✓ globals + scratch + locals ≤ 256 (data area fits)
 ```
 
-#### Output Verification (13 tests)
+#### Output Verification (14 tests)
 
 Runs each program and checks exact output. Examples:
 
@@ -881,6 +961,7 @@ Runs each program and checks exact output. Examples:
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
   "Test Mémoire"    → "PASS" with 16 globals, 232 locals, memory verified
+  "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```
 
 Programs that require console input are tested with simulated input fed before execution.
@@ -909,11 +990,29 @@ Individual feature tests:
   ✓ Code size overflow detected
 ```
 
-#### Execution Properties (13 tests)
+#### Arrays (11 tests)
+
+Array-specific tests using the `LDAI`/`STAI` indexed addressing opcodes:
 
 ```
-  ✓ 10 programs halt within 50M cycles
-  ✓ 3 input-dependent programs do NOT halt without input
+  ✓ Basic array write and read (a[0]=10, a[1]=20, a[2]=30)
+  ✓ Array fill and read in loop (arr[i] = i*3)
+  ✓ Complex index expression arr[j+1]
+  ✓ Global array
+  ✓ Local array in function (buf[0]+buf[1]+buf[2])
+  ✓ Global array accessed from function
+  ✓ Swap via array (bubble sort pattern)
+  ✓ Array size 0 rejected
+  ✓ Global array too large rejected
+  ✓ Array name without index rejected
+  ✓ Array initializer rejected
+```
+
+#### Execution Properties (18 tests)
+
+```
+  ✓ 14 programs halt within 50M cycles
+  ✓ 4 input-dependent programs do NOT halt without input
 ```
 
 ### Adding a New Test
@@ -963,7 +1062,7 @@ it("too many globals is rejected", () => {
 
 ### Bugs Found by Tests
 
-The test suite discovered two compiler bugs:
+The test suite discovered compiler bugs:
 
 1. **`>=` and `>` always returned true** — The code generator's false-path jumped over `LDA 0`, leaving garbage in register A. Fixed by adding intermediate skip labels. (See `docs/compiler-bugfixes-and-tests.md` for full analysis.)
 

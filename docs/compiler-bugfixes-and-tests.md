@@ -392,7 +392,7 @@ int main() {
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 109 tests, all green
+**Total:** 141 tests, all green
 
 ### Test Architecture
 
@@ -407,7 +407,7 @@ compileOnly(source)              // compile → assemble without running
 
 ### Test Suites
 
-#### 6.1 — C Examples: Compilation (17 examples)
+#### 6.1 — C Examples: Compilation (19 examples)
 
 Tests that **every** C example compiles without errors and assembles within 512 bytes.
 
@@ -428,10 +428,12 @@ Tests that **every** C example compiles without errors and assembles within 512 
 "Horloge"                   compiles → ✓  assembles → ✓
 "Spirale"                   compiles → ✓  assembles → ✓
 "Tableau de nombres premiers" compiles → ✓  assembles → ✓
+"Étoiles"                   compiles → ✓  assembles → ✓
 "Test Mémoire"              compiles → ✓  assembles → ✓
+"Tableau (Tri)"             compiles → ✓  assembles → ✓
 ```
 
-#### 6.2 — C Examples: Memory Layout (17 examples)
+#### 6.2 — C Examples: Memory Layout (19 examples)
 
 Validates the `MemoryLayout` structure for every example:
 
@@ -441,7 +443,7 @@ Validates the `MemoryLayout` structure for every example:
 - `stackSize` is always 256
 - Total data (`globals + scratch + locals`) never exceeds 256
 
-#### 6.3 — C Examples: Output Verification (19 programs)
+#### 6.3 — C Examples: Output Verification (20 programs)
 
 Runs each program and verifies exact output:
 
@@ -463,7 +465,9 @@ Runs each program and verifies exact output:
 | Horloge | 3600 lines from `"00:00"` to `"59:59"` |
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
+| Étoiles | Random star pixels, count output, break/continue |
 | Test Mémoire | `"PASS"`, 16 globals, 232 locals, memory[0x200]=42 |
+| Tableau (Tri) | `"Avant: 64 25 12 22 11 90 33 44"` + `"Apres: 11 12 22 25 33 44 64 90"` |
 
 #### 6.4 — Compiler Edge Cases (20 tests)
 
@@ -495,11 +499,29 @@ Fine-grained tests for individual compiler features:
 | **getKey (no key)** | `getKey(0)` and `getKey(4)` return 0 when no key pressed |
 | **getKey (key pressed)** | `getKey(0)` returns 1 when `keyState[0] = 1` |
 
-#### 6.5 — Execution Properties (17 programs)
+#### 6.5 — Arrays (11 tests)
+
+Tests for array support using `LDAI`/`STAI` indexed addressing:
+
+| Test | What it verifies |
+|------|-----------------|
+| Basic write/read | `a[0]=10, a[1]=20, a[2]=30` → `"10 20 30"` |
+| Loop fill/read | `arr[i] = i*3` → `"0 3 6 9 12 "` |
+| Complex index `arr[j+1]` | Arithmetic in index expression → `"20 30 40 "` |
+| Global array | `g[0]=100, g[1]=200, g[2]=50` → `"100 200 50"` |
+| Local array in function | `buf[0]+buf[1]+buf[2]` via function params → `"60"` |
+| Global from function | `fill()` sets `data[]`, `main()` reads → `"30"` |
+| Swap via array | Bubble sort swap pattern → `"11 99"` |
+| **Size 0 error** | `int a[0]` → compile error with "taille" |
+| **Too large error** | `int big[17]` (global) → compile error with "globale" |
+| **No index error** | `x = a` (array without `[]`) → compile error with "tableau" |
+| **Initializer error** | `int a[3] = {1,2,3}` → compile error with "Initialisation" |
+
+#### 6.6 — Execution Properties (19 programs)
 
 Verifies runtime behavior:
 
-- **12 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Test Mémoire)
+- **14 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire, Tableau (Tri))
 - **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
 - **1 keyboard-interactive program**: Clavier — `while(1)` loop, never halts, draws triangle + laser
 
@@ -524,10 +546,10 @@ npx vitest run --reporter verbose
 Expected output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (109 tests) 11.0s
+ ✓ src/cpu/__tests__/cexamples.test.ts (141 tests) 12.0s
 
  Test Files  1 passed (1)
-      Tests  109 passed (109)
+      Tests  141 passed (141)
 ```
 
 ---
@@ -588,3 +610,6 @@ It writes `g0=42, gf=15`, calls `add(g0, gf)`, verifies the result is 57, and ou
 | Function call overhead | ~40-80 bytes (save/restore locals + scratch) |
 | `int x;` (uninit local) | 0 bytes (just allocates address) |
 | `int x = 5;` (init local) | ~6 bytes (LDA + STA) |
+| `int arr[N]` (array decl) | 0 bytes code (allocates N contiguous addresses) |
+| `x = arr[i]` (indexed read) | ~6 bytes (load index + LDAI base) |
+| `arr[i] = x` (indexed write) | ~12 bytes (load value + PUSH + load index + TAB + POP + STAI base) |
