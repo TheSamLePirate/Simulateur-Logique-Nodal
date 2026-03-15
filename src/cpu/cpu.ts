@@ -37,6 +37,8 @@ export class CPU {
   clockBit = 0;
   /** LFSR seed for RAND instruction (non-zero) */
   randSeed = 0xac;
+  /** Additive counter mixed with LFSR to break serial correlation */
+  randCounter = 0;
   /** Sleep counter (decrements each step, CPU idles while > 0) */
   sleepCounter = 0;
 
@@ -59,6 +61,7 @@ export class CPU {
     this.lastOperand = 0;
     this.clockBit = 0;
     this.randSeed = 0xac;
+    this.randCounter = 0;
     this.sleepCounter = 0;
   }
 
@@ -275,13 +278,23 @@ export class CPU {
         break;
 
       case Opcode.RAND: {
-        // 8-bit Galois LFSR (polynomial x^8+x^6+x^5+x^4+1, taps 0xB8)
+        // Combined LFSR + additive counter for good visual distribution.
+        // The LFSR alone has strong serial correlation (visible lattice
+        // patterns when consecutive values are used as x,y coordinates).
+        // XOR-ing with a golden-ratio counter breaks the correlation.
+
+        // Step 1: Galois LFSR (polynomial x^8+x^6+x^5+x^4+1, taps 0xB8)
         let s = this.randSeed;
         const bit = s & 1;
         s >>= 1;
         if (bit) s ^= 0xb8;
         this.randSeed = s;
-        this.state.a = s & 0xff;
+
+        // Step 2: additive counter (≈ 256 × golden ratio ≈ 0x6D)
+        this.randCounter = (this.randCounter + 0x6d) & 0xff;
+
+        // Step 3: XOR to break serial correlation
+        this.state.a = (s ^ this.randCounter) & 0xff;
         this.updateFlags(this.state.a);
         break;
       }
