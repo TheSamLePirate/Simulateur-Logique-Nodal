@@ -960,7 +960,7 @@ Runs each program and checks exact output. Examples:
   "Factorielle"     → "5! = 120"
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
-  "Test Mémoire"    → "PASS" with 16 globals, memory[0x400]=42 verified
+  "Test Mémoire 2K" → "PASS" with all 2048 bytes filled (1022 code, 512 data, 512 stack)
   "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```
 

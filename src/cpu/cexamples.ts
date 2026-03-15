@@ -572,12 +572,12 @@ int main() {
 }`,
   },
   {
-    name: "Test Mémoire",
-    description: "Remplit et vérifie les 1024 octets de mémoire",
-    code: `// Test Memoire Complet
-// Remplit: 16 globales, 232 locales, pile
-// Verifie l'integrite apres appel de fonction
-// Attendu: g0=42 gf=15 add=57 PASS
+    name: "Test Mémoire 2K",
+    description: "Remplit les 2048 octets: code, données et pile",
+    code: `// Test Memoire 2K Complet
+// Remplit: 16 globales, 488 locales, ~1024 code, pile
+// Verifie l'integrite apres appels de fonction
+// Attendu: =MEM 2K= g0=42 gf=15 r1=57 r2=5 PASS
 
 // -- 16 globales (zone 0x400-0x40F) --
 int g0; int g1; int g2; int g3;
@@ -592,8 +592,7 @@ int add(int a, int b) {
 
 // -- Remplissage zone locales --
 // Chaque fonction reserve 25 slots (1 param + 24 locals)
-// mais genere seulement 4 octets de code
-// 9 fonctions x 25 = 225 slots reserves
+// 19 fonctions x 25 = 475 slots reserves
 int _1(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
 int _2(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
 int _3(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
@@ -603,14 +602,30 @@ int _6(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;
 int _7(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
 int _8(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
 int _9(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _A(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _B(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _C(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _D(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _E(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _F(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _G(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _H(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _I(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
+int _J(int z){int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;return z;}
 
 int main() {
-  // 5 locales dans main (total: 2+5+225=232)
-  int r;
+  // 11 locales dans main (total: 2+475+11=488)
+  int r1;
+  int r2;
   int ok;
-  int _a;
-  int _b;
-  int _c;
+  int v1;
+  int v2;
+  int v3;
+  int v4;
+  int v5;
+  int v6;
+  int v7;
+  int v8;
 
   // Initialise les 16 globales
   g0=42; g1=1; g2=2; g3=3;
@@ -618,28 +633,42 @@ int main() {
   g8=8; g9=9; ga=10; gb=11;
   gc=12; gd=13; ge=14; gf=15;
 
-  print("=MEM TEST=");
+  print("=MEM 2K=");
   putchar(10);
 
-  // Affiche globales avant appel
+  // Utilise les locales
+  v1 = g0 + g1;
+  v2 = g2 + g3;
+  v3 = g4 + g5;
+  v4 = g6 + g7;
+  v5 = g8 + g9;
+  v6 = ga + gb;
+
+  // Appels fonction (pile: save 11 vars + 6 temps)
+  r1 = add(g0, gf);
+  r2 = add(g2, g3);
+
+  // Affiche
   print("g0=");
   print_num(g0);
   putchar(32);
   print("gf=");
   print_num(gf);
   putchar(10);
-
-  // Appel fonction (teste la pile)
-  r = add(g0, gf);
-
-  print("add=");
-  print_num(r);
+  print("r1=");
+  print_num(r1);
+  putchar(32);
+  print("r2=");
+  print_num(r2);
   putchar(10);
 
-  // Verifie les resultats
+  // Verification
   ok = 1;
-  if (r != 57) { ok = 0; }
+  if (r1 != 57) { ok = 0; }
+  if (r2 != 5) { ok = 0; }
   if (g0 != 42) { ok = 0; }
+  if (gf != 15) { ok = 0; }
+  if (v1 != 43) { ok = 0; }
 
   if (ok) {
     print("PASS");
@@ -647,6 +676,9 @@ int main() {
     print("FAIL");
   }
   putchar(10);
+
+  // Padding pour remplir la zone code
+  print("=CODE:1024=DATA:512=PILE:512=OK");
   return 0;
 }`,
   },

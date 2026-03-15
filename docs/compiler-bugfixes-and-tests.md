@@ -429,7 +429,7 @@ Tests that **every** C example compiles without errors and assembles within 1024
 "Spirale"                   compiles → ✓  assembles → ✓
 "Tableau de nombres premiers" compiles → ✓  assembles → ✓
 "Étoiles"                   compiles → ✓  assembles → ✓
-"Test Mémoire"              compiles → ✓  assembles → ✓
+"Test Mémoire 2K"           compiles → ✓  assembles → ✓
 "Tableau (Tri)"             compiles → ✓  assembles → ✓
 ```
 
@@ -466,7 +466,7 @@ Runs each program and verifies exact output:
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
 | Étoiles | Random star pixels, count output, break/continue |
-| Test Mémoire | `"PASS"`, 16 globals, memory[0x400]=42 verified |
+| Test Mémoire 2K | `"PASS"`, 16 globals, 488 locals, 1022/1024 code, memory[0x400]=42 verified |
 | Tableau (Tri) | `"Avant: 64 25 12 22 11 90 33 44"` + `"Apres: 11 12 22 25 33 44 64 90"` |
 
 #### 6.4 — Compiler Edge Cases (20 tests)
@@ -521,7 +521,7 @@ Tests for array support using `LDAI`/`STAI` indexed addressing:
 
 Verifies runtime behavior:
 
-- **14 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire, Tableau (Tri))
+- **14 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire 2K, Tableau (Tri))
 - **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
 - **1 keyboard-interactive program**: Clavier — `while(1)` loop, never halts, draws triangle + laser
 
@@ -586,17 +586,17 @@ Stack overflow is intentionally unprotected. Real 8-bit CPUs (6502, Z80) also la
 
 ### Memory Test Program
 
-The "Test Mémoire" example (`src/cpu/cexamples.ts`) is a stress test that fills every allocatable byte:
+The "Test Mémoire 2K" example (`src/cpu/cexamples.ts`) is a stress test that fills **all 2048 bytes** of memory:
 
 ```
-  Globals:  16/16 slots  (g0 through gf)
-  Locals:   232/488 slots (via 9 padding functions with 25 uninit locals each)
-  Code:     479/1024 bytes
-  Stack:    512/512 reserved
-  Free:     256 bytes in data area
+  Globals:  16/16 slots   (g0 through gf)
+  Locals:   488/488 slots (19 padding functions × 25 + add(2) + main(11))
+  Code:     1022/1024 bytes (99.8% utilization)
+  Stack:    512/512 reserved (exercised with 2 function calls, 17 saves each)
+  Data:     512/512 bytes (16 globals + 8 scratch + 488 locals = full)
 ```
 
-It writes `g0=42, gf=15`, calls `add(g0, gf)`, verifies the result is 57, and outputs "PASS" or "FAIL".
+It initializes 16 globals, uses 11 local variables in main, makes 2 function calls (`add(g0,gf)=57`, `add(g2,g3)=5`) exercising the stack (11 vars + 6 temps saved/restored per call), verifies all results, and outputs "PASS" or "FAIL".
 
 ### Code Size Costs
 

@@ -363,24 +363,32 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(64);
   });
 
-  it('"Test Mémoire" fills all memory and passes', () => {
+  it('"Test Mémoire 2K" fills all 2048 bytes and passes', () => {
     const r = compileAndRun(C_EXAMPLES[17].code);
 
     // Verify output
-    expect(r.output).toContain("=MEM TEST=");
+    expect(r.output).toContain("=MEM 2K=");
     expect(r.output).toContain("g0=42");
     expect(r.output).toContain("gf=15");
-    expect(r.output).toContain("add=57");
+    expect(r.output).toContain("r1=57");
+    expect(r.output).toContain("r2=5");
     expect(r.output).toContain("PASS");
     expect(r.output).not.toContain("FAIL");
     expect(r.halted).toBe(true);
 
-    // Verify memory layout
+    // Verify memory layout — ALL regions filled
     const ml = r.memoryLayout;
-    expect(ml.globals).toBe(16); // all 16 global slots used
-    expect(ml.locals).toBe(232); // 232 local slots used (of 488 max)
+    expect(ml.globals).toBe(16); // all 16 global slots
+    expect(ml.locals).toBe(488); // all 488 local slots (19×25 + 2 + 11)
     expect(ml.scratch).toBe(8); // scratch always 8
     expect(ml.stackSize).toBe(512); // stack always 512
+
+    // Data area fully used: 16 + 8 + 488 = 512
+    expect(ml.globals + ml.scratch + ml.locals).toBe(512);
+
+    // Code should fill most of the 1024-byte code area
+    expect(r.codeSize).toBeGreaterThan(1000);
+    expect(r.codeSize).toBeLessThanOrEqual(1024);
 
     // Verify actual memory values after execution
     expect(r.cpu.state.memory[0x400]).toBe(42); // g0
@@ -1165,7 +1173,7 @@ describe("C Examples — Execution Properties", () => {
     "Spirale",
     "Tableau de nombres premiers",
     "Étoiles",
-    "Test Mémoire",
+    "Test Mémoire 2K",
     "Tableau (Tri)",
   ];
 

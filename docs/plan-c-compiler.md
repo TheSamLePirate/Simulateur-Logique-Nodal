@@ -116,7 +116,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
   7. **"Sinusoïdes"** — harmonic synthesis with parabolic wave approximation
   8. **"Echo (Saisie)"** — reads chars with `getchar()` and echoes them
   9. **"Compteur de lettres"** — counts characters per line of input
-  10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire]*
+  10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire 2K]*
   19. **"Tableau (Tri)"** — bubble sort of 8 elements using arrays and indexed addressing
 
 ---
