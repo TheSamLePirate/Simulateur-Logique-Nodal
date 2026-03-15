@@ -13,6 +13,7 @@ import { ALU8Node } from "./ALU8Node";
 import { Mux8Node } from "./Mux8Node";
 import { ConsoleNode } from "./ConsoleNode";
 import { PlotterNode } from "./PlotterNode";
+import { KeyboardNode } from "./KeyboardNode";
 
 export {
   InputNode,
@@ -30,6 +31,7 @@ export {
   Mux8Node,
   ConsoleNode,
   PlotterNode,
+  KeyboardNode,
 };
 
 export const nodeTypes = {
@@ -48,4 +50,5 @@ export const nodeTypes = {
   mux8: Mux8Node,
   console: ConsoleNode,
   plotter: PlotterNode,
+  keyboard: KeyboardNode,
 };

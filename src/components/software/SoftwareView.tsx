@@ -300,6 +300,39 @@ export function SoftwareView({
     setConsoleOutput([]);
   }, []);
 
+  // ─── Keyboard input (arrow keys + Enter) ───
+  useEffect(() => {
+    const keyMap: Record<string, number> = {
+      ArrowLeft: 0,
+      ArrowRight: 1,
+      ArrowUp: 2,
+      ArrowDown: 3,
+      Enter: 4,
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const index = keyMap[e.key];
+      if (index !== undefined) {
+        e.preventDefault();
+        cpuRef.current.keyState[index] = 1;
+      }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      const index = keyMap[e.key];
+      if (index !== undefined) {
+        cpuRef.current.keyState[index] = 0;
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, []);
+
   // ─── Console input ───
   const handleConsoleInput = useCallback((text: string) => {
     const cpu = cpuRef.current;

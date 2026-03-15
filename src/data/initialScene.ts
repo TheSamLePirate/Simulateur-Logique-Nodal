@@ -478,6 +478,21 @@ export const initialNodes: Node[] = [
     data: { label: "PLOT_CLR", value: 0 },
   },
 
+  // Keyboard controller — reads arrow keys and Enter
+  {
+    id: "keyboard",
+    type: "keyboard",
+    position: { x: 2100, y: 700 },
+    data: { label: "KEYBOARD", keys: [0, 0, 0, 0, 0] },
+  },
+  // Keyboard read strobe (for GETKEY instruction)
+  {
+    id: "keyRd",
+    type: "input",
+    position: { x: 2350, y: 880 },
+    data: { label: "KEY_RD", value: 0 },
+  },
+
   // ═════════════════════════════════
   //  GLOBAL CONTROLS
   // ═════════════════════════════════
@@ -689,4 +704,11 @@ export const initialEdges: Edge[] = [
   // Plotter control signals
   wire("e-plot-draw", "plotDraw", "plotter", "out", "draw"),
   wire("e-plot-clr", "plotClear", "plotter", "out", "clr"),
+
+  // ══════════════════════════════════════
+  //  KEYBOARD: control wires
+  // ══════════════════════════════════════
+
+  // Keyboard read strobe
+  wire("e-key-rd", "keyRd", "keyboard", "out", "rd"),
 ];

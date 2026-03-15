@@ -26,6 +26,7 @@ export class CPU {
   consoleOutput: string[];
   plotterPixels: Set<number>;
   consoleInputBuffer: number[];
+  keyState: number[]; // [left, right, up, down, enter] — 0 or 1
   onConsoleOutput?: (text: string) => void;
 
   /** Last executed opcode (for hardware visualization) */
@@ -40,6 +41,7 @@ export class CPU {
     this.consoleOutput = [];
     this.plotterPixels = new Set();
     this.consoleInputBuffer = [];
+    this.keyState = [0, 0, 0, 0, 0];
   }
 
   /** Reset CPU to initial state, clearing memory */
@@ -48,6 +50,7 @@ export class CPU {
     this.consoleOutput = [];
     this.plotterPixels = new Set();
     this.consoleInputBuffer = [];
+    this.keyState = [0, 0, 0, 0, 0];
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
@@ -250,6 +253,11 @@ export class CPU {
         } else {
           this.state.a = 0;
         }
+        this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.GETKEY:
+        this.state.a = this.keyState[this.state.a] || 0;
         this.updateFlags(this.state.a);
         break;
 

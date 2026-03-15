@@ -34,6 +34,7 @@ export const Opcode = {
   ADDB: 0x08, // A ← A + B
   SUBB: 0x09, // A ← A - B
   INA: 0x0a, // A ← console input (0 if empty, sets Z)
+  GETKEY: 0x0b, // A ← key state (key index in A: 0=left,1=right,2=up,3=down,4=enter)
 
   // Stack (1-byte)
   RET: 0x10,
@@ -105,6 +106,11 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "INA",
     size: 1,
     description: "A ← console input (0 if empty)",
+  },
+  [Opcode.GETKEY]: {
+    mnemonic: "GETKEY",
+    size: 1,
+    description: "A ← key state (key index in A)",
   },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },

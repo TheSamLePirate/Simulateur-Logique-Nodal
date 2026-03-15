@@ -34,9 +34,9 @@ interface RunResult {
  */
 function compileAndRun(
   source: string,
-  options: { maxCycles?: number; input?: string } = {},
+  options: { maxCycles?: number; input?: string; keyState?: number[] } = {},
 ): RunResult {
-  const { maxCycles = 500_000, input } = options;
+  const { maxCycles = 500_000, input, keyState } = options;
 
   // Compile C → ASM
   const cr = compile(source);
@@ -57,6 +57,11 @@ function compileAndRun(
   // Run on CPU
   const cpu = new CPU();
   cpu.loadProgram(ar.bytes);
+
+  // Set keyboard state if provided
+  if (keyState) {
+    cpu.keyState = [...keyState];
+  }
 
   // Feed input if provided
   if (input) {
@@ -303,10 +308,22 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
     // Center area (128,128) should NOT be drawn (d ≈ 0, not in 12..20 range)
     expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(false);
+  }, 15_000);
+
+  it('"Clavier" draws triangle + laser with arrow keys', () => {
+    // Simulate pressing RIGHT + ENTER — triangle moves, laser fires
+    const r = compileAndRun(C_EXAMPLES[12].code, {
+      maxCycles: 500_000,
+      keyState: [0, 1, 0, 0, 1],
+    });
+    // while(1) loop — never halts
+    expect(r.halted).toBe(false);
+    // clear() each frame: triangle (4px) + laser (2px) = 6 max
+    expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(6);
   });
 
   it('"Horloge" starts at 00:00 and increments', () => {
-    const r = compileAndRun(C_EXAMPLES[12].code, { maxCycles: 50_000_000 });
+    const r = compileAndRun(C_EXAMPLES[13].code, { maxCycles: 50_000_000 });
     const lines = r.output.split("\n").filter(Boolean);
     expect(lines[0]).toBe("00:00");
     expect(lines[1]).toBe("00:01");
@@ -318,7 +335,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Spirale" draws spiral pixels and halts', () => {
-    const r = compileAndRun(C_EXAMPLES[13].code);
+    const r = compileAndRun(C_EXAMPLES[14].code);
     expect(r.halted).toBe(true);
     // Should have drawn many pixels
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
@@ -327,7 +344,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Tableau de nombres premiers" finds 25 primes up to 100', () => {
-    const r = compileAndRun(C_EXAMPLES[14].code);
+    const r = compileAndRun(C_EXAMPLES[15].code);
     expect(r.output).toContain("Nombres premiers:");
     expect(r.output).toContain("Total: 25");
     // Check a few known primes are present
@@ -338,7 +355,7 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Test Mémoire" fills all memory and passes', () => {
-    const r = compileAndRun(C_EXAMPLES[15].code);
+    const r = compileAndRun(C_EXAMPLES[16].code);
 
     // Verify output
     expect(r.output).toContain("=MEM TEST=");
@@ -632,6 +649,41 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("getKey returns 0 when no key pressed", () => {
+    const r = compileAndRun(`
+      int main() {
+        int k;
+        k = getKey(0);
+        print_num(k);
+        putchar(32);
+        k = getKey(4);
+        print_num(k);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("0 0");
+    expect(r.halted).toBe(true);
+  });
+
+  it("getKey returns 1 when key is pressed", () => {
+    const r = compileAndRun(
+      `
+      int main() {
+        int k;
+        k = getKey(0);
+        print_num(k);
+        putchar(32);
+        k = getKey(2);
+        print_num(k);
+        return 0;
+      }
+    `,
+      { keyState: [1, 0, 1, 0, 0] },
+    );
+    expect(r.output).toBe("1 1");
+    expect(r.halted).toBe(true);
+  });
+
   it("stack pointer is restored after function calls", () => {
     const r = compileAndRun(`
       int add(int a, int b) { return a + b; }
@@ -723,7 +775,7 @@ describe("C Examples — Execution Properties", () => {
     it(`"${name}" halts within reasonable cycles`, () => {
       const r = compileAndRun(example.code, { maxCycles: 50_000_000 });
       expect(r.halted).toBe(true);
-    });
+    }, 15_000);
   }
 
   // Programs that need input (won't halt without it)

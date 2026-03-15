@@ -368,6 +368,73 @@ putchar(10);
 }`,
   },
   {
+    name: "Clavier",
+    description: "Déplace un curseur avec les flèches du clavier",
+    code: `// Vaisseau triangle + laser projectile
+// Fleches = deplacer, Enter = tirer
+// Le laser monte chaque frame jusqu'en haut
+
+int main() {
+  int x;
+  int y;
+  int x1;
+  int x2;
+  int y1;
+  int lx;
+  int ly;
+  int lf;
+
+  x = 127;
+  y = 200;
+  lf = 0;
+
+  while (1) {
+    clear();
+
+    // Lecture clavier
+    if (getKey(0)) {
+      if (x > 0) { x = x - 1; }
+    }
+    if (getKey(1)) {
+      if (x < 252) { x = x + 1; }
+    }
+    if (getKey(2)) {
+      if (y > 2) { y = y - 1; }
+    }
+    if (getKey(3)) {
+      if (y < 253) { y = y + 1; }
+    }
+
+    // Pre-calcul
+    x1 = x + 1; x2 = x + 2; y1 = y + 1;
+
+    // Triangle (pointe en haut)
+    draw(x1, y);
+    draw(x, y1); draw(x1, y1); draw(x2, y1);
+
+    // Tir: Enter lance un laser
+    if (lf == 0) {
+      if (getKey(4)) {
+        lf = 1;
+        lx = x1;
+        ly = y - 1;
+      }
+    }
+
+    // Laser actif: monte et disparait
+    if (lf) {
+      draw(lx, ly);
+      draw(lx, ly + 1);
+      if (ly > 0) {
+        ly = ly - 1;
+      } else {
+        lf = 0;
+      }
+    }
+  }
+}`,
+  },
+  {
     name: "Horloge",
     description: "Chronomètre MM:SS qui défile",
     code: `// Chronometre MM:SS

@@ -10,9 +10,10 @@ This document covers the bugs found, the fixes applied, and the comprehensive te
 2. [Bug Fix: Global Variables Off-by-One](#2-bug-fix-global-variables-off-by-one)
 3. [Bug Fix: Scratch Register Conflicts in Nested Expressions](#3-bug-fix-scratch-register-conflicts-in-nested-expressions)
 4. [Bug Fix: Unsigned Division with Large Dividends](#4-bug-fix-unsigned-division-with-large-dividends)
-5. [Test Suite Overview](#5-test-suite-overview)
-6. [Running Tests](#6-running-tests)
-7. [Memory Audit Summary](#7-memory-audit-summary)
+5. [Keyboard Controller (`getKey`)](#5-keyboard-controller-getkey)
+6. [Test Suite Overview](#6-test-suite-overview)
+7. [Running Tests](#7-running-tests)
+8. [Memory Audit Summary](#8-memory-audit-summary)
 
 ---
 
@@ -269,11 +270,129 @@ The comparison operators (`<`, `>`, `<=`, `>=`) in `emitComparison()` already us
 
 ---
 
-## 5. Test Suite Overview
+## 5. Keyboard Controller (`getKey`)
+
+### Overview
+
+A non-blocking keyboard peripheral that lets C programs poll 5 keys: 4 arrow keys + Enter.
+
+```c
+int k = getKey(0);  // 0=Left, 1=Right, 2=Up, 3=Down, 4=Enter
+// Returns 1 if pressed, 0 if released (no blocking/waiting)
+```
+
+### Architecture
+
+```
+┌──────────────┐    keydown/keyup     ┌──────────────┐
+│   Browser    │ ──────────────────── │ KeyboardNode │  (hardware view)
+│   Window     │    keyboard-state    │   or         │
+│  Events      │ ──────────────────── │ SoftwareView │  (software view)
+└──────┬───────┘     custom event     └──────┬───────┘
+       │                                      │
+       │         cpu.keyState[index] = 0|1    │
+       │                                      ▼
+       │                              ┌──────────────┐
+       │                              │   CPU        │
+       │                              │  keyState[]  │──── GETKEY opcode
+       │                              │  [5 keys]    │     A ← keyState[A]
+       │                              └──────────────┘
+```
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/cpu/isa.ts` | `GETKEY: 0x0b` opcode (1-byte, after INA) |
+| `src/cpu/cpu.ts` | `keyState: number[5]` property, GETKEY case in `step()` |
+| `src/cpu/compiler/codegen.ts` | `getKey(n)` built-in → emits `GETKEY` |
+| `src/components/nodes/KeyboardNode.tsx` | New node: 5-key visual + keydown/keyup listeners |
+| `src/components/nodes/index.ts` | Registered `keyboard` node type |
+| `src/App.tsx` | `keyboard-state` event → `hwCpuRef.current.keyState`, control signals, UI menu |
+| `src/components/software/SoftwareView.tsx` | keydown/keyup listeners → `cpuRef.current.keyState` |
+| `src/data/initialScene.ts` | KeyboardNode + keyRd signal in CPU scene |
+
+### ISA Details
+
+```
+Opcode:   GETKEY (0x0b)
+Size:     1 byte
+Effect:   A ← keyState[A]    (A = key index 0..4, result = 0 or 1)
+Flags:    Z and N updated based on result
+```
+
+### Key Mapping
+
+| Index | Key | `getKey()` call |
+|-------|-----|-----------------|
+| 0 | ← Arrow Left | `getKey(0)` |
+| 1 | → Arrow Right | `getKey(1)` |
+| 2 | ↑ Arrow Up | `getKey(2)` |
+| 3 | ↓ Arrow Down | `getKey(3)` |
+| 4 | ↵ Enter | `getKey(4)` |
+
+### Input Wiring (both views)
+
+**Hardware view** (`App.tsx`): The `KeyboardNode` component listens to window `keydown`/`keyup` events and dispatches a `keyboard-state` custom event. A `useEffect` in App catches this event and updates `hwCpuRef.current.keyState[index]`.
+
+**Software view** (`SoftwareView.tsx`): A `useEffect` directly listens to window `keydown`/`keyup` events and updates `cpuRef.current.keyState[index]`. No intermediate custom event needed since the component owns the CPU ref.
+
+### C Example: "Clavier" (Space Shooter)
+
+A triangle spaceship that moves with arrows and fires a laser projectile on Enter:
+
+```c
+int main() {
+  int x; int y;
+  int x1; int x2; int y1;
+  int lx; int ly; int lf;   // laser position + active flag
+
+  x = 127; y = 200; lf = 0;
+
+  while (1) {
+    clear();
+
+    // Move with arrows
+    if (getKey(0)) { if (x > 0)   { x = x - 1; } }
+    if (getKey(1)) { if (x < 252) { x = x + 1; } }
+    if (getKey(2)) { if (y > 2)   { y = y - 1; } }
+    if (getKey(3)) { if (y < 253) { y = y + 1; } }
+
+    x1 = x + 1; x2 = x + 2; y1 = y + 1;
+
+    // Triangle (tip up)       ▲
+    draw(x1, y);            //  ▲▲▲
+    draw(x, y1); draw(x1, y1); draw(x2, y1);
+
+    // Fire laser on Enter
+    if (lf == 0) {
+      if (getKey(4)) { lf = 1; lx = x1; ly = y - 1; }
+    }
+
+    // Laser moves up each frame, disappears at y=0
+    if (lf) {
+      draw(lx, ly); draw(lx, ly + 1);
+      if (ly > 0) { ly = ly - 1; } else { lf = 0; }
+    }
+  }
+}
+```
+
+### Tests
+
+```
+✓ "getKey returns 0 when no key pressed"     — compiles + runs, output "0 0"
+✓ "getKey returns 1 when key is pressed"      — cpu.keyState set, output "1 1"
+✓ "Clavier draws triangle + laser"            — plotter pixels ≤ 6 (4 triangle + 2 laser)
+```
+
+---
+
+## 6. Test Suite Overview
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 103 tests, all green
+**Total:** 109 tests, all green
 
 ### Test Architecture
 
@@ -288,7 +407,7 @@ compileOnly(source)              // compile → assemble without running
 
 ### Test Suites
 
-#### 5.1 — C Examples: Compilation (16 examples)
+#### 6.1 — C Examples: Compilation (17 examples)
 
 Tests that **every** C example compiles without errors and assembles within 512 bytes.
 
@@ -305,13 +424,14 @@ Tests that **every** C example compiles without errors and assembles within 512 
 "Calculatrice"              compiles → ✓  assembles → ✓
 "Traceur de droite"         compiles → ✓  assembles → ✓
 "Cercle"                    compiles → ✓  assembles → ✓
+"Clavier"                   compiles → ✓  assembles → ✓
 "Horloge"                   compiles → ✓  assembles → ✓
 "Spirale"                   compiles → ✓  assembles → ✓
 "Tableau de nombres premiers" compiles → ✓  assembles → ✓
 "Test Mémoire"              compiles → ✓  assembles → ✓
 ```
 
-#### 5.2 — C Examples: Memory Layout (16 examples)
+#### 6.2 — C Examples: Memory Layout (17 examples)
 
 Validates the `MemoryLayout` structure for every example:
 
@@ -321,7 +441,7 @@ Validates the `MemoryLayout` structure for every example:
 - `stackSize` is always 256
 - Total data (`globals + scratch + locals`) never exceeds 256
 
-#### 5.3 — C Examples: Output Verification (18 programs)
+#### 6.3 — C Examples: Output Verification (19 programs)
 
 Runs each program and verifies exact output:
 
@@ -339,12 +459,13 @@ Runs each program and verifies exact output:
 | Calculatrice | `"= 8"` for `"3+5\n"`, `"= 63"` for `"9*7\n"` |
 | Traceur de droite | DDA plot y=2x (input "210"), b=0 error (input "10"), wraps past x=128 |
 | Cercle | > 200 pixels forming ring, center (128,128) NOT drawn |
+| Clavier | Triangle (4px) + laser (2px), ≤ 6 pixels per frame |
 | Horloge | 3600 lines from `"00:00"` to `"59:59"` |
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
 | Test Mémoire | `"PASS"`, 16 globals, 232 locals, memory[0x200]=42 |
 
-#### 5.4 — Compiler Edge Cases (18 tests)
+#### 6.4 — Compiler Edge Cases (20 tests)
 
 Fine-grained tests for individual compiler features:
 
@@ -371,17 +492,20 @@ Fine-grained tests for individual compiler features:
 | 16 globals allowed | All 16 slots usable, `a+p = 17` |
 | 17th global error | Correctly rejected with error |
 | Code size overflow | 40 functions × 50 chars → compile error detected |
+| **getKey (no key)** | `getKey(0)` and `getKey(4)` return 0 when no key pressed |
+| **getKey (key pressed)** | `getKey(0)` returns 1 when `keyState[0] = 1` |
 
-#### 5.5 — Execution Properties (16 programs)
+#### 6.5 — Execution Properties (17 programs)
 
 Verifies runtime behavior:
 
 - **12 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Test Mémoire)
 - **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
+- **1 keyboard-interactive program**: Clavier — `while(1)` loop, never halts, draws triangle + laser
 
 ---
 
-## 6. Running Tests
+## 7. Running Tests
 
 ```bash
 # Run all tests once
@@ -400,15 +524,15 @@ npx vitest run --reporter verbose
 Expected output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (103 tests) 10.9s
+ ✓ src/cpu/__tests__/cexamples.test.ts (109 tests) 11.0s
 
  Test Files  1 passed (1)
-      Tests  103 passed (103)
+      Tests  109 passed (109)
 ```
 
 ---
 
-## 7. Memory Audit Summary
+## 8. Memory Audit Summary
 
 A full audit was performed tracing memory usage from the ISA through the CPU, assembler, and code generator. Key findings:
 

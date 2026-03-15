@@ -33,6 +33,7 @@ import {
   RotateCcw,
   Gauge,
   ChevronDown,
+  Keyboard,
 } from "lucide-react";
 
 import type {
@@ -231,6 +232,31 @@ export default function App() {
     };
     window.addEventListener("clock-frequency", handler);
     return () => window.removeEventListener("clock-frequency", handler);
+  }, [setNodes]);
+
+  // Listen for keyboard-state events from KeyboardNode
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { index, value } = e.detail;
+      // Update hardware CPU key state
+      const cpu = hwCpuRef.current;
+      if (index >= 0 && index < 5) {
+        cpu.keyState[index] = value;
+      }
+      // Update keyboard node visual state
+      setNodes((nds) =>
+        nds.map((n) => {
+          if (n.type === "keyboard") {
+            const keys = [...((n.data.keys as number[]) || [0, 0, 0, 0, 0])];
+            keys[index] = value;
+            return { ...n, data: { ...n.data, keys } };
+          }
+          return n;
+        }),
+      );
+    };
+    window.addEventListener("keyboard-state", handler);
+    return () => window.removeEventListener("keyboard-state", handler);
   }, [setNodes]);
 
   // --- Simulation loop (20Hz) ---
@@ -927,6 +953,17 @@ export default function App() {
           },
         };
         break;
+      case "keyboard":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "KEYBOARD",
+            keys: [0, 0, 0, 0, 0],
+          },
+        };
+        break;
       default:
         return;
     }
@@ -1088,10 +1125,12 @@ export default function App() {
       Opcode.POP,
       Opcode.LDM,
       Opcode.INA,
+      Opcode.GETKEY,
     ].includes(op)
       ? 1
       : 0;
 
+    const keyRd = op === Opcode.GETKEY ? 1 : 0;
     const bLoad = [Opcode.LDB, Opcode.TAB, Opcode.LBM].includes(op) ? 1 : 0;
     const spLoad = [Opcode.PUSH, Opcode.POP, Opcode.CALL, Opcode.RET].includes(
       op,
@@ -1284,6 +1323,15 @@ export default function App() {
           // ── Console read control ──
           case "consoleRd":
             return { ...node, data: { ...node.data, value: conRd } };
+
+          // ── Keyboard ──
+          case "keyboard":
+            return {
+              ...node,
+              data: { ...node.data, keys: [...cpu.keyState] },
+            };
+          case "keyRd":
+            return { ...node, data: { ...node.data, value: keyRd } };
 
           // ── Operand address (for memory access instructions) ──
           case "operand":
@@ -1861,6 +1909,13 @@ export default function App() {
                 >
                   <Grid3X3 size={18} className="text-cyan-400" />
                   <span className="font-bold">Plotter</span>
+                </button>
+                <button
+                  onClick={() => addNode("keyboard")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-violet-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Keyboard size={18} className="text-violet-400" />
+                  <span className="font-bold">Keyboard</span>
                 </button>
               </div>
             </div>

@@ -88,6 +88,12 @@ export const getInputValue = (
     if (edge.sourceHandle === "avail")
       return (sourceNode.data.avail as Bit) || 0;
   }
+  if (sourceNode.type === "keyboard") {
+    if (edge.sourceHandle?.startsWith("k")) {
+      const idx = parseInt(edge.sourceHandle.replace("k", ""));
+      return ((sourceNode.data.keys as number[])?.[idx] || 0) as Bit;
+    }
+  }
   return 0;
 };
 
@@ -660,6 +666,11 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
         if (edge.sourceHandle?.startsWith("out")) {
           const idx = parseInt(edge.sourceHandle.replace("out", ""));
           isActive = (sourceNode.data.out as Bit[])?.[idx] === 1;
+        }
+      } else if (sourceNode.type === "keyboard") {
+        if (edge.sourceHandle?.startsWith("k")) {
+          const idx = parseInt(edge.sourceHandle.replace("k", ""));
+          isActive = (sourceNode.data.keys as number[])?.[idx] === 1;
         }
       }
     }

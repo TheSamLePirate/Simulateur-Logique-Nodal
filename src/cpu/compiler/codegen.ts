@@ -859,6 +859,15 @@ export function generate(program: Program): {
       return;
     }
 
+    // ── Built-in: getKey(n) — read key state (non-blocking, 0=released 1=pressed) ──
+    if (expr.name === "getKey") {
+      if (expr.args.length >= 1) {
+        emitExpr(expr.args[0], ctx); // key index → A
+        emit(`  GETKEY`);
+      }
+      return;
+    }
+
     // ── User function call ──
     const calleeInfo = funcTable.get(expr.name);
     if (!calleeInfo) {
