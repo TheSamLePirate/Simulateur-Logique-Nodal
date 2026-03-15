@@ -264,12 +264,10 @@ export default function App() {
     if (!isRunning) return;
 
     const simulate = () => {
-      // When hardware CPU is loaded, skip node simulation entirely
-      // (CPU drives all state via syncHwCpuToNodes — clock, registers, MUXes, etc.)
-      // Only update edge styles to reflect current data flow.
-      if (!hwCpuLoaded) {
-        setNodes((nds) => simulateNodes(nds, edges));
-      }
+      // Always run node simulation (evaluates output/LED nodes, gates, etc.).
+      // When hwCpuLoaded, syncHwCpuToNodes overwrites CPU-specific nodes each step,
+      // but non-CPU nodes (e.g. LEDs connected to keyboard) still need simulation.
+      setNodes((nds) => simulateNodes(nds, edges));
       setEdges((eds) => updateEdgeStyles(nodes, eds));
     };
 
