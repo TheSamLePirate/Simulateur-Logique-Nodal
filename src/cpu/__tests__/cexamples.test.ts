@@ -134,16 +134,16 @@ describe("C Examples — Memory Layout", () => {
       // Scratch: always 8
       expect(ml.scratch).toBe(8);
 
-      // Locals: 0-232
+      // Locals: 0-488
       expect(ml.locals).toBeGreaterThanOrEqual(0);
-      expect(ml.locals).toBeLessThanOrEqual(232);
+      expect(ml.locals).toBeLessThanOrEqual(488);
 
-      // Stack: always 256
-      expect(ml.stackSize).toBe(256);
+      // Stack: always 512
+      expect(ml.stackSize).toBe(512);
 
-      // Data area (globals + scratch + locals) fits in 256 bytes
+      // Data area (globals + scratch + locals) fits in 512 bytes
       const dataUsed = ml.globals + ml.scratch + ml.locals;
-      expect(dataUsed).toBeLessThanOrEqual(256);
+      expect(dataUsed).toBeLessThanOrEqual(512);
     });
   }
 });
@@ -375,18 +375,17 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).not.toContain("FAIL");
     expect(r.halted).toBe(true);
 
-    // Verify memory layout fills everything
+    // Verify memory layout
     const ml = r.memoryLayout;
     expect(ml.globals).toBe(16); // all 16 global slots used
-    expect(ml.locals).toBe(232); // all 232 local slots used
+    expect(ml.locals).toBe(232); // 232 local slots used (of 488 max)
     expect(ml.scratch).toBe(8); // scratch always 8
-    expect(ml.stackSize).toBe(256); // stack always 256
-    expect(ml.globals + ml.scratch + ml.locals).toBe(256); // data area full
+    expect(ml.stackSize).toBe(512); // stack always 512
 
     // Verify actual memory values after execution
-    expect(r.cpu.state.memory[0x200]).toBe(42); // g0
-    expect(r.cpu.state.memory[0x20f]).toBe(15); // gf
-    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1); // stack restored (0x3FF)
+    expect(r.cpu.state.memory[0x400]).toBe(42); // g0
+    expect(r.cpu.state.memory[0x40f]).toBe(15); // gf
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1); // stack restored (0x7FF)
   });
 
   it('"Tableau (Tri)" sorts 8 elements correctly', () => {
@@ -714,7 +713,7 @@ describe("Compiler — Edge Cases", () => {
     `);
     expect(r.output).toBe("11");
     expect(r.halted).toBe(true);
-    // SP should be back to 0x3FF (empty stack)
+    // SP should be back to 0x7FF (empty stack)
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
   });
 

@@ -371,12 +371,12 @@ export function SoftwareView({
   );
 
   // Memory layout metrics
-  // Architecture: Code 512B (50%) | Data 256B (25%) | Stack 256B (25%)
-  // Data area = globals(16) + scratch(8) + locals(232) = 256B
+  // Architecture: Code 1024B (50%) | Data 512B (25%) | Stack 512B (25%)
+  // Data area = globals(16) + scratch(8) + locals(488) = 512B
   const dataUsed = memLayout
     ? memLayout.globals + memLayout.scratch + memLayout.locals
     : 0;
-  const dataMax = 256; // 0x200-0x2FF
+  const dataMax = 512; // 0x400-0x5FF
   const dataFree = memLayout ? dataMax - dataUsed : 0;
 
   return (
@@ -510,9 +510,9 @@ export function SoftwareView({
                   {/* Memory bar: fixed regions (50% code, 25% data, 25% stack) */}
                   <div
                     className="flex h-3 w-28 rounded-sm overflow-hidden border border-slate-700"
-                    title={`── Code (0x000-0x1FF) ──\nProgramme: ${codeSize}/${CODE_SIZE}B\n\n── Data (0x200-0x2FF) ──\nGlobales: ${memLayout.globals}/16B\nScratch: ${memLayout.scratch}/8B (fixe)\nLocales: ${memLayout.locals}/232B\nLibre: ${dataFree}B\n\n── Stack (0x300-0x3FF) ──\nRéservé: ${memLayout.stackSize}B (fixe)`}
+                    title={`── Code (0x000-0x3FF) ──\nProgramme: ${codeSize}/${CODE_SIZE}B\n\n── Data (0x400-0x5FF) ──\nGlobales: ${memLayout.globals}/16B\nScratch: ${memLayout.scratch}/8B (fixe)\nLocales: ${memLayout.locals}/488B\nLibre: ${dataFree}B\n\n── Stack (0x600-0x7FF) ──\nRéservé: ${memLayout.stackSize}B (fixe)`}
                   >
-                    {/* Code region: 512/1024 = 50% */}
+                    {/* Code region: 1024/2048 = 50% */}
                     <div
                       className="relative bg-blue-950/80"
                       style={{ width: "50%" }}
@@ -524,7 +524,7 @@ export function SoftwareView({
                         }}
                       />
                     </div>
-                    {/* Data region: 256/1024 = 25% */}
+                    {/* Data region: 512/2048 = 25% */}
                     <div
                       className="relative bg-emerald-950/80"
                       style={{ width: "25%" }}
@@ -536,7 +536,7 @@ export function SoftwareView({
                         }}
                       />
                     </div>
-                    {/* Stack region: 256/1024 = 25% (always reserved) */}
+                    {/* Stack region: 512/2048 = 25% (always reserved) */}
                     <div
                       className="bg-orange-500/50"
                       style={{ width: "25%" }}

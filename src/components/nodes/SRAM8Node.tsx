@@ -4,7 +4,7 @@ import { Maximize2, MemoryStick } from "lucide-react";
 export const SRAM8Node = ({ data }: any) => {
   const addr = data.currentAddress || 0;
   const memSize = data.memory ? data.memory.length : 256;
-  const addrBits = memSize <= 256 ? 8 : 10;
+  const addrBits = memSize <= 256 ? 8 : memSize <= 1024 ? 10 : 11;
   const addrHexWidth = addrBits <= 8 ? 2 : 3;
   const val = data.memory ? data.memory[addr] : 0;
 

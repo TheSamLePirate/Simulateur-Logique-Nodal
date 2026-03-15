@@ -5,16 +5,16 @@
  *   - Opcodes 0x00–0x7F → 1-byte instructions (no operand)
  *   - Opcodes 0x80–0xFF → 3-byte instructions (16-bit little-endian operand)
  *
- * Memory: 1024 bytes (10-bit address space, 0x000–0x3FF)
+ * Memory: 2048 bytes (11-bit address space, 0x000–0x7FF)
  * Registers: 8-bit A (accumulator), B (secondary)
- * PC, SP: 16-bit (masked to 10 bits)
+ * PC, SP: 16-bit (masked to 11 bits)
  */
 
 // ─── Memory constants ───
 
-export const MEMORY_SIZE = 1024;
-export const CODE_SIZE = 512; // 0x000..0x1FF — code area (bytes)
-export const ADDR_MASK = 0x3ff; // 10-bit address mask
+export const MEMORY_SIZE = 2048;
+export const CODE_SIZE = 1024; // 0x000..0x3FF — code area (bytes)
+export const ADDR_MASK = 0x7ff; // 11-bit address mask
 
 // ─── Opcode constants ───
 

@@ -37,11 +37,11 @@ loop:
   {
     name: "Fibonacci",
     description: "Calcule les nombres de Fibonacci et les stocke en mémoire",
-    code: `; Fibonacci - Stocke les résultats en mémoire à partir de 0x200
+    code: `; Fibonacci - Stocke les résultats en mémoire à partir de 0x400
   LDA 0        ; fib(0) = 0
-  STA 0x200    ; MEM[0x200] = 0
+  STA 0x400    ; MEM[0x400] = 0
   LDA 1        ; fib(1) = 1
-  STA 0x201    ; MEM[0x201] = 1
+  STA 0x401    ; MEM[0x401] = 1
 
   LDB 0        ; B = fib(n-2) = 0
   LDA 1        ; A = fib(n-1) = 1
@@ -51,10 +51,10 @@ fib_loop:
   ADDB          ; A = fib(n-1) + fib(n-2)
   JC done       ; si carry (overflow), arrêter
   ; Stocker le résultat — on utilise une adresse en mémoire
-  STA 0x210    ; temp: sauver A (nouveau fib)
+  STA 0x410    ; temp: sauver A (nouveau fib)
   POP           ; A = ancien fib(n-1)
   TAB           ; B = ancien fib(n-1) = nouveau fib(n-2)
-  LDM 0x210    ; A = nouveau fib
+  LDM 0x410    ; A = nouveau fib
   OUTD          ; afficher le nombre
   OUT ' '       ; espace
   JMP fib_loop
@@ -78,45 +78,45 @@ done:
     description: "Calcule 5! = 120",
     code: `; Factorielle de 5
 ; Résultat: 5! = 120
-; MEM[0x210] = compteur, MEM[0x211] = résultat
-; MEM[0x212] = additions restantes, MEM[0x213] = accumulateur
+; MEM[0x410] = compteur, MEM[0x411] = résultat
+; MEM[0x412] = additions restantes, MEM[0x413] = accumulateur
   LDA 1
-  STA 0x211    ; résultat = 1
+  STA 0x411    ; résultat = 1
   LDA 5
-  STA 0x210    ; compteur = 5
+  STA 0x410    ; compteur = 5
 
 mul_loop:
-  LDM 0x210    ; A = compteur
+  LDM 0x410    ; A = compteur
   CMP 1
   JZ done       ; si compteur <= 1, terminé
 
   ; Multiplier résultat par compteur (additions répétées)
-  LDM 0x210    ; A = compteur
+  LDM 0x410    ; A = compteur
   DEC           ; A = compteur - 1
-  STA 0x212    ; additions restantes = compteur - 1
-  LDM 0x211    ; A = résultat (accumulateur de départ)
+  STA 0x412    ; additions restantes = compteur - 1
+  LDM 0x411    ; A = résultat (accumulateur de départ)
 
 add_loop:
-  LBM 0x211    ; B = résultat original
+  LBM 0x411    ; B = résultat original
   ADDB          ; A += résultat original
-  STA 0x213    ; sauver accumulateur (STA ne touche pas les flags)
-  LDM 0x212    ; A = restantes
+  STA 0x413    ; sauver accumulateur (STA ne touche pas les flags)
+  LDM 0x412    ; A = restantes
   DEC           ; restantes - 1 (DEC met le flag Z si résultat == 0)
-  STA 0x212    ; restantes-- (STA préserve le flag Z)
+  STA 0x412    ; restantes-- (STA préserve le flag Z)
   JZ mul_next   ; si restantes == 0, sortir du add_loop
-  LDM 0x213    ; A = accumulateur
+  LDM 0x413    ; A = accumulateur
   JMP add_loop
 
 mul_next:
-  LDM 0x213    ; A = résultat * compteur
-  STA 0x211    ; sauver nouveau résultat
-  LDM 0x210    ; A = compteur
+  LDM 0x413    ; A = résultat * compteur
+  STA 0x411    ; sauver nouveau résultat
+  LDM 0x410    ; A = compteur
   DEC
-  STA 0x210    ; compteur--
+  STA 0x410    ; compteur--
   JMP mul_loop
 
 done:
-  LDM 0x211    ; A = résultat final
+  LDM 0x411    ; A = résultat final
   OUTD          ; affiche 120
   HLT`,
   },

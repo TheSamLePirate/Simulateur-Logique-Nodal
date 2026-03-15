@@ -579,7 +579,7 @@ int main() {
 // Verifie l'integrite apres appel de fonction
 // Attendu: g0=42 gf=15 add=57 PASS
 
-// -- 16 globales (zone 0x200-0x20F) --
+// -- 16 globales (zone 0x400-0x40F) --
 int g0; int g1; int g2; int g3;
 int g4; int g5; int g6; int g7;
 int g8; int g9; int ga; int gb;

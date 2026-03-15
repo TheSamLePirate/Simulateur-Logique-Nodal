@@ -8,14 +8,14 @@
  *   A = expression result / accumulator
  *   B = secondary register for binary ops
  *
- * Memory layout (1024 bytes):
- *   0x000..0x1FF  = code (program, 512 bytes)
- *   0x200..0x20F  = global variables (16 max)
- *   0x210..0x215  = arithmetic scratch (multiply, divide, bitwise)
- *   0x216          = scratch: unused
- *   0x217          = scratch: return value save
- *   0x218..0x2FF  = local variables and parameters (per-function, unique)
- *   0x300..0x3FF  = stack (256 bytes, grows downward from 0x3FF)
+ * Memory layout (2048 bytes):
+ *   0x000..0x3FF  = code (program, 1024 bytes)
+ *   0x400..0x40F  = global variables (16 max)
+ *   0x410..0x415  = arithmetic scratch (multiply, divide, bitwise)
+ *   0x416          = scratch: unused
+ *   0x417          = scratch: return value save
+ *   0x418..0x5FF  = local variables and parameters (per-function, unique)
+ *   0x600..0x7FF  = stack (512 bytes, grows downward from 0x7FF)
  *
  * Calling convention:
  *   - Caller writes args directly to callee's param addresses
@@ -53,10 +53,10 @@ interface FuncInfo {
 }
 
 // Scratch memory constants
-const TEMP_BASE = 0x210; // 0x210-0x215 for arithmetic
+const TEMP_BASE = 0x410; // 0x410-0x415 for arithmetic
 const TEMP_COUNT = 6; // number of temp slots to save/restore
-const TEMP_RETVAL = 0x217; // save return value around POPs
-const STACK_BASE = 0x300; // stack occupies 0x300-0x3FF
+const TEMP_RETVAL = 0x417; // save return value around POPs
+const STACK_BASE = 0x600; // stack occupies 0x600-0x7FF
 
 export function generate(program: Program): {
   assembly: string;
@@ -66,8 +66,8 @@ export function generate(program: Program): {
   const errors: CodegenError[] = [];
   const lines: string[] = [];
   let labelCounter = 0;
-  let globalAddr = 0x200;
-  let varAddr = 0x218; // for locals and params (after scratch area)
+  let globalAddr = 0x400;
+  let varAddr = 0x418; // for locals and params (after scratch area)
 
   const globals = new Map<string, number>(); // name → address
   const globalArrays = new Map<string, ArrayInfo>(); // array name → info
@@ -150,7 +150,7 @@ export function generate(program: Program): {
     }
     if (g.arraySize !== null) {
       // Array: allocate contiguous bytes
-      if (globalAddr + g.arraySize - 1 > 0x20f) {
+      if (globalAddr + g.arraySize - 1 > 0x40f) {
         errors.push({
           line: g.line,
           message: `Tableau global "${g.name}" trop grand (dépasse la zone globale, max 16 octets)`,
@@ -161,7 +161,7 @@ export function generate(program: Program): {
       globalAddr += g.arraySize;
     } else {
       // Scalar
-      if (globalAddr > 0x20f) {
+      if (globalAddr > 0x40f) {
         errors.push({
           line: g.line,
           message: "Trop de variables globales (max 16)",
@@ -243,10 +243,10 @@ export function generate(program: Program): {
     assembly: lines.join("\n"),
     errors,
     memoryLayout: {
-      globals: globalAddr - 0x200,
-      scratch: 8, // 0x210-0x217 always reserved
-      locals: varAddr - 0x218,
-      stackSize: 256, // 0x300-0x3FF always reserved
+      globals: globalAddr - 0x400,
+      scratch: 8, // 0x410-0x417 always reserved
+      locals: varAddr - 0x418,
+      stackSize: 512, // 0x600-0x7FF always reserved
     },
   };
 

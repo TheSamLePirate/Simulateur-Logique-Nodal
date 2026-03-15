@@ -104,7 +104,7 @@ The first four jump to `trueLabel` on the true condition, and naturally fall thr
 
 ### The Bug
 
-The 16th global variable (at address `0x20F`) was rejected with "Trop de variables globales (max 16)". Only 15 globals could be used.
+The 16th global variable (at address `0x40F`) was rejected with "Trop de variables globales (max 16)". Only 15 globals could be used.
 
 ### Root Cause
 
@@ -113,8 +113,8 @@ The overflow check was placed **after** allocation:
 ```typescript
 // BEFORE (buggy):
 globals.set(g.name, globalAddr);
-globalAddr++;                     // 0x20F → 0x210
-if (globalAddr > 0x20F) {         // 0x210 > 0x20F → TRUE → rejects the 16th!
+globalAddr++;                     // 0x40F → 0x410
+if (globalAddr > 0x40F) {         // 0x410 > 0x40F → TRUE → rejects the 16th!
   errors.push({ ... });
 }
 ```
@@ -125,7 +125,7 @@ Move the check **before** allocation, and `continue` to skip:
 
 ```typescript
 // AFTER (fixed):
-if (globalAddr > 0x20F) {         // only triggers on the 17th global
+if (globalAddr > 0x40F) {         // only triggers on the 17th global
   errors.push({ ... });
   continue;                       // skip allocation
 }
@@ -409,7 +409,7 @@ compileOnly(source)              // compile → assemble without running
 
 #### 6.1 — C Examples: Compilation (19 examples)
 
-Tests that **every** C example compiles without errors and assembles within 512 bytes.
+Tests that **every** C example compiles without errors and assembles within 1024 bytes.
 
 ```
 "Hello World"               compiles → ✓  assembles → ✓
@@ -439,9 +439,9 @@ Validates the `MemoryLayout` structure for every example:
 
 - `globals` is in range [0, 16]
 - `scratch` is always 8 (6 arithmetic temps + 1 return save + 1 padding)
-- `locals` is in range [0, 232]
-- `stackSize` is always 256
-- Total data (`globals + scratch + locals`) never exceeds 256
+- `locals` is in range [0, 488]
+- `stackSize` is always 512
+- Total data (`globals + scratch + locals`) never exceeds 512
 
 #### 6.3 — C Examples: Output Verification (20 programs)
 
@@ -466,7 +466,7 @@ Runs each program and verifies exact output:
 | Spirale | > 500 pixels, starts at (128,128) |
 | Nombres premiers | Contains `"Total: 25"`, `"2 "`, `"97 "` |
 | Étoiles | Random star pixels, count output, break/continue |
-| Test Mémoire | `"PASS"`, 16 globals, 232 locals, memory[0x200]=42 |
+| Test Mémoire | `"PASS"`, 16 globals, memory[0x400]=42 verified |
 | Tableau (Tri) | `"Avant: 64 25 12 22 11 90 33 44"` + `"Apres: 11 12 22 25 33 44 64 90"` |
 
 #### 6.4 — Compiler Edge Cases (20 tests)
@@ -492,7 +492,7 @@ Fine-grained tests for individual compiler features:
 | #define | `#define VAL 42` substitution |
 | Char literals | `putchar('A')` → `"ABC"` |
 | getchar | Input `"XY"` → output `"XY"` |
-| Stack pointer restoration | SP = 0x3FF after 3 function calls |
+| Stack pointer restoration | SP = 0x7FF after 3 function calls |
 | 16 globals allowed | All 16 slots usable, `a+p = 17` |
 | 17th global error | Correctly rejected with error |
 | Code size overflow | 40 functions × 50 chars → compile error detected |
@@ -558,31 +558,31 @@ Expected output:
 
 A full audit was performed tracing memory usage from the ISA through the CPU, assembler, and code generator. Key findings:
 
-### Memory Map (1024 bytes total)
+### Memory Map (2048 bytes total)
 
 ```
   Address         Region      Size    Source of truth
   ──────────      ──────      ────    ──────────────
-  0x000-0x1FF     Code        512     CODE_SIZE in isa.ts
-  0x200-0x20F     Globals     16      codegen.ts (GLOBAL_BASE → 0x200+)
-  0x210-0x217     Scratch     8       codegen.ts (TEMP_BASE 0x210, RET_SAVE 0x217)
-  0x218-0x2FF     Locals      232     codegen.ts (LOCAL_BASE → 0x218+)
-  0x300-0x3FF     Stack       256     cpu.ts (SP starts at MEMORY_SIZE-1)
+  0x000-0x3FF     Code        1024    CODE_SIZE in isa.ts
+  0x400-0x40F     Globals     16      codegen.ts (GLOBAL_BASE → 0x400+)
+  0x410-0x417     Scratch     8       codegen.ts (TEMP_BASE 0x410, RET_SAVE 0x417)
+  0x418-0x5FF     Locals      488     codegen.ts (LOCAL_BASE → 0x418+)
+  0x600-0x7FF     Stack       512     cpu.ts (SP starts at MEMORY_SIZE-1)
 ```
 
-All 5 regions are contiguous, non-overlapping, and sum to exactly 1024.
+All 5 regions are contiguous, non-overlapping, and sum to exactly 2048.
 
 ### Boundary Protection
 
 | Boundary | Protected? | How |
 |----------|-----------|-----|
 | Code overflow | Yes | Assembler: `bytes.length > CODE_SIZE` |
-| Globals overflow | Yes | Codegen: `globalAddr > 0x20F` (after fix) |
-| Locals overflow | Yes | Codegen: implicit — 232 slots available |
+| Globals overflow | Yes | Codegen: `globalAddr > 0x40F` (after fix) |
+| Locals overflow | Yes | Codegen: implicit — 488 slots available |
 | Stack overflow | No | By design — SP wraps via `& ADDR_MASK` |
 | Stack into data | No | By design — 8-bit CPU simplicity |
 
-Stack overflow is intentionally unprotected. Real 8-bit CPUs (6502, Z80) also lack stack protection. With 256 bytes and ~13 bytes per function call, max recursion depth is approximately 19 levels.
+Stack overflow is intentionally unprotected. Real 8-bit CPUs (6502, Z80) also lack stack protection. With 512 bytes and ~13 bytes per function call, max recursion depth is approximately 38 levels.
 
 ### Memory Test Program
 
@@ -590,10 +590,10 @@ The "Test Mémoire" example (`src/cpu/cexamples.ts`) is a stress test that fills
 
 ```
   Globals:  16/16 slots  (g0 through gf)
-  Locals:   232/232 slots (via 9 padding functions with 25 uninit locals each)
-  Code:     479/512 bytes
-  Stack:    256/256 reserved
-  Free:     0 bytes in data area
+  Locals:   232/488 slots (via 9 padding functions with 25 uninit locals each)
+  Code:     479/1024 bytes
+  Stack:    512/512 reserved
+  Free:     256 bytes in data area
 ```
 
 It writes `g0=42, gf=15`, calls `add(g0, gf)`, verifies the result is 57, and outputs "PASS" or "FAIL".

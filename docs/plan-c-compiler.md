@@ -14,9 +14,9 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 ## Simple C Language Specification
 
-### Constraints (8-bit CPU, 1024 bytes RAM)
+### Constraints (8-bit CPU, 2048 bytes RAM)
 - All values are **8-bit unsigned** (0–255)
-- Memory layout: code at 0x000+, globals at 0x200+, locals at 0x218+, stack from 0x3FF downward
+- Memory layout: code at 0x000+, globals at 0x400+, locals at 0x418+, stack from 0x7FF downward
 - Two registers: A (accumulator), B (secondary)
 
 ### Supported Features
@@ -24,8 +24,8 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Feature | Syntax | Notes |
 |---------|--------|-------|
 | Types | `int`, `void` | int = 8-bit unsigned (0–255) |
-| Globals | `int x = 5;` | Stored at fixed addresses 0x200+ |
-| Locals | `int y = 3;` | Fixed addresses 0x218+ (per function) |
+| Globals | `int x = 5;` | Stored at fixed addresses 0x400+ |
+| Locals | `int y = 3;` | Fixed addresses 0x418+ (per function) |
 | Functions | `int foo(int a) { return a+1; }` | With params, recursion |
 | Entry point | `int main() { ... }` | Required |
 | If/else | `if (x > 0) { ... } else { ... }` | |
@@ -82,13 +82,13 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 ### 3. `src/cpu/compiler/codegen.ts` (~350 lines)
 - AST → ASM string generation
-- **Memory layout** (1024 bytes):
-  - `0x000-0x1FF` = code (program, 512 bytes max)
-  - `0x200-0x20F` = global variables (16 max)
-  - `0x210-0x215` = arithmetic scratch (multiply, divide, bitwise)
-  - `0x217` = scratch: return value save
-  - `0x218-0x2FF` = local variables and parameters (per-function, unique)
-  - `0x300-0x3FF` = stack (256 bytes, grows downward from 0x3FF)
+- **Memory layout** (2048 bytes):
+  - `0x000-0x3FF` = code (program, 1024 bytes max)
+  - `0x400-0x40F` = global variables (16 max)
+  - `0x410-0x415` = arithmetic scratch (multiply, divide, bitwise)
+  - `0x417` = scratch: return value save
+  - `0x418-0x5FF` = local variables and parameters (per-function, unique)
+  - `0x600-0x7FF` = stack (512 bytes, grows downward from 0x7FF)
 - **Label generator**: `__L0`, `__L1`, ... for control flow jumps
 - **Register strategy**: A = expression result, B = temporary for binary ops
 - **Calling convention**: caller saves own vars + temps to stack, writes args to callee param addresses, CALL, return value in A, caller restores temps + vars
