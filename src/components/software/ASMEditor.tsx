@@ -147,7 +147,7 @@ function highlightCLine(line: string): React.ReactNode[] {
   // Tokenize using regex that captures different token types
   // Order matters: strings, comments, numbers, identifiers, operators, whitespace
   const regex =
-    /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|#\w+|0x[0-9a-fA-F]+|\d+|[a-zA-Z_]\w*|[+\-*/%=!<>&|^~]+|[{}();,]|\s+)/g;
+    /(\/\/.*$|\/\*[\s\S]*?\*\/|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|#\w+|0x[0-9a-fA-F]+|\d+|[a-zA-Z_]\w*|[+\-*/%=!<>&|^~]+|[{}();,[\]]|\s+)/g;
 
   let match: RegExpExecArray | null;
   while ((match = regex.exec(line)) !== null) {
@@ -260,7 +260,7 @@ function highlightCLine(line: string): React.ReactNode[] {
     }
 
     // Braces, parens, etc.
-    if (/^[{}();,]$/.test(token)) {
+    if (/^[{}();,[\]]$/.test(token)) {
       parts.push(
         <span key={key++} className="text-slate-400">
           {token}
