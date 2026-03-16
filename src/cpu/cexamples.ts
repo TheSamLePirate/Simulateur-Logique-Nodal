@@ -2467,4 +2467,184 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Système Solaire 255",
+    description: "Soleil et une planete en orbite circulaire sur 255x255",
+    code: `// Soleil + une planete en orbite circulaire
+// @ = quitter
+
+int gx;
+int gy;
+
+int anchor(int p) {
+  p = p & 31;
+  if (p == 0) { gx = 212; gy = 128; return 0; }
+  if (p == 1) { gx = 210; gy = 144; return 0; }
+  if (p == 2) { gx = 206; gy = 160; return 0; }
+  if (p == 3) { gx = 198; gy = 175; return 0; }
+  if (p == 4) { gx = 188; gy = 188; return 0; }
+  if (p == 5) { gx = 175; gy = 198; return 0; }
+  if (p == 6) { gx = 160; gy = 206; return 0; }
+  if (p == 7) { gx = 144; gy = 210; return 0; }
+  if (p == 8) { gx = 128; gy = 212; return 0; }
+  if (p == 9) { gx = 112; gy = 210; return 0; }
+  if (p == 10) { gx = 96; gy = 206; return 0; }
+  if (p == 11) { gx = 81; gy = 198; return 0; }
+  if (p == 12) { gx = 68; gy = 188; return 0; }
+  if (p == 13) { gx = 58; gy = 175; return 0; }
+  if (p == 14) { gx = 50; gy = 160; return 0; }
+  if (p == 15) { gx = 46; gy = 144; return 0; }
+  if (p == 16) { gx = 44; gy = 128; return 0; }
+  if (p == 17) { gx = 46; gy = 112; return 0; }
+  if (p == 18) { gx = 50; gy = 96; return 0; }
+  if (p == 19) { gx = 58; gy = 81; return 0; }
+  if (p == 20) { gx = 68; gy = 68; return 0; }
+  if (p == 21) { gx = 81; gy = 58; return 0; }
+  if (p == 22) { gx = 96; gy = 50; return 0; }
+  if (p == 23) { gx = 112; gy = 46; return 0; }
+  if (p == 24) { gx = 128; gy = 44; return 0; }
+  if (p == 25) { gx = 144; gy = 46; return 0; }
+  if (p == 26) { gx = 160; gy = 50; return 0; }
+  if (p == 27) { gx = 175; gy = 58; return 0; }
+  if (p == 28) { gx = 188; gy = 68; return 0; }
+  if (p == 29) { gx = 198; gy = 81; return 0; }
+  if (p == 30) { gx = 206; gy = 96; return 0; }
+  gx = 210;
+  gy = 112;
+  return 0;
+}
+
+int lerp(int a, int b, int s) {
+  if (b > a) {
+    return a + (((b - a) * s) >> 2);
+  }
+  return a - (((a - b) * s) >> 2);
+}
+
+int place(int p) {
+  int x0;
+  int y0;
+  p = p & 127;
+  anchor(p >> 2);
+  if ((p & 3) == 0) {
+    return 0;
+  }
+  x0 = gx;
+  y0 = gy;
+  anchor((p >> 2) + 1);
+  gx = lerp(x0, gx, p & 3);
+  gy = lerp(y0, gy, p & 3);
+  return 0;
+}
+
+int orbit() {
+  int p;
+  p = 0;
+  while (p < 128) {
+    place(p);
+    draw(gx, gy);
+    p = p + 1;
+  }
+  return 0;
+}
+
+int planet(int p) {
+  int tx;
+  int ty;
+  place(p);
+  draw(gx, gy);
+  draw(gx + 1, gy);
+  draw(gx - 1, gy);
+  draw(gx, gy + 1);
+  draw(gx, gy - 1);
+  draw(gx + 2, gy);
+  draw(gx - 2, gy);
+  draw(gx, gy + 2);
+  draw(gx, gy - 2);
+  draw(gx + 1, gy - 1);
+  draw(gx - 1, gy + 1);
+  draw(gx + 1, gy + 1);
+  draw(gx - 1, gy - 1);
+  tx = gx;
+  ty = gy;
+  place(p - 2);
+  draw(gx, gy);
+  place(p - 4);
+  draw(gx, gy);
+  gx = tx;
+  gy = ty;
+  return 0;
+}
+
+int sun() {
+  draw(128, 128);
+  draw(127, 128); draw(129, 128);
+  draw(128, 127); draw(128, 129);
+  draw(127, 127); draw(129, 127);
+  draw(127, 129); draw(129, 129);
+  draw(126, 128); draw(130, 128);
+  draw(128, 126); draw(128, 130);
+  draw(125, 128); draw(131, 128);
+  draw(128, 125); draw(128, 131);
+  draw(126, 126); draw(130, 126);
+  draw(126, 130); draw(130, 130);
+  draw(124, 128); draw(132, 128);
+  draw(128, 124); draw(128, 132);
+  draw(125, 125); draw(131, 125);
+  draw(125, 131); draw(131, 131);
+  return 0;
+}
+
+int corona(int t) {
+  if ((t & 8) == 0) {
+    draw(121, 128); draw(135, 128);
+    draw(128, 121); draw(128, 135);
+    draw(123, 123); draw(133, 123);
+    draw(123, 133); draw(133, 133);
+  } else {
+    draw(120, 128); draw(136, 128);
+    draw(128, 120); draw(128, 136);
+    draw(122, 122); draw(134, 122);
+    draw(122, 134); draw(134, 134);
+  }
+  return 0;
+}
+
+int main() {
+  int t;
+  int k;
+  int hold;
+
+  print("=== SOLAR 255 ===");
+  putchar(10);
+  print("sun + orbiting planet");
+  putchar(10);
+  print("@ quit");
+  putchar(10);
+
+  t = 0;
+  while (1) {
+    k = getchar_nb();
+    if (k == 64) {
+      putchar(10);
+      return 0;
+    }
+
+    clear();
+    draw(212, 128);
+    sun();
+    corona(t);
+    //orbit();
+    planet(t);
+
+    hold = 0;
+    while (hold < 10) {
+      sleep(255);
+      hold = hold + 1;
+    }
+    t = t + 1;
+  }
+  return 0;
+}`,
+  },
 ];

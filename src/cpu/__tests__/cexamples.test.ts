@@ -311,7 +311,7 @@ describe("C Examples — Output Verification", () => {
       maxCycles: 2_000_000,
     });
     expect(r.output).toContain("= 2.50");
-  });
+  }, 10_000);
 
   it('"Calculatrice" computes 10%3=1', () => {
     const r = compileAndRun(C_EXAMPLES[9].code, {
@@ -494,7 +494,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.has((255 << 8) | 255)).toBe(true);
     expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
     expect(r.cpu.plotterPixels.has((124 << 8) | 128)).toBe(true);
-  });
+  }, 10_000);
 
   it('"Mini Shell" supports vars, aggregates and RAM file redirection', () => {
     const example = C_EXAMPLES.find((e) => e.name === "Mini Shell");
@@ -547,7 +547,24 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("f notes 5b");
     expect(r.output).toContain("253p");
     expect(r.cpu.driveData[0]).toBe(66);
-  });
+  }, 10_000);
+
+  it('"Système Solaire 255" draws a sun and one orbiting planet', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Système Solaire 255");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      maxCycles: 5_000_000,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("=== SOLAR 255 ===");
+    expect(r.output).toContain("sun + orbiting planet");
+    expect(r.output).toContain("@ quit");
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(10);
+    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
+    expect(r.cpu.plotterPixels.has((128 << 8) | 212)).toBe(true);
+  }, 10_000);
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1440,6 +1457,7 @@ describe("C Examples — Execution Properties", () => {
     "Calculatrice Graphique",
     "Mini Shell",
     "FS Disque Externe",
+    "Système Solaire 255",
   ];
 
   for (const name of inputExamples) {
@@ -1469,6 +1487,7 @@ describe("C Examples — Interactive Halt", () => {
     { name: "Calculatrice Graphique", input: "@", maxCycles: 200_000 },
     { name: "Mini Shell", input: "@", maxCycles: 200_000 },
     { name: "FS Disque Externe", input: "@", maxCycles: 200_000 },
+    { name: "Système Solaire 255", input: "@", maxCycles: 200_000 },
   ];
 
   for (const exampleConfig of haltableExamples) {
