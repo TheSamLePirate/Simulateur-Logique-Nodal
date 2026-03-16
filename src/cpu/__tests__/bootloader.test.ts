@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { assemble } from "../assembler";
 import { CPU } from "../cpu";
+import { DRIVE_SIZE } from "../isa";
 import {
   bootCpuToShell,
   getBootloaderImage,
@@ -41,7 +42,7 @@ describe("bootloader shell", () => {
 
   it("stores programs on the boot disk directory", () => {
     const disk = writeProgramToBootDisk(
-      new Uint8Array(8192),
+      new Uint8Array(DRIVE_SIZE),
       "a",
       Uint8Array.from([0xc0, 0x4f, 0x00, 0x0f]),
     );
@@ -55,7 +56,7 @@ describe("bootloader shell", () => {
   });
 
   it("lists boot disk files and programs", () => {
-    const disk0 = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const disk0 = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
     const disk1 = writeFileToBootDisk(
       disk0,
       "t",
@@ -68,14 +69,14 @@ describe("bootloader shell", () => {
   });
 
   it("runs a program from disk", () => {
-    const disk = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
     const result = runBootCommand(disk, "run a");
     expect(result.output).toContain("OK");
     expect(result.cpu.state.halted).toBe(true);
   });
 
   it("can return to the shell prompt after a program halts", () => {
-    const disk = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
     const result = runBootCommand(disk, "run a");
     const resumed = bootCpuToShell(result.cpu, { preserveConsole: true });
     const output = result.cpu.consoleOutput.join("");
@@ -88,7 +89,7 @@ describe("bootloader shell", () => {
 
   it("cats a text file from disk", () => {
     const disk = writeFileToBootDisk(
-      new Uint8Array(8192),
+      new Uint8Array(DRIVE_SIZE),
       "t",
       Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
     );

@@ -11,7 +11,7 @@ import { assemble } from "../assembler";
 import { CPU } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
 import { writeProgramToBootDisk } from "../bootloader";
-import { CODE_SIZE, MEMORY_SIZE } from "../isa";
+import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
 
 // ─── Test helpers ───
 
@@ -530,7 +530,7 @@ describe("C Examples — Output Verification", () => {
       HLT
     `);
     expect(prog.success).toBe(true);
-    const disk = writeProgramToBootDisk(new Uint8Array(8192), "p", prog.bytes);
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "p", prog.bytes);
 
     const r = compileAndRun(example!.code, {
       input: "ls\ntouch a\nhello>a\ncat a\nls\nfree\n",
@@ -545,7 +545,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("hello");
     expect(r.output).toContain("p 1p");
     expect(r.output).toContain("f a 5b");
-    expect(r.output).toContain("29p");
+    expect(r.output).toContain("253p");
     expect(r.cpu.driveData[0]).toBe(66);
   });
 });
@@ -1149,7 +1149,7 @@ describe("Compiler — Edge Cases", () => {
     expect(r.cpu.driveData[11]).toBe(0);
   });
 
-  it("external drive page builtins can access the full 8K disk", () => {
+  it("external drive page builtins can access the full 64K disk", () => {
     const r = compileAndRun(`
       int main() {
         drive_clear();
@@ -1160,8 +1160,8 @@ describe("Compiler — Edge Cases", () => {
         drive_set_page(0);
         putchar(drive_read(10));
         putchar(drive_read_at(1, 10));
-        drive_write_at(31, 255, 90);
-        drive_set_page(31);
+        drive_write_at(255, 255, 90);
+        drive_set_page(255);
         putchar(drive_read(255));
         return 0;
       }
@@ -1170,7 +1170,7 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
     expect(r.cpu.driveData[10]).toBe(65);
     expect(r.cpu.driveData[256 + 10]).toBe(66);
-    expect(r.cpu.driveData[8191]).toBe(90);
+    expect(r.cpu.driveData[65535]).toBe(90);
   });
 
   it("code size overflow is detected", () => {

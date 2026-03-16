@@ -1481,7 +1481,7 @@ export function generate(program: Program): {
       return;
     }
 
-    // ── Built-in: drive_set_page(page) — select one of 32 external drive pages ──
+    // ── Built-in: drive_set_page(page) — select one of 256 external drive pages ──
     if (expr.name === "drive_set_page") {
       if (expr.args.length >= 1) {
         emitExpr(expr.args[0], ctx); // page → A

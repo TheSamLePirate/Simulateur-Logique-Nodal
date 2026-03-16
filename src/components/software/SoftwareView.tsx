@@ -530,11 +530,24 @@ export function SoftwareView({
   // Memory layout metrics
   // Architecture: Code 4096B (50%) | Data 2072B (25.3%) | Stack 2048B (25%)
   // Data area = globals(16) + scratch(8) + locals(2024) = 2048B max used
+  let liveCodeUsed = 0;
+  for (let i = CODE_SIZE - 1; i >= 0; i--) {
+    if (cpuState.memory[i] !== 0) {
+      liveCodeUsed = i + 1;
+      break;
+    }
+  }
   const dataUsed = memLayout
     ? memLayout.globals + memLayout.scratch + memLayout.locals
     : 0;
   const dataMax = 2048; // 0x1000-0x17FF
   const dataFree = memLayout ? dataMax - dataUsed : 0;
+  const stackMax = memLayout?.stackSize ?? 2048;
+  const stackTop = MEMORY_SIZE - 1;
+  const stackUsed = Math.max(0, Math.min(stackMax, stackTop - cpuState.sp));
+  const totalRamUsed = dataUsed + stackUsed;
+  const totalRamMax = dataMax + stackMax;
+  const totalRamFree = totalRamMax - totalRamUsed;
   let driveUsed = 0;
   for (const byte of cpuRef.current.driveData) {
     if (byte !== 0) driveUsed++;
@@ -708,24 +721,24 @@ export function SoftwareView({
             <div className="flex items-center gap-1.5">
               <span
                 className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                  codeSize > CODE_SIZE
+                  liveCodeUsed > CODE_SIZE
                     ? "text-red-400 bg-red-500/10 border-red-500/30"
-                    : codeSize > CODE_SIZE * 0.8
+                    : liveCodeUsed > CODE_SIZE * 0.8
                       ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/30"
                       : "text-slate-400 bg-slate-800 border-slate-700"
                 }`}
               >
-                Code {codeSize}/{CODE_SIZE}
+                Code {liveCodeUsed}/{CODE_SIZE}
               </span>
               {memLayout && (
                 <>
                   <span className="text-[10px] font-mono text-slate-500">
-                    Data {dataUsed}/{dataMax}
+                    RAM {totalRamUsed}/{totalRamMax}
                   </span>
                   {/* Memory bar: fixed regions (50% code, 25% data, 25% stack) */}
                   <div
                     className="flex h-3 w-28 rounded-sm overflow-hidden border border-slate-700"
-                    title={`── Code (0x0000-0x0FFF) ──\nProgramme: ${codeSize}/${CODE_SIZE}B\n\n── Data (0x1000-0x17FF) ──\nGlobales: ${memLayout.globals}/16B\nScratch: ${memLayout.scratch}/8B (fixe)\nLocales: ${memLayout.locals}/2024B\nLibre: ${dataFree}B\n\n── Stack (0x1800-0x1FFF) ──\nRéservé: ${memLayout.stackSize}B (fixe)`}
+                    title={`── Code (0x0000-0x0FFF) ──\nUtilise maintenant: ${liveCodeUsed}/${CODE_SIZE}B\nDerniere compilation: ${codeSize}/${CODE_SIZE}B\n\n── Data (0x1000-0x17FF) ──\nGlobales: ${memLayout.globals}/16B\nScratch: ${memLayout.scratch}/8B (fixe)\nLocales: ${memLayout.locals}/2024B\nReserve: ${dataUsed}/${dataMax}B\nLibre: ${dataFree}B\n\n── Stack (0x1800-0x1FFF) ──\nUtilise maintenant: ${stackUsed}/${stackMax}B\nSP: 0x${cpuState.sp.toString(16).padStart(4, "0")}\nLibre: ${stackMax - stackUsed}B\n\n── RAM totale (hors code) ──\nUtilise: ${totalRamUsed}/${totalRamMax}B\nLibre: ${totalRamFree}B`}
                   >
                     {/* Code region: 4096/8192 = 50% */}
                     <div
@@ -735,7 +748,7 @@ export function SoftwareView({
                       <div
                         className="absolute inset-y-0 left-0 bg-blue-500"
                         style={{
-                          width: `${Math.min(100, (codeSize / CODE_SIZE) * 100)}%`,
+                          width: `${Math.min(100, (liveCodeUsed / CODE_SIZE) * 100)}%`,
                         }}
                       />
                     </div>
@@ -751,22 +764,29 @@ export function SoftwareView({
                         }}
                       />
                     </div>
-                    {/* Stack region: 2048/8192 = 25% (always reserved) */}
+                    {/* Stack region: 2048/8192 = 25% (live usage from SP) */}
                     <div
-                      className="bg-orange-500/50"
+                      className="relative bg-orange-950/80"
                       style={{ width: "25%" }}
-                    />
+                    >
+                      <div
+                        className="absolute inset-y-0 left-0 bg-orange-500"
+                        style={{
+                          width: `${Math.min(100, (stackUsed / stackMax) * 100)}%`,
+                        }}
+                      />
+                    </div>
                   </div>
                   <span
                     className={`text-[10px] font-mono ${
-                      dataFree <= 0
+                      totalRamFree <= 0
                         ? "text-red-400"
-                        : dataFree < 50
+                        : totalRamFree < 50
                           ? "text-yellow-400"
                           : "text-slate-500"
                     }`}
                   >
-                    Libre:{dataFree}
+                    Stack:{stackUsed}
                   </span>
                 </>
               )}

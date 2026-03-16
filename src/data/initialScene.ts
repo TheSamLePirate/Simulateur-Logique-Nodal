@@ -493,14 +493,14 @@ export const initialNodes: Node[] = [
     data: { label: "KEY_RD", value: 0 },
   },
 
-  // External drive — 8K byte-addressed peripheral
+  // External drive — 64K byte-addressed peripheral
   {
     id: "drive",
     type: "drive",
     position: { x: 2100, y: 1060 },
     data: {
       label: "EXT DRIVE",
-      bytes: Array(8192).fill(0),
+      bytes: Array(65536).fill(0),
       q: Array(8).fill(0),
       currentAddress: 0,
       lastRead: 0,

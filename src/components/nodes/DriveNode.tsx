@@ -3,6 +3,7 @@ import { HardDrive } from "lucide-react";
 import { DRIVE_SIZE, DRIVE_PAGE_SIZE } from "../../cpu/isa";
 
 export const DriveNode = ({ data }: any) => {
+  const addrBits = Math.ceil(Math.log2(DRIVE_SIZE));
   const bytes: number[] = data.bytes || Array(DRIVE_SIZE).fill(0);
   const currentAddress = data.currentAddress || 0;
   const lastRead = data.lastRead || 0;
@@ -41,7 +42,7 @@ export const DriveNode = ({ data }: any) => {
       <div className="flex justify-between">
         <div className="flex flex-col gap-1">
           <div className="text-[8px] text-cyan-400 font-bold">ADDR</div>
-          {Array.from({ length: 13 }, (_, i) => i).map((i) => (
+          {Array.from({ length: addrBits }, (_, i) => i).map((i) => (
             <div key={`a${i}`} className="relative h-3 flex items-center">
               <Handle
                 type="target"

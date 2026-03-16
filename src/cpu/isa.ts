@@ -15,7 +15,7 @@
 export const MEMORY_SIZE = 8192;
 export const CODE_SIZE = 4096; // 0x0000..0x0FFF — code area (bytes)
 export const ADDR_MASK = 0x1fff; // 13-bit address mask
-export const DRIVE_SIZE = 8192;
+export const DRIVE_SIZE = 65536;
 export const DRIVE_PAGE_SIZE = 256;
 export const DRIVE_PAGE_COUNT = DRIVE_SIZE / DRIVE_PAGE_SIZE;
 
@@ -61,7 +61,7 @@ export const Opcode = {
   DRVRD: 0x24, // A ← drive[(page<<8)|A]
   DRVWR: 0x25, // drive[(page<<8)|A] ← B
   DRVCLR: 0x26, // external drive ← clear all bytes
-  DRVPG: 0x27, // drive page ← A low bits
+  DRVPG: 0x27, // drive page ← A
 
   // Arithmetic/Logic with immediate (3-byte, 16-bit operand, CPU uses low byte)
   LDA: 0x80,
@@ -194,7 +194,7 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
   [Opcode.DRVPG]: {
     mnemonic: "DRVPG",
     size: 1,
-    description: "drive page ← A & 0x1F",
+    description: "drive page ← A",
   },
 
   [Opcode.LDA]: { mnemonic: "LDA", size: 3, description: "A ← imm" },

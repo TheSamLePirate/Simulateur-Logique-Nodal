@@ -2214,8 +2214,9 @@ int page_used(int page) {
 int find_free_page() {
   int p;
   p = 1;
-  while (p < 32) {
+  while (1) {
     if (page_used(p) == 0) { return p; }
+    if (p == 255) { break; }
     p = p + 1;
   }
   return 0;
@@ -2226,8 +2227,9 @@ int count_free_pages() {
   int c;
   p = 1;
   c = 0;
-  while (p < 32) {
+  while (1) {
     if (page_used(p) == 0) { c = c + 1; }
+    if (p == 255) { break; }
     p = p + 1;
   }
   return c;

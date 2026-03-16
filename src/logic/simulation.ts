@@ -512,7 +512,7 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
       }
     } else if (node.type === "drive") {
       const driveSize = (node.data.bytes as number[])?.length || 256;
-      const addrBits = driveSize <= 256 ? 8 : 13;
+      const addrBits = Math.max(8, Math.ceil(Math.log2(driveSize)));
       let addr = 0;
       for (let i = 0; i < addrBits; i++) {
         if (getVal(node.id, `a${i}`)) addr |= 1 << i;

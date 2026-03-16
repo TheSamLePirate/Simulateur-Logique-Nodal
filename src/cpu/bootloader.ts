@@ -330,7 +330,7 @@ cmd_free:
   STA 0x1028
   LDM 0x1028
   TAB
-  LDA 31
+  LDA 255
   SUBB
   OUTD
   OUT 'p'
