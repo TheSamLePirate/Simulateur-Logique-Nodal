@@ -1604,10 +1604,10 @@ export default function App() {
   }, [setNodes]);
 
   const handleProgramLoaded = useCallback(
-    (bytes: number[]) => {
+    (image: { bytes: number[]; startAddr: number }) => {
       const cpu = hwCpuRef.current;
       cpu.reset();
-      cpu.loadProgram(bytes);
+      cpu.loadProgram(image.bytes, image.startAddr);
       setHwCpuLoaded(true);
       setHwCpuRunning(false);
       setHwCpuHalted(false);

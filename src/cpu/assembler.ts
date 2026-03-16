@@ -125,7 +125,7 @@ function parseOperandValue(
 /**
  * Assemble source code into machine bytes.
  */
-export function assemble(source: string): AssemblerResult {
+export function assemble(source: string, origin = 0): AssemblerResult {
   const lines = source.split("\n");
   const errors: AssemblerError[] = [];
   const labels = new Map<string, number>();
@@ -134,7 +134,7 @@ export function assemble(source: string): AssemblerResult {
   // ─── Pass 1: Collect labels, compute byte offsets ───
 
   const parsedLines: ParsedLine[] = [];
-  let byteOffset = 0;
+  let byteOffset = origin & 0xffff;
 
   for (let i = 0; i < lines.length; i++) {
     const parsed = parseLine(lines[i], i + 1);
@@ -183,7 +183,7 @@ export function assemble(source: string): AssemblerResult {
   const bytes: number[] = [];
 
   for (const parsed of parsedLines) {
-    const currentAddr = bytes.length;
+    const currentAddr = origin + bytes.length;
 
     // .db directive
     if (parsed.isDirective === ".db" && parsed.operandStr) {
@@ -270,10 +270,10 @@ export function assemble(source: string): AssemblerResult {
   }
 
   // ─── Check code size overflow ───
-  if (bytes.length > CODE_SIZE) {
+  if (origin < 0 || origin + bytes.length > CODE_SIZE) {
     errors.push({
       line: 0,
-      message: `Programme trop grand : ${bytes.length} octets (max ${CODE_SIZE}). Déborde sur la zone variables/données.`,
+      message: `Programme trop grand : ${origin + bytes.length} octets chargés (max ${CODE_SIZE}). Déborde sur la zone variables/données.`,
     });
   }
 

@@ -24,6 +24,10 @@ import {
   type CompileError,
   type MemoryLayout,
 } from "../../cpu/compiler";
+import {
+  getBootloaderImage,
+  writeProgramToBootDisk,
+} from "../../cpu/bootloader";
 import { EXAMPLES } from "../../cpu/examples";
 import { C_EXAMPLES } from "../../cpu/cexamples";
 import type { CPUState } from "../../cpu/isa";
@@ -64,7 +68,7 @@ export interface HardwareSyncData {
 
 interface SoftwareViewProps {
   onHardwareSync?: (data: HardwareSyncData) => void;
-  onProgramLoaded?: (bytes: number[]) => void;
+  onProgramLoaded?: (image: { bytes: number[]; startAddr: number }) => void;
 }
 
 export function SoftwareView({
@@ -86,6 +90,7 @@ export function SoftwareView({
   const [assembled, setAssembled] = useState(false);
   const [codeSize, setCodeSize] = useState(0);
   const [memLayout, setMemLayout] = useState<MemoryLayout | null>(null);
+  const [useBootloader, setUseBootloader] = useState(false);
 
   // CPU state (snapshot for React rendering)
   const [cpuState, setCpuState] = useState<CPUState>(createInitialState());
@@ -103,6 +108,9 @@ export function SoftwareView({
 
   // Memory write highlights
   const [memHighlights, setMemHighlights] = useState<Set<number>>(new Set());
+  const [compiledProgramBytes, setCompiledProgramBytes] = useState<number[] | null>(
+    null,
+  );
 
   // Derived: active code based on language
   const code = language === "c" ? cCode : asmCode;
@@ -153,6 +161,30 @@ export function SoftwareView({
 
   // ─── Assemble / Compile ───
   const handleAssemble = useCallback(() => {
+    const loadImage = (
+      programBytes: number[],
+      sourceMap: Map<number, number>,
+      layout: MemoryLayout | null,
+    ) => {
+      const cpu = cpuRef.current;
+      const image = useBootloader
+        ? getBootloaderImage()
+        : { bytes: programBytes, startAddr: 0 };
+
+      cpu.reset();
+      cpu.loadProgram(image.bytes, image.startAddr);
+      sourceMapRef.current = useBootloader ? new Map() : sourceMap;
+      syncCpuView(cpu);
+      setCompiledProgramBytes(programBytes);
+      setAssembled(true);
+      setIsRunning(false);
+      setErrors([]);
+      setCodeSize(programBytes.length);
+      setMemLayout(layout);
+      setMemHighlights(new Set());
+      onProgramLoaded?.(image);
+    };
+
     if (language === "c") {
       // C mode: compile → ASM → assemble
       const compileResult = compile(cCode);
@@ -166,6 +198,7 @@ export function SoftwareView({
         );
         setAssembled(false);
         setMemLayout(compileResult.memoryLayout || null);
+        setCompiledProgramBytes(null);
         // Still show partial ASM if available
         if (compileResult.assembly) {
           setAsmCode(compileResult.assembly);
@@ -187,21 +220,15 @@ export function SoftwareView({
         );
         setAssembled(false);
         setMemLayout(compileResult.memoryLayout || null);
+        setCompiledProgramBytes(null);
         return;
       }
 
-      const cpu = cpuRef.current;
-      cpu.reset();
-      cpu.loadProgram(asmResult.bytes);
-      sourceMapRef.current = asmResult.sourceMap;
-      syncCpuView(cpu);
-      setAssembled(true);
-      setIsRunning(false);
-      setErrors([]);
-      setCodeSize(asmResult.bytes.length);
-      setMemLayout(compileResult.memoryLayout || null);
-      setMemHighlights(new Set());
-      onProgramLoaded?.(asmResult.bytes);
+      loadImage(
+        asmResult.bytes,
+        asmResult.sourceMap,
+        compileResult.memoryLayout || null,
+      );
     } else {
       // ASM mode: direct assemble
       const result = assemble(asmCode);
@@ -213,24 +240,22 @@ export function SoftwareView({
       );
 
       if (result.success) {
-        const cpu = cpuRef.current;
-        cpu.reset();
-        cpu.loadProgram(result.bytes);
-        sourceMapRef.current = result.sourceMap;
-        syncCpuView(cpu);
-        setAssembled(true);
-        setIsRunning(false);
-        setCodeSize(result.bytes.length);
-        setMemLayout(null);
-        setMemHighlights(new Set());
-        onProgramLoaded?.(result.bytes);
+        loadImage(result.bytes, result.sourceMap, null);
       } else {
         setAssembled(false);
         setCodeSize(result.bytes.length);
         setMemLayout(null);
+        setCompiledProgramBytes(null);
       }
     }
-  }, [cCode, asmCode, language, onProgramLoaded, syncCpuView]);
+  }, [
+    cCode,
+    asmCode,
+    language,
+    onProgramLoaded,
+    syncCpuView,
+    useBootloader,
+  ]);
 
   // ─── Step ───
   const handleStep = useCallback(() => {
@@ -379,6 +404,7 @@ export function SoftwareView({
     (exCode: string) => {
       setCode(exCode);
       setAssembled(false);
+      setCompiledProgramBytes(null);
       setErrors([]);
       setIsRunning(false);
       const cpu = cpuRef.current;
@@ -388,6 +414,29 @@ export function SoftwareView({
     },
     [setCode, syncCpuView],
   );
+
+  const handleCompileToDisk = useCallback(() => {
+    if (!compiledProgramBytes) return;
+    const requestedName = window.prompt(
+      "Program name on disk (first character used by the boot shell):",
+      "a",
+    );
+    if (!requestedName) return;
+
+    try {
+      const nextDisk = writeProgramToBootDisk(
+        cpuRef.current.driveData,
+        requestedName,
+        compiledProgramBytes,
+      );
+      cpuRef.current.loadDriveData(nextDisk);
+      syncCpuView(cpuRef.current);
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not write program to disk.",
+      );
+    }
+  }, [compiledProgramBytes, syncCpuView]);
 
   const handleExportDisk = useCallback(() => {
     const blob = new Blob([cpuRef.current.exportDriveData()], {
@@ -511,6 +560,16 @@ export function SoftwareView({
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
 
+        <label className="flex items-center gap-2 px-2 py-1 rounded-md border border-slate-700 bg-slate-900 text-xs text-slate-300">
+          <input
+            type="checkbox"
+            checked={useBootloader}
+            onChange={(e) => setUseBootloader(e.target.checked)}
+            className="accent-cyan-500"
+          />
+          Use bootloader
+        </label>
+
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded border text-cyan-300 bg-cyan-500/10 border-cyan-500/30">
             <HardDrive size={12} />
@@ -527,6 +586,13 @@ export function SoftwareView({
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700"
           >
             <Download size={13} /> Export
+          </button>
+          <button
+            onClick={handleCompileToDisk}
+            disabled={!compiledProgramBytes}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/25 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <HardDrive size={13} /> Compile to Disk
           </button>
         </div>
 
