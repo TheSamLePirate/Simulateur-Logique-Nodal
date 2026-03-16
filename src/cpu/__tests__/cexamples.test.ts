@@ -134,16 +134,16 @@ describe("C Examples — Memory Layout", () => {
       // Scratch: always 8
       expect(ml.scratch).toBe(8);
 
-      // Locals: 0-488
+      // Locals: 0-2024
       expect(ml.locals).toBeGreaterThanOrEqual(0);
-      expect(ml.locals).toBeLessThanOrEqual(488);
+      expect(ml.locals).toBeLessThanOrEqual(2024);
 
-      // Stack: always 512
-      expect(ml.stackSize).toBe(512);
+      // Stack: always 2048
+      expect(ml.stackSize).toBe(2048);
 
-      // Data area (globals + scratch + locals) fits in 512 bytes
+      // Data area (globals + scratch + locals) fits in 2048 bytes
       const dataUsed = ml.globals + ml.scratch + ml.locals;
-      expect(dataUsed).toBeLessThanOrEqual(512);
+      expect(dataUsed).toBeLessThanOrEqual(2048);
     });
   }
 });
@@ -363,7 +363,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(64);
   });
 
-  it('"Test Mémoire 2K" fills all 2048 bytes and passes', () => {
+  it('"Test Mémoire" tests memory zones and passes', () => {
     const r = compileAndRun(C_EXAMPLES[17].code);
 
     // Verify output
@@ -376,24 +376,17 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).not.toContain("FAIL");
     expect(r.halted).toBe(true);
 
-    // Verify memory layout — ALL regions filled
+    // Verify memory layout
     const ml = r.memoryLayout;
     expect(ml.globals).toBe(16); // all 16 global slots
-    expect(ml.locals).toBe(488); // all 488 local slots (19×25 + 2 + 11)
+    expect(ml.locals).toBe(488); // 488 local slots (19×25 + 2 + 11)
     expect(ml.scratch).toBe(8); // scratch always 8
-    expect(ml.stackSize).toBe(512); // stack always 512
-
-    // Data area fully used: 16 + 8 + 488 = 512
-    expect(ml.globals + ml.scratch + ml.locals).toBe(512);
-
-    // Code should fill most of the 1024-byte code area
-    expect(r.codeSize).toBeGreaterThan(1000);
-    expect(r.codeSize).toBeLessThanOrEqual(1024);
+    expect(ml.stackSize).toBe(2048); // stack is 2048 in 8K layout
 
     // Verify actual memory values after execution
-    expect(r.cpu.state.memory[0x400]).toBe(42); // g0
-    expect(r.cpu.state.memory[0x40f]).toBe(15); // gf
-    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1); // stack restored (0x7FF)
+    expect(r.cpu.state.memory[0x1000]).toBe(42); // g0
+    expect(r.cpu.state.memory[0x100f]).toBe(15); // gf
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1); // stack restored (0x1FFF)
   });
 
   it('"Tableau (Tri)" sorts 8 elements correctly', () => {
@@ -733,7 +726,7 @@ describe("Compiler — Edge Cases", () => {
     `);
     expect(r.output).toBe("11");
     expect(r.halted).toBe(true);
-    // SP should be back to 0x7FF (empty stack)
+    // SP should be back to 0x1FFF (empty stack)
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
   });
 
@@ -1185,7 +1178,7 @@ describe("C Examples — Execution Properties", () => {
     "Spirale",
     "Tableau de nombres premiers",
     "Étoiles",
-    "Test Mémoire 2K",
+    "Test Mémoire",
     "Tableau (Tri)",
   ];
 

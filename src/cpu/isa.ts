@@ -5,16 +5,16 @@
  *   - Opcodes 0x00–0x7F → 1-byte instructions (no operand)
  *   - Opcodes 0x80–0xFF → 3-byte instructions (16-bit little-endian operand)
  *
- * Memory: 2048 bytes (11-bit address space, 0x000–0x7FF)
+ * Memory: 8192 bytes (13-bit address space, 0x0000–0x1FFF)
  * Registers: 8-bit A (accumulator), B (secondary)
- * PC, SP: 16-bit (masked to 11 bits)
+ * PC, SP: 16-bit (masked to 13 bits)
  */
 
 // ─── Memory constants ───
 
-export const MEMORY_SIZE = 2048;
-export const CODE_SIZE = 1024; // 0x000..0x3FF — code area (bytes)
-export const ADDR_MASK = 0x7ff; // 11-bit address mask
+export const MEMORY_SIZE = 8192;
+export const CODE_SIZE = 4096; // 0x0000..0x0FFF — code area (bytes)
+export const ADDR_MASK = 0x1fff; // 13-bit address mask
 
 // ─── Opcode constants ───
 
@@ -246,7 +246,7 @@ export function createInitialState(): CPUState {
     a: 0,
     b: 0,
     pc: 0,
-    sp: MEMORY_SIZE - 1, // stack starts at top of memory (0x3FF)
+    sp: MEMORY_SIZE - 1, // stack starts at top of memory (0x1FFF)
     flags: { z: false, c: false, n: false },
     memory: new Uint8Array(MEMORY_SIZE),
     halted: false,

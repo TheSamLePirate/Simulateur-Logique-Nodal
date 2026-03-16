@@ -572,14 +572,14 @@ int main() {
 }`,
   },
   {
-    name: "Test Mémoire 2K",
-    description: "Remplit les 2048 octets: code, données et pile",
-    code: `// Test Memoire 2K Complet
-// Remplit: 16 globales, 488 locales, ~1024 code, pile
+    name: "Test Mémoire",
+    description: "Teste les zones mémoire: globales, locales, pile",
+    code: `// Test Memoire
+// Teste: 16 globales, 488 locales, ~1024 code, pile
 // Verifie l'integrite apres appels de fonction
 // Attendu: =MEM 2K= g0=42 gf=15 r1=57 r2=5 PASS
 
-// -- 16 globales (zone 0x400-0x40F) --
+// -- 16 globales (zone 0x1000-0x100F) --
 int g0; int g1; int g2; int g3;
 int g4; int g5; int g6; int g7;
 int g8; int g9; int ga; int gb;

@@ -2,8 +2,8 @@
  * Software CPU simulator — executes programs assembled from our ISA.
  *
  * Pure TypeScript, no React dependencies.
- * Stack grows downward from 0x3FF.
- * Memory: 1024 bytes, 16-bit addresses.
+ * Stack grows downward from 0x1FFF.
+ * Memory: 8192 bytes, 16-bit addresses.
  */
 
 import {

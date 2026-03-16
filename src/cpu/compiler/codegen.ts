@@ -8,14 +8,14 @@
  *   A = expression result / accumulator
  *   B = secondary register for binary ops
  *
- * Memory layout (2048 bytes):
- *   0x000..0x3FF  = code (program, 1024 bytes)
- *   0x400..0x40F  = global variables (16 max)
- *   0x410..0x415  = arithmetic scratch (multiply, divide, bitwise)
- *   0x416          = scratch: unused
- *   0x417          = scratch: return value save
- *   0x418..0x5FF  = local variables and parameters (per-function, unique)
- *   0x600..0x7FF  = stack (512 bytes, grows downward from 0x7FF)
+ * Memory layout (8192 bytes):
+ *   0x0000..0x0FFF = code (program, 4096 bytes)
+ *   0x1000..0x100F = global variables (16 max)
+ *   0x1010..0x1015 = arithmetic scratch (multiply, divide, bitwise)
+ *   0x1016          = scratch: unused
+ *   0x1017          = scratch: return value save
+ *   0x1018..0x17FF = local variables and parameters (per-function, unique)
+ *   0x1800..0x1FFF = stack (2048 bytes, grows downward from 0x1FFF)
  *
  * Calling convention:
  *   - Caller writes args directly to callee's param addresses
@@ -53,10 +53,10 @@ interface FuncInfo {
 }
 
 // Scratch memory constants
-const TEMP_BASE = 0x410; // 0x410-0x415 for arithmetic
+const TEMP_BASE = 0x1010; // 0x1010-0x1015 for arithmetic
 const TEMP_COUNT = 6; // number of temp slots to save/restore
-const TEMP_RETVAL = 0x417; // save return value around POPs
-const STACK_BASE = 0x600; // stack occupies 0x600-0x7FF
+const TEMP_RETVAL = 0x1017; // save return value around POPs
+const STACK_BASE = 0x1800; // stack occupies 0x1800-0x1FFF
 
 export function generate(program: Program): {
   assembly: string;
@@ -66,8 +66,8 @@ export function generate(program: Program): {
   const errors: CodegenError[] = [];
   const lines: string[] = [];
   let labelCounter = 0;
-  let globalAddr = 0x400;
-  let varAddr = 0x418; // for locals and params (after scratch area)
+  let globalAddr = 0x1000;
+  let varAddr = 0x1018; // for locals and params (after scratch area)
 
   const globals = new Map<string, number>(); // name → address
   const globalArrays = new Map<string, ArrayInfo>(); // array name → info
@@ -91,7 +91,7 @@ export function generate(program: Program): {
   }
 
   function fmt(addr: number): string {
-    return "0x" + (addr & 0xffff).toString(16).padStart(3, "0");
+    return "0x" + (addr & 0xffff).toString(16).padStart(4, "0");
   }
 
   function allocVar(): number {
@@ -243,10 +243,10 @@ export function generate(program: Program): {
     assembly: lines.join("\n"),
     errors,
     memoryLayout: {
-      globals: globalAddr - 0x400,
-      scratch: 8, // 0x410-0x417 always reserved
-      locals: varAddr - 0x418,
-      stackSize: 512, // 0x600-0x7FF always reserved
+      globals: globalAddr - 0x1000,
+      scratch: 8, // 0x1010-0x1017 always reserved
+      locals: varAddr - 0x1018,
+      stackSize: 2048, // 0x1800-0x1FFF always reserved
     },
   };
 

@@ -8,7 +8,7 @@ A complete guide to the 8-bit computer built inside this simulator.
 
 1. [The Big Picture](#1-the-big-picture)
 2. [The CPU — Brain of the Computer](#2-the-cpu--brain-of-the-computer)
-3. [Memory — 2048 Bytes of RAM](#3-memory--2048-bytes-of-ram)
+3. [Memory — 8192 Bytes of RAM](#3-memory--8192-bytes-of-ram)
 4. [The Instruction Set (ISA)](#4-the-instruction-set-isa)
 5. [The Assembler — Text to Bytes](#5-the-assembler--text-to-bytes)
 6. [The C Compiler — High Level to ASM](#6-the-c-compiler--high-level-to-asm)
@@ -56,7 +56,7 @@ If you write **C code**, there's one extra step:
 The CPU is the part that actually **runs** your program. It reads instructions from memory one by one and executes them. Our CPU is very simple — it's an **8-bit** CPU, which means:
 
 - All numbers are between **0 and 255**
-- Memory addresses are **11-bit** (0 to 2047), so **2048 bytes** total
+- Memory addresses are **13-bit** (0 to 8191), so **8192 bytes** total
 - It processes **one instruction at a time**
 
 ### The Registers
@@ -67,8 +67,8 @@ Registers are tiny storage slots **inside** the CPU. They are much faster than m
 |----------|---------------|--------------------------------------------------------|
 | **A**    | Accumulator   | The main register. All math happens here.              |
 | **B**    | Secondary     | Helper register for two-operand operations.            |
-| **PC**   | Program Counter | Points to the next instruction to execute (16-bit, masked to 11 bits). |
-| **SP**   | Stack Pointer | Points to the top of the stack (starts at 0x7FF).      |
+| **PC**   | Program Counter | Points to the next instruction to execute (16-bit, masked to 13 bits). |
+| **SP**   | Stack Pointer | Points to the top of the stack (starts at 0x1FFF).     |
 
 ### The Flags
 
@@ -114,25 +114,25 @@ Memory addresses:    Stack grows DOWNWARD
 
 ---
 
-## 3. Memory — 2048 Bytes of RAM
+## 3. Memory — 8192 Bytes of RAM
 
-The entire computer has **2048 bytes** of memory (11-bit address space, 0x000–0x7FF). Everything lives here: code, variables, the stack. Here's how it's organized:
+The entire computer has **8192 bytes** of memory (13-bit address space, 0x0000–0x1FFF). Everything lives here: code, variables, the stack. Here's how it's organized:
 
 ```
-  Address         What's there
-  -----------     -------------------------------------------
-  0x000-0x3FF     CODE: Your program (instructions, 1024 bytes max)
-  0x400-0x40F     GLOBALS: Global variables (C compiler, 16 max)
-  0x410-0x415     SCRATCH: Temp values for multiply/divide
-  0x417           SCRATCH: Return value save
-  0x418-0x5FF     LOCALS: Function parameters & local vars
-  0x600-0x7FF     STACK: Grows downward from 0x7FF (512 bytes)
+  Address           What's there
+  ---------------   -------------------------------------------
+  0x0000-0x0FFF     CODE: Your program (instructions, 4096 bytes max)
+  0x1000-0x100F     GLOBALS: Global variables (C compiler, 16 max)
+  0x1010-0x1015     SCRATCH: Temp values for multiply/divide
+  0x1017             SCRATCH: Return value save
+  0x1018-0x17FF     LOCALS: Function parameters & local vars
+  0x1800-0x1FFF     STACK: Grows downward from 0x1FFF (2048 bytes)
 ```
 
 ### Important Rules
 
-- **Code starts at address 0x000.** The PC starts here when the CPU boots.
-- **The stack grows downward.** SP starts at 0x7FF and decreases with each PUSH.
+- **Code starts at address 0x0000.** The PC starts here when the CPU boots.
+- **The stack grows downward.** SP starts at 0x1FFF and decreases with each PUSH.
 - **STA does NOT update flags.** This is critical for writing correct ASM.
 - **POP, LDM, DEC, INC all DO update flags.** Be careful when using them between a comparison and a conditional jump!
 
