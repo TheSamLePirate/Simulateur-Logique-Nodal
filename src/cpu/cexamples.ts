@@ -221,18 +221,31 @@ int main() {
   },
   {
     name: "Calculatrice",
-    description: "Calculatrice interactive avec nombres 0-255",
+    description: "Calculatrice interactive avec 2 decimales",
     code: `// Calculatrice interactive (8-bit)
-// Tapez: nombre op nombre (ex: 123+45)
+// Tapez: nombre op nombre (ex: 2.14+3.24)
 // Operateurs: + - * / %
-// Valeurs: 0-255
+// Nombres entiers ou avec 2 decimales
 
 int last;
+int last_frac;
+int last_has_frac;
+
+int print_2d(int n) {
+  putchar(48 + n / 10);
+  putchar(48 + n % 10);
+  return 0;
+}
 
 int read_num() {
   int n;
   int c;
+  int frac;
+  int digits;
   n = 0;
+  frac = 0;
+  digits = 0;
+  last_has_frac = 0;
   c = getchar();
   while (c >= 48) {
     if (c > 57) { break; }
@@ -240,33 +253,269 @@ int read_num() {
     n = n * 10 + (c - 48);
     c = getchar();
   }
+  if (c == 46) {
+    last_has_frac = 1;
+    putchar(c);
+    c = getchar();
+    while (digits < 2) {
+      if (c < 48) { break; }
+      if (c > 57) { break; }
+      putchar(c);
+      frac = frac * 10 + (c - 48);
+      digits = digits + 1;
+      c = getchar();
+    }
+    if (digits == 1) {
+      frac = frac * 10;
+    }
+    while (c >= 48) {
+      if (c > 57) { break; }
+      putchar(c);
+      c = getchar();
+    }
+  }
   last = c;
+  last_frac = frac;
   return n;
 }
 
 int main() {
-  int a;
-  int b;
+  int ai;
+  int af;
+  int bi;
+  int bf;
+  int a_dec;
+  int b_dec;
   int op;
-  int r;
+  int neg;
+  int show_frac;
+  int ri;
+  int rf;
+  int i;
+  int d1;
+  int d2;
+  int t;
+  int tf;
+  int tmp;
 
   while (1) {
     print("> ");
-    a = read_num();
+    ai = read_num();
+    af = last_frac;
+    a_dec = last_has_frac;
     op = last;
     putchar(op);
-    b = read_num();
+    bi = read_num();
+    bf = last_frac;
+    b_dec = last_has_frac;
     putchar(10);
 
-    r = 0;
-    if (op == 43) { r = a + b; }
-    if (op == 45) { r = a - b; }
-    if (op == 42) { r = a * b; }
-    if (op == 47) { if (b != 0) { r = a / b; } }
-    if (op == 37) { if (b != 0) { r = a % b; } }
+    neg = 0;
+    ri = 0;
+    rf = 0;
+
+    if (op == 43) {
+      ri = ai + bi;
+      rf = af + bf;
+      if (rf >= 100) {
+        rf = rf - 100;
+        ri = ri + 1;
+      }
+    }
+
+    if (op == 45) {
+      if (ai < bi) {
+        neg = 1;
+        tmp = ai;
+        ai = bi;
+        bi = tmp;
+        tmp = af;
+        af = bf;
+        bf = tmp;
+      } else {
+        if (ai == bi) {
+          if (af < bf) {
+            neg = 1;
+            tmp = ai;
+            ai = bi;
+            bi = tmp;
+            tmp = af;
+            af = bf;
+            bf = tmp;
+          }
+        }
+      }
+      ri = ai;
+      rf = af;
+      if (rf < bf) {
+        rf = rf + 100;
+        ri = ri - 1;
+      }
+      rf = rf - bf;
+      ri = ri - bi;
+    }
+
+    if (op == 42) {
+      i = 0;
+      while (i < ai) {
+        rf = rf + bf;
+        if (rf >= 100) {
+          rf = rf - 100;
+          ri = ri + 1;
+        }
+        ri = ri + bi;
+        i = i + 1;
+      }
+
+      i = 0;
+      while (i < bi) {
+        rf = rf + af;
+        if (rf >= 100) {
+          rf = rf - 100;
+          ri = ri + 1;
+        }
+        i = i + 1;
+      }
+
+      t = 0;
+      tf = 0;
+      i = 0;
+      while (i < af) {
+        tf = tf + bf;
+        if (tf >= 100) {
+          tf = tf - 100;
+          t = t + 1;
+        }
+        i = i + 1;
+      }
+      rf = rf + t;
+      if (rf >= 100) {
+        rf = rf - 100;
+        ri = ri + 1;
+      }
+    }
+
+    if (op == 47) {
+      if (bi != 0 || bf != 0) {
+        t = ai;
+        tf = af;
+        while (1) {
+          if (t < bi) { break; }
+          if (t == bi) {
+            if (tf < bf) { break; }
+          }
+          if (tf < bf) {
+            tf = tf + 100;
+            t = t - 1;
+          }
+          tf = tf - bf;
+          t = t - bi;
+          ri = ri + 1;
+        }
+
+        d1 = 0;
+        d2 = 0;
+
+        if (t != 0 || tf != 0) {
+          ai = 0;
+          af = 0;
+          i = 0;
+          while (i < 10) {
+            af = af + tf;
+            if (af >= 100) {
+              af = af - 100;
+              ai = ai + 1;
+            }
+            ai = ai + t;
+            i = i + 1;
+          }
+
+          while (1) {
+            if (ai < bi) { break; }
+            if (ai == bi) {
+              if (af < bf) { break; }
+            }
+            if (af < bf) {
+              af = af + 100;
+              ai = ai - 1;
+            }
+            af = af - bf;
+            ai = ai - bi;
+            d1 = d1 + 1;
+          }
+
+          if (ai != 0 || af != 0) {
+            t = 0;
+            tf = 0;
+            i = 0;
+            while (i < 10) {
+              tf = tf + af;
+              if (tf >= 100) {
+                tf = tf - 100;
+                t = t + 1;
+              }
+              t = t + ai;
+              i = i + 1;
+            }
+
+            while (1) {
+              if (t < bi) { break; }
+              if (t == bi) {
+                if (tf < bf) { break; }
+              }
+              if (tf < bf) {
+                tf = tf + 100;
+                t = t - 1;
+              }
+              tf = tf - bf;
+              t = t - bi;
+              d2 = d2 + 1;
+            }
+          }
+        }
+
+        rf = d1 * 10 + d2;
+      }
+    }
+
+    if (op == 37) {
+      if (bi != 0 || bf != 0) {
+        t = ai;
+        tf = af;
+        while (1) {
+          if (t < bi) { break; }
+          if (t == bi) {
+            if (tf < bf) { break; }
+          }
+          if (tf < bf) {
+            tf = tf + 100;
+            t = t - 1;
+          }
+          tf = tf - bf;
+          t = t - bi;
+        }
+        ri = t;
+        rf = tf;
+      }
+    }
+
+    show_frac = 0;
+    if (a_dec || b_dec) {
+      show_frac = 1;
+    }
+    if (rf != 0) {
+      show_frac = 1;
+    }
 
     print("= ");
-    print_num(r);
+    if (neg) {
+      putchar(45);
+    }
+    print_num(ri);
+    if (show_frac) {
+      putchar(46);
+      print_2d(rf);
+    }
     putchar(10);
   }
   return 0;

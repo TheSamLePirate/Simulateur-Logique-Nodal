@@ -271,12 +271,37 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("= 100");
   });
 
+  it('"Calculatrice" computes 2.14+3.24=5.38', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "2.14+3.24\n",
+      maxCycles: 2_000_000,
+    });
+    expect(r.output).toContain("2.14+3.24");
+    expect(r.output).toContain("= 5.38");
+  });
+
+  it('"Calculatrice" computes 2.14*3.24=6.93', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "2.14*3.24\n",
+      maxCycles: 2_000_000,
+    });
+    expect(r.output).toContain("= 6.93");
+  });
+
   it('"Calculatrice" computes 100/4=25', () => {
     const r = compileAndRun(C_EXAMPLES[9].code, {
       input: "100/4\n",
       maxCycles: 500_000,
     });
     expect(r.output).toContain("= 25");
+  });
+
+  it('"Calculatrice" computes 10/4=2.50', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "10/4\n",
+      maxCycles: 2_000_000,
+    });
+    expect(r.output).toContain("= 2.50");
   });
 
   it('"Calculatrice" computes 10%3=1', () => {
