@@ -89,7 +89,7 @@ function parseLine(raw: string, lineNum: number): ParsedLine {
  */
 function parseOperandValue(
   operandStr: string,
-): { value: number } | { label: string } | null {
+): { value: number } | { label: string; offset?: number } | null {
   if (!operandStr) return null;
 
   const s = operandStr.trim();
@@ -114,9 +114,19 @@ function parseOperandValue(
     return { value: parseInt(s, 10) & 0xffff };
   }
 
-  // Label reference
-  if (/^[a-zA-Z_]\w*$/.test(s)) {
-    return { label: s.toUpperCase() };
+  // Label reference, optionally with +offset / -offset
+  const labelExpr = s.match(
+    /^([a-zA-Z_]\w*)(?:([+-])((?:0x[0-9a-fA-F]+)|(?:\d+)))?$/,
+  );
+  if (labelExpr) {
+    let offset = 0;
+    if (labelExpr[2] && labelExpr[3]) {
+      const rawOffset = /^0x/i.test(labelExpr[3])
+        ? parseInt(labelExpr[3], 16)
+        : parseInt(labelExpr[3], 10);
+      offset = labelExpr[2] === "-" ? -rawOffset : rawOffset;
+    }
+    return { label: labelExpr[1].toUpperCase(), offset };
   }
 
   return null;
@@ -125,7 +135,7 @@ function parseOperandValue(
 /**
  * Assemble source code into machine bytes.
  */
-export function assemble(source: string, origin = 0): AssemblerResult {
+export function assemble(source: string, origin = 0, maxAddress = CODE_SIZE): AssemblerResult {
   const lines = source.split("\n");
   const errors: AssemblerError[] = [];
   const labels = new Map<string, number>();
@@ -205,7 +215,7 @@ export function assemble(source: string, origin = 0): AssemblerResult {
             });
             bytes.push(0);
           } else {
-            bytes.push(addr & 0xff);
+            bytes.push((addr + (val.offset || 0)) & 0xff);
           }
         } else {
           bytes.push(val.value & 0xff);
@@ -250,8 +260,9 @@ export function assemble(source: string, origin = 0): AssemblerResult {
             });
             bytes.push(0, 0);
           } else {
-            bytes.push(addr & 0xff); // low byte
-            bytes.push((addr >> 8) & 0xff); // high byte
+            const resolved = (addr + (val.offset || 0)) & 0xffff;
+            bytes.push(resolved & 0xff); // low byte
+            bytes.push((resolved >> 8) & 0xff); // high byte
           }
         } else {
           bytes.push(val.value & 0xff); // low byte
@@ -270,10 +281,10 @@ export function assemble(source: string, origin = 0): AssemblerResult {
   }
 
   // ─── Check code size overflow ───
-  if (origin < 0 || origin + bytes.length > CODE_SIZE) {
+  if (origin < 0 || origin + bytes.length > maxAddress) {
     errors.push({
       line: 0,
-      message: `Programme trop grand : ${origin + bytes.length} octets chargés (max ${CODE_SIZE}). Déborde sur la zone variables/données.`,
+      message: `Programme trop grand : ${origin + bytes.length} octets chargés (max ${maxAddress}).`,
     });
   }
 

@@ -574,7 +574,7 @@ clear();
 
 Reads one byte from the external drive.
 
-`addr` is an 8-bit drive address from `0` to `255`.
+`addr` is an 8-bit offset inside the currently selected drive page.
 
 ```c
 int value;
@@ -592,6 +592,34 @@ drive_write(10, 65);
 putchar(drive_read(10));
 ```
 
+#### `drive_set_page(page)`
+
+Selects the current external drive page.
+
+The 8 KB drive is split into `32` pages of `256` bytes.
+
+```c
+drive_set_page(1);
+drive_write(10, 65);
+```
+
+#### `drive_read_at(page, addr)`
+
+Reads directly from a specific page and offset.
+
+```c
+int value;
+value = drive_read_at(1, 10);
+```
+
+#### `drive_write_at(page, addr, value)`
+
+Writes directly to a specific page and offset.
+
+```c
+drive_write_at(1, 10, 65);
+```
+
 #### `drive_clear()`
 
 Clears the whole external drive to `0`.
@@ -600,7 +628,9 @@ Clears the whole external drive to `0`.
 drive_clear();
 ```
 
-The external drive has `256` bytes and persists across CPU reset, which makes it useful for tiny file systems or saving state between runs.
+The external drive has `8192` bytes and persists across CPU reset, which makes it useful for tiny file systems, bootable programs, or saving state between runs.
+
+The `FS Disque Externe` example and the bootloader shell both use the same disk format, so files and compiled programs can coexist on the same disk image.
 
 ### Misc
 

@@ -5,22 +5,11 @@ import { CPU } from "../cpu";
 import {
   getBootloaderImage,
   readBootDiskEntries,
+  writeFileToBootDisk,
   writeProgramToBootDisk,
 } from "../bootloader";
 
-function runBootCommand(driveProgramName: string, command: string) {
-  const asm = assemble(`
-    OUT 'O'
-    OUT 'K'
-    HLT
-  `);
-  expect(asm.success).toBe(true);
-
-  const disk = writeProgramToBootDisk(
-    new Uint8Array(8192),
-    driveProgramName,
-    asm.bytes,
-  );
+function runBootCommand(disk: Uint8Array, command: string) {
   const boot = getBootloaderImage();
   const cpu = new CPU();
 
@@ -42,6 +31,13 @@ function runBootCommand(driveProgramName: string, command: string) {
 }
 
 describe("bootloader shell", () => {
+  const asm = assemble(`
+    OUT 'O'
+    OUT 'K'
+    HLT
+  `);
+  expect(asm.success).toBe(true);
+
   it("stores programs on the boot disk directory", () => {
     const disk = writeProgramToBootDisk(
       new Uint8Array(8192),
@@ -52,19 +48,38 @@ describe("bootloader shell", () => {
 
     expect(entries).toHaveLength(1);
     expect(entries[0].name).toBe("a");
+    expect(entries[0].type).toBe(2);
     expect(entries[0].pageCount).toBe(1);
     expect(entries[0].bytes[0]).toBe(0xc0);
   });
 
-  it("lists boot disk programs", () => {
-    const result = runBootCommand("a", "ls");
-    expect(result.output).toContain("BOOT SHELL");
-    expect(result.output).toContain("a 1p");
+  it("lists boot disk files and programs", () => {
+    const disk0 = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const disk1 = writeFileToBootDisk(
+      disk0,
+      "t",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+    const result = runBootCommand(disk1, "ls");
+    expect(result.output).toContain("UNIX BOOT");
+    expect(result.output).toContain("p a 1p");
+    expect(result.output).toContain("f t 5b");
   });
 
   it("runs a program from disk", () => {
-    const result = runBootCommand("a", "run a");
+    const disk = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const result = runBootCommand(disk, "run a");
     expect(result.output).toContain("OK");
     expect(result.cpu.state.halted).toBe(true);
+  });
+
+  it("cats a text file from disk", () => {
+    const disk = writeFileToBootDisk(
+      new Uint8Array(8192),
+      "t",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+    const result = runBootCommand(disk, "cat t");
+    expect(result.output).toContain("hello");
   });
 });

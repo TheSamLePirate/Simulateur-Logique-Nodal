@@ -753,7 +753,7 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **plotter** | Plotter | 256×256 pixel display |
 | **plotDraw** | Input | Plotter draw strobe |
 | **plotClear** | Input | Clear plotter display |
-| **drive** | Drive | 256-byte external storage peripheral |
+| **drive** | Drive | 8 KB external storage peripheral |
 | **driveRd** | Input | Drive read strobe |
 | **driveWr** | Input | Drive write strobe |
 | **driveClear** | Input | Clear the external drive |
@@ -777,24 +777,25 @@ The console also has a **keyboard input field** at the bottom. Text typed there 
 
 ### External Drive Node Details
 
-The external drive node is a **persistent 256-byte storage device**. It is connected to the CPU's `A` register for addressing and `B` register for write data.
+The external drive node is a **persistent 8 KB storage device**. It supports a full **13-bit address** (`0..8191`) and is used both for raw byte access and for the bootloader's disk file system.
 
 **Left side (inputs):**
-- **A0-A7**: 8-bit address bus
+- **A0-A12**: 13-bit address bus
 - **D0-D7**: 8-bit data input bus for writes
 - **RD**: Read strobe — on rising edge, loads the selected byte onto Q0-Q7
 - **WR**: Write strobe — on rising edge, stores D0-D7 into the selected drive address
-- **CLR**: Clear strobe — zeroes the whole 256-byte drive
+- **CLR**: Clear strobe — zeroes the whole 8 KB drive
 
 **Right side (outputs):**
 - **Q0-Q7**: 8-bit data output bus containing the last byte read
 
-The node also shows a small hex preview of the first bytes of the drive plus the last read and write values, which makes it easy to debug a file system or saved state visually.
+The node shows the current absolute address, the current page preview, and the last read/write values, which makes it easier to debug the shared disk file system and bootloader programs visually.
 
 In the software CPU, the matching instructions are:
 
-- `DRVRD` to read `drive[A]` into `A`
-- `DRVWR` to write `B` into `drive[A]`
+- `DRVPG` to select the current drive page in the software CPU
+- `DRVRD` to read `drive[(page << 8) + A]` into `A`
+- `DRVWR` to write `B` into `drive[(page << 8) + A]`
 - `DRVCLR` to erase the drive
 
 The external drive is intentionally **not cleared by CPU reset**, so it behaves more like removable storage than normal RAM.
@@ -811,7 +812,7 @@ The external drive is intentionally **not cleared by CPU reset**, so it behaves 
 
 5. **Read from memory:** Set memAddr, memWE to 0. memOut shows the stored value.
 
-6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. The program is loaded into SRAM and the CPU executes it step-by-step, with all control signals, data paths, and wires animating in real time.
+6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. In direct mode the program is loaded normally. In bootloader mode the Unix-like shell is loaded instead and compiled programs can be stored on the external drive, listed, and launched from there.
 
 ---
 

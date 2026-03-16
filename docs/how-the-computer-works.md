@@ -222,30 +222,34 @@ wait:
 | `OUTD`    | 0x21   | 1     | Print A as a decimal number      |
 | `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) on plotter  |
 | `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
-| `DRVRD`   | 0x24   | 1     | A = external_drive[A]            |
-| `DRVWR`   | 0x25   | 1     | external_drive[A] = B            |
+| `DRVRD`   | 0x24   | 1     | A = external_drive[(page<<8) + A] |
+| `DRVWR`   | 0x25   | 1     | external_drive[(page<<8) + A] = B |
 | `DRVCLR`  | 0x26   | 1     | Clear the external drive         |
+| `DRVPG`   | 0x27   | 1     | Select the current external drive page |
 | `OUT imm` | 0xC0   | 3     | Print immediate as ASCII char    |
 
 #### External Drive I/O
 
-The CPU has a built-in **256-byte external drive** that acts like a tiny persistent storage device.
+The CPU has a built-in **8 KB external drive** that acts like a tiny persistent storage device.
 
-- `DRVRD` uses the current value of `A` as the drive address and replaces `A` with the byte stored there
-- `DRVWR` uses `A` as the drive address and writes the current value of `B`
-- `DRVCLR` fills all 256 drive bytes with `0`
+- `DRVPG` selects one of `32` drive pages
+- `DRVRD` uses the current page plus the current value of `A` as the drive address and replaces `A` with the byte stored there
+- `DRVWR` uses the current page plus `A` as the drive address and writes the current value of `B`
+- `DRVCLR` fills all `8192` drive bytes with `0`
 
 Unlike normal RAM, the external drive contents are **not erased by CPU reset**. This makes it useful for tiny file systems and saved state between runs.
 
 Example:
 
 ```asm
-  LDA 10        ; address 10
+  LDA 1
+  DRVPG         ; select page 1
+  LDA 10        ; offset 10 inside that page
   LDB 65        ; ASCII 'A'
-  DRVWR         ; drive[10] = 65
+  DRVWR         ; drive[0x010A] = 65
 
   LDA 10
-  DRVRD         ; A = drive[10]
+  DRVRD         ; A = drive[0x010A]
   OUTA          ; prints A
 ```
 
@@ -673,7 +677,7 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
 | Input | `getchar()`, `getKey(0)` | Console and keyboard built-ins |
 | Plotter | `draw(x, y)`, `clear()` | Drawing built-ins |
-| External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()` | 256-byte persistent storage |
+| External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()`, `drive_set_page(p)`, `drive_read_at(p, a)`, `drive_write_at(p, a, v)` | 8 KB persistent storage |
 | Constants | `#define MAX 100` | Preprocessor |
 
 ### Console Input in C
@@ -703,24 +707,57 @@ __wait:
 
 ### External Drive in C
 
-The compiler exposes the external drive with three built-ins:
+The compiler exposes the external drive with page-aware built-ins:
 
 - `drive_read(addr)` returns the byte stored at drive address `addr`
 - `drive_write(addr, value)` writes one byte and evaluates to `value`
 - `drive_clear()` fills the whole drive with `0`
+- `drive_set_page(page)` selects the active page for subsequent `drive_read` / `drive_write`
+- `drive_read_at(page, addr)` reads directly from any page
+- `drive_write_at(page, addr, value)` writes directly to any page
 
-The drive is **256 bytes total** and survives `reset()`, so it can be used as a tiny persistent disk.
+The drive is **8192 bytes total** and survives `reset()`, so it can be used as a tiny persistent disk.
 
 ```c
 int main() {
   drive_clear();
+  drive_set_page(1);
   drive_write(10, 65);
   putchar(drive_read(10));
+  putchar(drive_read_at(1, 10));
   return 0;
 }
 ```
 
-One of the bundled C examples, `FS Disque Externe`, builds a tiny file system on top of these three operations.
+One of the bundled C examples, `FS Disque Externe`, builds a shared disk file system on top of these operations. The bootloader shell uses the same on-disk format, so programs compiled to disk from the software view are visible there too.
+
+### Bootloader and Disk Programs
+
+The software view now has an optional **bootloader mode**.
+
+- **Use bootloader** loads a small Unix-like shell into high memory instead of running the current program directly
+- **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format
+- the boot shell can then `ls`, `run x`, `cat x`, `free`, and `help`
+
+The bootloader lives in upper RAM and copies a selected disk program down to address `0x0000` before jumping to it. That means disk-loaded programs can use the normal code budget instead of a reduced boot-only limit.
+
+### Shared Disk Format
+
+The bootloader shell and the `FS Disque Externe` example now use the **same disk layout**.
+
+- Disk byte `0` = magic marker
+- Disk byte `1` = filesystem version
+- The directory begins at byte `0x10`
+- Each directory entry stores:
+  name, type, start page, page count, size
+- Type `1` = normal text file
+- Type `2` = runnable program
+
+That means:
+
+- programs compiled with **Compile to Disk** appear in `FS Disque Externe`
+- text files created by `FS Disque Externe` appear in the boot shell `ls`
+- the boot shell refuses to `run` text files, and `FS Disque Externe` refuses to overwrite program entries
 
 ### NOT Supported
 
@@ -738,14 +775,16 @@ src/cpu/
   cpu.ts              The CPU simulator (fetch-execute loop)
   assembler.ts        Two-pass assembler (ASM text → bytes)
   examples.ts         Example ASM programs
-  cexamples.ts        Example C programs (19 examples)
+  cexamples.ts        Example C programs
+  bootloader.ts       Bootable disk format + Unix-like shell image
   compiler/
     lexer.ts          Tokenizer (text → tokens)
     parser.ts         Parser (tokens → AST)
     codegen.ts        Code generator (AST → ASM text)
     index.ts          Compiler entry point (chains all phases)
   __tests__/
-    cexamples.test.ts Unit tests for all C examples (141 tests)
+    cexamples.test.ts Unit tests for C examples and compiler behavior
+    bootloader.test.ts Disk bootloader and shared filesystem tests
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
@@ -753,6 +792,8 @@ src/components/software/
   CPUState.tsx        Register and flag display
   MemoryView.tsx      2048-byte memory hex viewer
   ConsolePanel.tsx    Text output console with keyboard input field
+                     Also includes disk import/export, bootloader toggle,
+                     and "Compile to Disk"
 
 src/components/nodes/
   DriveNode.tsx       External 256-byte drive with read/write/clear controls
@@ -765,14 +806,16 @@ src/components/nodes/
   2. Click "Assembler" (or "Compiler" for C)
   3. If C: Compiler produces ASM text → shown in ASM tab
   4. Assembler converts ASM text → machine bytes
-  5. Bytes are loaded into CPU memory starting at address 0x000
-  6. PC is set to 0x000
-  7. Click "Step" to execute one instruction at a time
+  5. If bootloader mode is OFF: bytes are loaded at address 0x000
+  6. If bootloader mode is ON: the boot shell is loaded in high memory instead
+  7. "Compile to Disk" can store the compiled program on the external drive
+  8. The boot shell can then run that program from disk
+  9. Click "Step" to execute one instruction at a time
      or "Run" to execute continuously
-  8. CPU state (registers, memory, flags) updates in real time
-  9. Output appears in the console panel
-  10. Input is typed in the console input field and submitted with Enter
-  11. CPU halts when it executes HLT
+  10. CPU state (registers, memory, flags) updates in real time
+  11. Output appears in the console panel
+  12. Input is typed in the console input field and submitted with Enter
+  13. CPU halts when it executes HLT
 ```
 
 ---

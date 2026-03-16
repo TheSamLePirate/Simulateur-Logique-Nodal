@@ -10,6 +10,7 @@ import { compile } from "../compiler";
 import { assemble } from "../assembler";
 import { CPU } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
+import { writeProgramToBootDisk } from "../bootloader";
 import { CODE_SIZE, MEMORY_SIZE } from "../isa";
 
 // ─── Test helpers ───
@@ -34,9 +35,14 @@ interface RunResult {
  */
 function compileAndRun(
   source: string,
-  options: { maxCycles?: number; input?: string; keyState?: number[] } = {},
+  options: {
+    maxCycles?: number;
+    input?: string;
+    keyState?: number[];
+    driveData?: ArrayLike<number>;
+  } = {},
 ): RunResult {
-  const { maxCycles = 500_000, input, keyState } = options;
+  const { maxCycles = 500_000, input, keyState, driveData } = options;
 
   // Compile C → ASM
   const cr = compile(source);
@@ -56,6 +62,9 @@ function compileAndRun(
 
   // Run on CPU
   const cpu = new CPU();
+  if (driveData) {
+    cpu.loadDriveData(driveData);
+  }
   cpu.loadProgram(ar.bytes);
 
   // Set keyboard state if provided
@@ -515,18 +524,29 @@ describe("C Examples — Output Verification", () => {
     const example = C_EXAMPLES.find((e) => e.name === "FS Disque Externe");
     expect(example).toBeDefined();
 
+    const prog = assemble(`
+      OUT 'O'
+      OUT 'K'
+      HLT
+    `);
+    expect(prog.success).toBe(true);
+    const disk = writeProgramToBootDisk(new Uint8Array(8192), "p", prog.bytes);
+
     const r = compileAndRun(example!.code, {
-      input: "fmt\ntouch a\nhello>a\ncat a\nls\n",
+      input: "ls\ntouch a\nhello>a\ncat a\nls\nfree\n",
       maxCycles: 4_000_000,
+      driveData: disk,
     });
 
     expect(r.halted).toBe(false);
     expect(r.output).toContain("=== FS DISQUE EXTERNE ===");
-    expect(r.output).toContain("formatted");
     expect(r.output).toContain("created a");
+    expect(r.output).toContain("saved a");
     expect(r.output).toContain("hello");
-    expect(r.output).toContain("a (5)");
-    expect(r.cpu.driveData[0]).toBe(68);
+    expect(r.output).toContain("p 1p");
+    expect(r.output).toContain("f a 5b");
+    expect(r.output).toContain("29p");
+    expect(r.cpu.driveData[0]).toBe(66);
   });
 });
 

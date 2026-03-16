@@ -1987,10 +1987,20 @@ int main() {
   {
     name: "FS Disque Externe",
     description: "Petit systeme de fichiers sur le lecteur externe IO",
-    code: `// Petit systeme de fichiers sur lecteur externe
-// Commandes: fmt, touch f, ls, cat f, txt>f
+    code: `// FS partage avec le bootloader
+// Commandes: fmt, ls, touch f, rm f, cat f, free, txt>f
 
 int line[16];
+
+int d0r(int a) {
+  drive_set_page(0);
+  return drive_read(a);
+}
+
+int d0w(int a, int v) {
+  drive_set_page(0);
+  return drive_write(a, v);
+}
 
 int read_line() {
   int ch;
@@ -2010,62 +2020,126 @@ int read_line() {
   return n;
 }
 
+int entry_base(int slot) {
+  return 16 + (slot * 5);
+}
+
+int entry_name(int slot) {
+  return d0r(entry_base(slot));
+}
+
+int entry_type(int slot) {
+  return d0r(entry_base(slot) + 1);
+}
+
+int entry_page(int slot) {
+  return d0r(entry_base(slot) + 2);
+}
+
+int entry_pages(int slot) {
+  return d0r(entry_base(slot) + 3);
+}
+
+int entry_size(int slot) {
+  return d0r(entry_base(slot) + 4);
+}
+
+int set_entry(int slot, int name, int typev, int page, int pages, int size) {
+  int base;
+  base = entry_base(slot);
+  d0w(base, name);
+  d0w(base + 1, typev);
+  d0w(base + 2, page);
+  d0w(base + 3, pages);
+  d0w(base + 4, size);
+  return 0;
+}
+
+int clear_entry(int slot) {
+  return set_entry(slot, 0, 0, 0, 0, 0);
+}
+
 int format_drive() {
   int i;
   drive_clear();
-  drive_write(0, 68);
+  d0w(0, 66);
+  d0w(1, 2);
   i = 0;
-  while (i < 4) {
-    drive_write(1 + i + i, 0);
-    drive_write(2 + i + i, 0);
+  while (i < 8) {
+    clear_entry(i);
     i = i + 1;
   }
   return 0;
 }
 
 int ensure_drive() {
-  if (drive_read(0) != 68) {
+  if (d0r(0) != 66) {
+    format_drive();
+  }
+  if (d0r(1) != 2) {
     format_drive();
   }
   return 0;
 }
 
-int file_name(int slot) {
-  return drive_read(1 + slot + slot);
+int find_entry(int name) {
+  int i;
+  i = 0;
+  while (i < 8) {
+    if (entry_name(i) == name) { return i; }
+    i = i + 1;
+  }
+  return 255;
 }
 
-int file_len(int slot) {
-  return drive_read(2 + slot + slot);
+int find_free_slot() {
+  int i;
+  i = 0;
+  while (i < 8) {
+    if (entry_name(i) == 0) { return i; }
+    i = i + 1;
+  }
+  return 255;
 }
 
-int set_meta(int slot, int name, int len) {
-  drive_write(1 + slot + slot, name);
-  drive_write(2 + slot + slot, len);
+int page_used(int page) {
+  int i;
+  int start;
+  int stop;
+  i = 0;
+  while (i < 8) {
+    if (entry_name(i) != 0) {
+      start = entry_page(i);
+      stop = start + entry_pages(i);
+      if (page >= start) {
+        if (page < stop) { return 1; }
+      }
+    }
+    i = i + 1;
+  }
   return 0;
 }
 
-int find_file(int name) {
-  int i;
-  i = 0;
-  while (i < 4) {
-    if (file_name(i) == name) { return i; }
-    i = i + 1;
+int find_free_page() {
+  int p;
+  p = 1;
+  while (p < 32) {
+    if (page_used(p) == 0) { return p; }
+    p = p + 1;
   }
-  return 255;
+  return 0;
 }
 
-int find_free() {
-  int i;
-  i = 0;
-  while (i < 4) {
-    if (file_name(i) == 0) { return i; }
-    i = i + 1;
+int count_free_pages() {
+  int p;
+  int c;
+  p = 1;
+  c = 0;
+  while (p < 32) {
+    if (page_used(p) == 0) { c = c + 1; }
+    p = p + 1;
   }
-  return 255;
-}
-
-int block_addr(int slot) {
-  return 16 + (slot * 16);
+  return c;
 }
 
 int main() {
@@ -2073,14 +2147,14 @@ int main() {
   int slot;
   int name;
   int i;
-  int base;
-  int len;
+  int pos;
+  int page;
   int found;
 
   ensure_drive();
   print("=== FS DISQUE EXTERNE ===");
   putchar(10);
-  print("fmt | touch f | ls | cat f | txt>f");
+  print("fmt | ls | touch f | rm f | cat f | free | txt>f");
   putchar(10);
 
   while (1) {
@@ -2097,20 +2171,36 @@ int main() {
           continue;
         }
       }
+      if (line[1] == 'r') {
+        if (line[2] == 'e') {
+          if (line[3] == 'e') {
+            print_num(count_free_pages());
+            putchar('p');
+            putchar(10);
+            continue;
+          }
+        }
+      }
     }
 
     if (line[0] == 'l') {
       if (line[1] == 's') {
         found = 0;
         i = 0;
-        while (i < 4) {
-          name = file_name(i);
+        while (i < 8) {
+          name = entry_name(i);
           if (name != 0) {
+            if (entry_type(i) == 1) { putchar('f'); } else { putchar('p'); }
+            putchar(' ');
             putchar(name);
             putchar(' ');
-            putchar('(');
-            print_num(file_len(i));
-            putchar(')');
+            if (entry_type(i) == 1) {
+              print_num(entry_size(i));
+              putchar('b');
+            } else {
+              print_num(entry_pages(i));
+              putchar('p');
+            }
             putchar(10);
             found = 1;
           }
@@ -2131,16 +2221,27 @@ int main() {
             if (line[4] == 'h') {
               if (line[5] == ' ') {
                 name = line[6];
-                slot = find_file(name);
-                if (slot == 255) {
-                  slot = find_free();
+                slot = find_entry(name);
+                if (slot != 255) {
+                  if (entry_type(slot) != 1) {
+                    print("busy");
+                    putchar(10);
+                    continue;
+                  }
+                  set_entry(slot, name, 1, entry_page(slot), 1, 0);
+                  print("cleared ");
+                  putchar(name);
+                  putchar(10);
+                  continue;
                 }
-                if (slot == 255) {
+                slot = find_free_slot();
+                page = find_free_page();
+                if (slot == 255 || page == 0) {
                   print("disk full");
                   putchar(10);
                   continue;
                 }
-                set_meta(slot, name, 0);
+                set_entry(slot, name, 1, page, 1, 0);
                 print("created ");
                 putchar(name);
                 putchar(10);
@@ -2152,23 +2253,50 @@ int main() {
       }
     }
 
+    if (line[0] == 'r') {
+      if (line[1] == 'm') {
+        if (line[2] == ' ') {
+          name = line[3];
+          slot = find_entry(name);
+          if (slot == 255) {
+            print("not found");
+            putchar(10);
+            continue;
+          }
+          if (entry_type(slot) != 1) {
+            print("locked");
+            putchar(10);
+            continue;
+          }
+          clear_entry(slot);
+          print("removed ");
+          putchar(name);
+          putchar(10);
+          continue;
+        }
+      }
+    }
+
     if (line[0] == 'c') {
       if (line[1] == 'a') {
         if (line[2] == 't') {
           if (line[3] == ' ') {
             name = line[4];
-            slot = find_file(name);
+            slot = find_entry(name);
             if (slot == 255) {
-              print("no file ");
-              putchar(name);
+              print("not found");
               putchar(10);
               continue;
             }
-            base = block_addr(slot);
-            len = file_len(slot);
+            if (entry_type(slot) != 1) {
+              print("not file");
+              putchar(10);
+              continue;
+            }
+            page = entry_page(slot);
             i = 0;
-            while (i < len) {
-              putchar(drive_read(base + i));
+            while (i < entry_size(slot)) {
+              putchar(drive_read_at(page, i));
               i = i + 1;
             }
             putchar(10);
@@ -2178,38 +2306,51 @@ int main() {
       }
     }
 
+    pos = 255;
     i = 0;
-    slot = 255;
     while (i < n) {
       if (line[i] == '>') {
-        slot = i;
+        pos = i;
         break;
       }
       i = i + 1;
     }
 
-    if (slot != 255) {
-      if (slot + 1 >= n) {
+    if (pos != 255) {
+      if (pos + 1 >= n) {
         print("?");
         putchar(10);
         continue;
       }
-      name = line[slot + 1];
-      i = find_file(name);
-      if (i == 255) {
-        print("no file ");
-        putchar(name);
-        putchar(10);
-        continue;
+      name = line[pos + 1];
+      slot = find_entry(name);
+      if (slot == 255) {
+        slot = find_free_slot();
+        page = find_free_page();
+        if (slot == 255 || page == 0) {
+          print("disk full");
+          putchar(10);
+          continue;
+        }
+        set_entry(slot, name, 1, page, 1, 0);
+      } else {
+        if (entry_type(slot) != 1) {
+          print("not file");
+          putchar(10);
+          continue;
+        }
       }
-      if (slot > 15) { slot = 15; }
-      base = block_addr(i);
-      len = 0;
-      while (len < slot) {
-        drive_write(base + len, line[len]);
-        len = len + 1;
+      if (pos > 15) { pos = 15; }
+      page = entry_page(slot);
+      i = 0;
+      while (i < pos) {
+        drive_write_at(page, i, line[i]);
+        i = i + 1;
       }
-      set_meta(i, name, len);
+      set_entry(slot, name, 1, page, 1, pos);
+      print("saved ");
+      putchar(name);
+      putchar(10);
       continue;
     }
 
