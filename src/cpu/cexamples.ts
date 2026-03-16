@@ -1588,4 +1588,400 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Mini Shell",
+    description: "Shell RAM avec variables, fichiers, >, cat, add/max/min/avg",
+    code: `// Mini shell en memoire
+// Variables: set a=42, vars, add, max, min, avg
+// Fichiers RAM: touch f, hi>f, cat f
+
+int main() {
+  int line[32];
+  int var_name[4];
+  int var_value[4];
+  int var_used[4];
+  int file_name[4];
+  int file_len[4];
+  int file_used[4];
+  int file_data[64];
+  int i;
+  int j;
+  int ch;
+  int lp;
+  int gt;
+  int slot;
+  int free_slot;
+  int fname;
+  int base;
+  int value;
+  int found;
+  int copied;
+
+  i = 0;
+  while (i < 4) {
+    var_used[i] = 0;
+    file_used[i] = 0;
+    file_len[i] = 0;
+    i = i + 1;
+  }
+
+  print("=== MINI SHELL RAM ===");
+  putchar(10);
+  print("vars set add max min avg");
+  putchar(10);
+
+  while (1) {
+    print("$ ");
+    lp = 0;
+    ch = getchar();
+    while (ch != 10) {
+      if (lp < 31) {
+        line[lp] = ch;
+        lp = lp + 1;
+      }
+      putchar(ch);
+      ch = getchar();
+    }
+    line[lp] = 0;
+    putchar(10);
+
+    if (lp == 0) {
+      continue;
+    }
+
+    if (line[0] == 'v') {
+      if (line[1] == 'a') {
+        if (line[2] == 'r') {
+          if (line[3] == 's') {
+            found = 0;
+            i = 0;
+            while (i < 4) {
+              if (var_used[i]) {
+                putchar(var_name[i]);
+                putchar('=');
+                print_num(var_value[i]);
+                putchar(10);
+                found = 1;
+              }
+              i = i + 1;
+            }
+            if (found == 0) {
+              print("(no vars)");
+              putchar(10);
+            }
+            continue;
+          }
+        }
+      }
+    }
+
+    slot = 255;
+    if (line[0] == 'a') {
+      if (line[1] == 'd') { slot = 0; }
+      if (line[1] == 'v') { slot = 3; }
+    }
+    if (line[0] == 'm') {
+      if (line[1] == 'a') { slot = 1; }
+      if (line[1] == 'i') { slot = 2; }
+    }
+    if (slot != 255) {
+      found = 0;
+      value = 0;
+      base = 0;
+      fname = 0;
+      i = 0;
+      while (i < 4) {
+        if (var_used[i]) {
+          if (found == 0) {
+            base = var_value[i];
+            fname = var_value[i];
+          }
+          value = value + var_value[i];
+          if (var_value[i] > base) { base = var_value[i]; }
+          if (var_value[i] < fname) { fname = var_value[i]; }
+          found = found + 1;
+        }
+        i = i + 1;
+      }
+      if (found == 0) {
+        print("(no vars)");
+        putchar(10);
+        continue;
+      }
+      if (slot == 0) { copied = value; base = 0; }
+      if (slot == 1) { copied = base; base = 0; }
+      if (slot == 2) { copied = fname; base = 0; }
+      if (slot == 3) {
+        copied = value / found;
+        base = value % found;
+      }
+      if (lp > 4) {
+        if (line[3] == '>') {
+          fname = line[4];
+          gt = 255;
+          i = 0;
+          while (i < 4) {
+            if (file_used[i]) {
+              if (file_name[i] == fname) {
+                gt = i;
+              }
+            }
+            i = i + 1;
+          }
+          if (gt == 255) {
+            print("no file ");
+            putchar(fname);
+            putchar(10);
+            continue;
+          }
+          j = gt * 16;
+          value = copied;
+          copied = 0;
+          if (value >= 100) {
+            file_data[j] = 48 + value / 100;
+            value = value % 100;
+            file_data[j + 1] = 48 + value / 10;
+            file_data[j + 2] = 48 + value % 10;
+            copied = 3;
+          } else {
+            if (value >= 10) {
+              file_data[j] = 48 + value / 10;
+              file_data[j + 1] = 48 + value % 10;
+              copied = 2;
+            } else {
+              file_data[j] = 48 + value;
+              copied = 1;
+            }
+          }
+          if (slot == 3) {
+            if (base) {
+              file_data[j + copied] = '.';
+              copied = copied + 1;
+              value = base * 10;
+              file_data[j + copied] = 48 + value / found;
+              copied = copied + 1;
+              fname = (value % found) * 10;
+              file_data[j + copied] = 48 + fname / found;
+              copied = copied + 1;
+            }
+          }
+          file_len[gt] = copied;
+          continue;
+        }
+      }
+      print_num(copied);
+      if (slot == 3) {
+        if (base) {
+          putchar('.');
+          value = base * 10;
+          putchar(48 + (value / found));
+          fname = (value % found) * 10;
+          putchar(48 + (fname / found));
+        }
+      }
+      putchar(10);
+      continue;
+    }
+
+    if (line[0] == 's') {
+      if (line[1] == 'e') {
+        if (line[2] == 't') {
+          if (line[3] == ' ') {
+            fname = line[4];
+            if (line[5] != '=') {
+              print("usage: set a=42");
+              putchar(10);
+              continue;
+            }
+            value = 0;
+            i = 6;
+            while (i < lp) {
+              if (line[i] < '0') { break; }
+              if (line[i] > '9') { break; }
+              value = value * 10 + (line[i] - '0');
+              i = i + 1;
+            }
+
+            slot = 255;
+            free_slot = 255;
+            i = 0;
+            while (i < 4) {
+              if (var_used[i]) {
+                if (var_name[i] == fname) {
+                  slot = i;
+                }
+              } else {
+                if (free_slot == 255) {
+                  free_slot = i;
+                }
+              }
+              i = i + 1;
+            }
+
+            if (slot == 255) {
+              slot = free_slot;
+            }
+
+            if (slot == 255) {
+              print("var full");
+              putchar(10);
+              continue;
+            }
+
+            var_used[slot] = 1;
+            var_name[slot] = fname;
+            var_value[slot] = value;
+            putchar(fname);
+            putchar('=');
+            print_num(value);
+            putchar(10);
+            continue;
+          }
+        }
+      }
+    }
+
+    if (line[0] == 't') {
+      if (line[1] == 'o') {
+        if (line[2] == 'u') {
+          if (line[3] == 'c') {
+            if (line[4] == 'h') {
+              if (line[5] == ' ') {
+                fname = line[6];
+                slot = 255;
+                free_slot = 255;
+                i = 0;
+                while (i < 4) {
+                  if (file_used[i]) {
+                    if (file_name[i] == fname) {
+                      slot = i;
+                    }
+                  } else {
+                    if (free_slot == 255) {
+                      free_slot = i;
+                    }
+                  }
+                  i = i + 1;
+                }
+                if (slot != 255) {
+                  print("exists ");
+                  putchar(fname);
+                  putchar(10);
+                  continue;
+                }
+                if (free_slot == 255) {
+                  print("file full");
+                  putchar(10);
+                  continue;
+                }
+                file_used[free_slot] = 1;
+                file_name[free_slot] = fname;
+                file_len[free_slot] = 0;
+                print("created ");
+                putchar(fname);
+                putchar(10);
+                continue;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (line[0] == 'c') {
+      if (line[1] == 'a') {
+        if (line[2] == 't') {
+          if (line[3] == ' ') {
+            fname = line[4];
+            slot = 255;
+            i = 0;
+            while (i < 4) {
+              if (file_used[i]) {
+                if (file_name[i] == fname) {
+                  slot = i;
+                }
+              }
+              i = i + 1;
+            }
+            if (slot == 255) {
+              print("no file ");
+              putchar(fname);
+              putchar(10);
+              continue;
+            }
+            base = slot * 16;
+            j = 0;
+            while (j < file_len[slot]) {
+              putchar(file_data[base + j]);
+              j = j + 1;
+            }
+            putchar(10);
+            continue;
+          }
+        }
+      }
+    }
+
+    gt = 255;
+    i = 0;
+    while (i < lp) {
+      if (line[i] == '>') {
+        gt = i;
+        break;
+      }
+      i = i + 1;
+    }
+
+    if (gt != 255) {
+      if (gt + 1 >= lp) {
+        print("?");
+        putchar(10);
+        continue;
+      }
+      fname = line[gt + 1];
+
+      if (gt == 0) {
+        print("?");
+        putchar(10);
+        continue;
+      }
+
+      slot = 255;
+      i = 0;
+      while (i < 4) {
+        if (file_used[i]) {
+          if (file_name[i] == fname) {
+            slot = i;
+          }
+        }
+        i = i + 1;
+      }
+
+      if (slot == 255) {
+        print("no file ");
+        putchar(fname);
+        putchar(10);
+        continue;
+      }
+
+      base = slot * 16;
+      if (gt > 16) {
+        gt = 16;
+      }
+
+      j = 0;
+      while (j < gt) {
+        file_data[base + j] = line[j];
+        j = j + 1;
+      }
+      file_len[slot] = gt;
+      continue;
+    }
+
+    print("?");
+    putchar(10);
+  }
+  return 0;
+}`,
+  },
 ];

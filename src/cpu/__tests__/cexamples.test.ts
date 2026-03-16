@@ -486,6 +486,30 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
     expect(r.cpu.plotterPixels.has((124 << 8) | 128)).toBe(true);
   });
+
+  it('"Mini Shell" supports vars, aggregates and RAM file redirection', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Mini Shell");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      input:
+        "vars\nset a=42\nset b=7\nset c=9\nadd\nmax\nmin\navg\ntouch f\nhi>f\ncat f\ntouch s\navg>s\ncat s\n",
+      maxCycles: 3_000_000,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("=== MINI SHELL RAM ===");
+    expect(r.output).toContain("(no vars)");
+    expect(r.output).toContain("a=42");
+    expect(r.output).toContain("58");
+    expect(r.output).toContain("42");
+    expect(r.output).toContain("7");
+    expect(r.output).toContain("19.33");
+    expect(r.output).toContain("created f");
+    expect(r.output).toContain("hi");
+    expect(r.output).toContain("created s");
+    expect(r.output).toContain("19.33");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1333,6 +1357,7 @@ describe("C Examples — Execution Properties", () => {
     "Traceur de droite",
     "Démo Ultime",
     "Calculatrice Graphique",
+    "Mini Shell",
   ];
 
   for (const name of inputExamples) {
