@@ -43,41 +43,41 @@ describe("bootloader shell", () => {
   it("stores programs on the boot disk directory", () => {
     const disk = writeProgramToBootDisk(
       new Uint8Array(DRIVE_SIZE),
-      "a",
+      "calc",
       Uint8Array.from([0xc0, 0x4f, 0x00, 0x0f]),
     );
     const entries = readBootDiskEntries(disk);
 
     expect(entries).toHaveLength(1);
-    expect(entries[0].name).toBe("a");
+    expect(entries[0].name).toBe("calc");
     expect(entries[0].type).toBe(2);
     expect(entries[0].pageCount).toBe(1);
     expect(entries[0].bytes[0]).toBe(0xc0);
   });
 
   it("lists boot disk files and programs", () => {
-    const disk0 = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
+    const disk0 = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "calc", asm.bytes);
     const disk1 = writeFileToBootDisk(
       disk0,
-      "t",
+      "notes",
       Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
     );
     const result = runBootCommand(disk1, "ls");
     expect(result.output).toContain("UNIX BOOT");
-    expect(result.output).toContain("p a 1p");
-    expect(result.output).toContain("f t 5b");
+    expect(result.output).toContain("p calc 1p");
+    expect(result.output).toContain("f notes 5b");
   });
 
   it("runs a program from disk", () => {
-    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
-    const result = runBootCommand(disk, "run a");
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "calc", asm.bytes);
+    const result = runBootCommand(disk, "run calc");
     expect(result.output).toContain("OK");
     expect(result.cpu.state.halted).toBe(true);
   });
 
   it("can return to the shell prompt after a program halts", () => {
-    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "a", asm.bytes);
-    const result = runBootCommand(disk, "run a");
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "calc", asm.bytes);
+    const result = runBootCommand(disk, "run calc");
     const resumed = bootCpuToShell(result.cpu, { preserveConsole: true });
     const output = result.cpu.consoleOutput.join("");
 
@@ -90,10 +90,10 @@ describe("bootloader shell", () => {
   it("cats a text file from disk", () => {
     const disk = writeFileToBootDisk(
       new Uint8Array(DRIVE_SIZE),
-      "t",
+      "notes",
       Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
     );
-    const result = runBootCommand(disk, "cat t");
+    const result = runBootCommand(disk, "cat notes");
     expect(result.output).toContain("hello");
   });
 });

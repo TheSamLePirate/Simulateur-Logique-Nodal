@@ -5,9 +5,10 @@ import { CODE_SIZE, DRIVE_PAGE_SIZE, DRIVE_SIZE } from "./isa";
 export const BOOTLOADER_START = 0x1100;
 export const BOOTLOADER_LIMIT = 0x1800;
 export const BOOT_DISK_MAGIC = 0x42;
-export const BOOT_DISK_VERSION = 0x02;
+export const BOOT_DISK_VERSION = 0x03;
 export const BOOT_DISK_MAX_ENTRIES = 8;
-export const BOOT_DISK_ENTRY_SIZE = 5;
+export const BOOT_DISK_NAME_LENGTH = 8;
+export const BOOT_DISK_ENTRY_SIZE = 12;
 export const BOOT_DISK_DIR_OFFSET = 0x10;
 export const BOOT_DISK_DATA_START_PAGE = 1;
 export const BOOT_DISK_PAGE_COUNT = DRIVE_SIZE / DRIVE_PAGE_SIZE;
@@ -15,6 +16,10 @@ export const BOOT_PROGRAM_MAX_PAGES = CODE_SIZE / DRIVE_PAGE_SIZE;
 export const BOOT_ENTRY_TYPE_FILE = 1;
 export const BOOT_ENTRY_TYPE_PROGRAM = 2;
 export const BOOTLOADER_PROMPT = "unix$ ";
+export const BOOT_DISK_TYPE_OFFSET = BOOT_DISK_NAME_LENGTH;
+export const BOOT_DISK_START_PAGE_OFFSET = BOOT_DISK_NAME_LENGTH + 1;
+export const BOOT_DISK_PAGE_COUNT_OFFSET = BOOT_DISK_NAME_LENGTH + 2;
+export const BOOT_DISK_SIZE_OFFSET = BOOT_DISK_NAME_LENGTH + 3;
 
 export interface BootDiskEntry {
   name: string;
@@ -33,7 +38,23 @@ export interface BootloaderImage {
 function normalizeEntryName(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Entry name cannot be empty.");
-  return trimmed[0];
+  if (/\s/.test(trimmed)) {
+    throw new Error("Entry names cannot contain spaces.");
+  }
+  if (trimmed.length > BOOT_DISK_NAME_LENGTH) {
+    throw new Error(`Entry names are limited to ${BOOT_DISK_NAME_LENGTH} characters.`);
+  }
+  return trimmed;
+}
+
+function readEntryName(driveData: ArrayLike<number>, base: number): string {
+  let name = "";
+  for (let i = 0; i < BOOT_DISK_NAME_LENGTH; i++) {
+    const value = driveData[base + i] ?? 0;
+    if (value === 0) break;
+    name += String.fromCharCode(value);
+  }
+  return name;
 }
 
 export function isBootDiskFormatted(driveData: ArrayLike<number>): boolean {
@@ -56,13 +77,13 @@ export function readBootDiskEntries(driveData: ArrayLike<number>): BootDiskEntry
   const entries: BootDiskEntry[] = [];
   for (let i = 0; i < BOOT_DISK_MAX_ENTRIES; i++) {
     const base = BOOT_DISK_DIR_OFFSET + i * BOOT_DISK_ENTRY_SIZE;
-    const nameByte = driveData[base] ?? 0;
-    const type = driveData[base + 1] ?? 0;
-    const startPage = driveData[base + 2] ?? 0;
-    const pageCount = driveData[base + 3] ?? 0;
-    const sizeBytes = driveData[base + 4] ?? 0;
+    const name = readEntryName(driveData, base);
+    const type = driveData[base + BOOT_DISK_TYPE_OFFSET] ?? 0;
+    const startPage = driveData[base + BOOT_DISK_START_PAGE_OFFSET] ?? 0;
+    const pageCount = driveData[base + BOOT_DISK_PAGE_COUNT_OFFSET] ?? 0;
+    const sizeBytes = driveData[base + BOOT_DISK_SIZE_OFFSET] ?? 0;
 
-    if (nameByte === 0 || type === 0 || startPage === 0 || pageCount === 0) {
+    if (!name || type === 0 || startPage === 0 || pageCount === 0) {
       continue;
     }
 
@@ -72,7 +93,7 @@ export function readBootDiskEntries(driveData: ArrayLike<number>): BootDiskEntry
       pageCount * DRIVE_PAGE_SIZE,
     );
     entries.push({
-      name: String.fromCharCode(nameByte),
+      name,
       type,
       startPage,
       pageCount,
@@ -102,11 +123,13 @@ function packBootDiskEntries(entries: BootDiskEntry[]): Uint8Array {
     }
 
     const base = BOOT_DISK_DIR_OFFSET + index * BOOT_DISK_ENTRY_SIZE;
-    disk[base] = entry.name.charCodeAt(0) & 0xff;
-    disk[base + 1] = entry.type & 0xff;
-    disk[base + 2] = nextPage & 0xff;
-    disk[base + 3] = pageCount & 0xff;
-    disk[base + 4] = entry.sizeBytes & 0xff;
+    for (let i = 0; i < BOOT_DISK_NAME_LENGTH; i++) {
+      disk[base + i] = entry.name.charCodeAt(i) & 0xff || 0;
+    }
+    disk[base + BOOT_DISK_TYPE_OFFSET] = entry.type & 0xff;
+    disk[base + BOOT_DISK_START_PAGE_OFFSET] = nextPage & 0xff;
+    disk[base + BOOT_DISK_PAGE_COUNT_OFFSET] = pageCount & 0xff;
+    disk[base + BOOT_DISK_SIZE_OFFSET] = entry.sizeBytes & 0xff;
 
     disk.set(
       entry.bytes.slice(0, pageCount * DRIVE_PAGE_SIZE),
@@ -235,7 +258,6 @@ check_run:
   CMP 'n'
   JNZ cmd_unknown
   LDA 4
-  LDAI 0x1000
   STA 0x1023
   CALL find_entry
   CMP 0
@@ -258,7 +280,6 @@ check_cat:
   CMP 't'
   JNZ cmd_unknown
   LDA 4
-  LDAI 0x1000
   STA 0x1023
   CALL find_entry
   CMP 0
@@ -300,7 +321,10 @@ cmd_help:
   OUT 'u'
   OUT 'n'
   OUT ' '
-  OUT 'x'
+  OUT 'n'
+  OUT 'a'
+  OUT 'm'
+  OUT 'e'
   OUT ' '
   OUT '|'
   OUT ' '
@@ -308,7 +332,10 @@ cmd_help:
   OUT 'a'
   OUT 't'
   OUT ' '
-  OUT 'x'
+  OUT 'n'
+  OUT 'a'
+  OUT 'm'
+  OUT 'e'
   OUT ' '
   OUT '|'
   OUT ' '
@@ -428,13 +455,12 @@ list_loop:
   DRVRD
   CMP 0
   JZ list_next
-  STA 0x1023
   LDA 1
   STA 0x1029
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 17
+  ADD 24
   DRVRD
   CMP 1
   JZ list_file
@@ -444,20 +470,19 @@ list_file:
   OUT 'f'
 list_name:
   OUT ' '
-  LDM 0x1023
-  OUTA
+  CALL print_entry_name
   OUT ' '
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 17
+  ADD 24
   DRVRD
   CMP 1
   JZ list_file_size
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 19
+  ADD 26
   DRVRD
   OUTD
   OUT 'p'
@@ -467,16 +492,16 @@ list_file_size:
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 20
+  ADD 27
   DRVRD
   OUTD
   OUT 'b'
   OUT 10
 list_next:
   LDM 0x1022
-  ADD 5
+  ADD 12
   STA 0x1022
-  CMP 40
+  CMP 96
   JNZ list_loop
   LDM 0x1029
   CMP 0
@@ -492,6 +517,34 @@ list_next:
 list_done:
   RET
 
+print_entry_name:
+  LDA 0
+  STA 0x102b
+print_name_loop:
+  LDM 0x102b
+  CMP 8
+  JZ print_name_done
+  TAB
+  LDA 16
+  ADDB
+  TAB
+  LDM 0x1022
+  ADDB
+  STA 0x102c
+  LDA 0
+  DRVPG
+  LDM 0x102c
+  DRVRD
+  CMP 0
+  JZ print_name_done
+  OUTA
+  LDM 0x102b
+  INC
+  STA 0x102b
+  JMP print_name_loop
+print_name_done:
+  RET
+
 find_entry:
   LDA 0
   STA 0x1022
@@ -503,15 +556,52 @@ find_loop:
   DRVRD
   CMP 0
   JZ find_next
+  LDA 0
+  STA 0x102b
+find_cmp_loop:
+  LDM 0x102b
+  CMP 8
+  JZ find_found
   TAB
   LDM 0x1023
-  CMPB
+  ADDB
+  TAB
+  LDAI 0x1000
+  STA 0x102c
+  LDM 0x102b
+  TAB
+  LDA 16
+  ADDB
+  TAB
+  LDM 0x1022
+  ADDB
+  STA 0x102d
+  LDA 0
+  DRVPG
+  LDM 0x102d
+  DRVRD
+  STA 0x102e
+  LDM 0x102c
+  CMP 0
+  JNZ find_cmp_value
+  LDM 0x102e
+  CMP 0
   JZ find_found
+  JMP find_next
+find_cmp_value:
+  TAB
+  LDM 0x102e
+  CMPB
+  JNZ find_next
+  LDM 0x102b
+  INC
+  STA 0x102b
+  JMP find_cmp_loop
 find_next:
   LDM 0x1022
-  ADD 5
+  ADD 12
   STA 0x1022
-  CMP 40
+  CMP 96
   JNZ find_loop
   LDA 0
   RET
@@ -519,25 +609,25 @@ find_found:
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 17
+  ADD 24
   DRVRD
   STA 0x1026
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 18
+  ADD 25
   DRVRD
   STA 0x1024
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 19
+  ADD 26
   DRVRD
   STA 0x1025
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 20
+  ADD 27
   DRVRD
   STA 0x1027
   LDA 1
@@ -583,15 +673,15 @@ count_loop:
   LDA 0
   DRVPG
   LDM 0x1022
-  ADD 19
+  ADD 26
   DRVRD
   ADDB
   STA 0x1028
 count_next:
   LDM 0x1022
-  ADD 5
+  ADD 12
   STA 0x1022
-  CMP 40
+  CMP 96
   JNZ count_loop
   LDM 0x1028
   RET

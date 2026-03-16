@@ -530,21 +530,21 @@ describe("C Examples — Output Verification", () => {
       HLT
     `);
     expect(prog.success).toBe(true);
-    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "p", prog.bytes);
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "program", prog.bytes);
 
     const r = compileAndRun(example!.code, {
-      input: "ls\ntouch a\nhello>a\ncat a\nls\nfree\n",
+      input: "ls\ntouch notes\nhello>notes\ncat notes\nls\nfree\n",
       maxCycles: 4_000_000,
       driveData: disk,
     });
 
     expect(r.halted).toBe(false);
     expect(r.output).toContain("=== FS DISQUE EXTERNE ===");
-    expect(r.output).toContain("created a");
-    expect(r.output).toContain("saved a");
+    expect(r.output).toContain("created notes");
+    expect(r.output).toContain("saved notes");
     expect(r.output).toContain("hello");
-    expect(r.output).toContain("p 1p");
-    expect(r.output).toContain("f a 5b");
+    expect(r.output).toContain("p program 1p");
+    expect(r.output).toContain("f notes 5b");
     expect(r.output).toContain("253p");
     expect(r.cpu.driveData[0]).toBe(66);
   });

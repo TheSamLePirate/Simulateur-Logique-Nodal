@@ -475,8 +475,8 @@ export function SoftwareView({
   const handleCompileToDisk = useCallback(() => {
     if (!compiledProgramBytes) return;
     const requestedName = window.prompt(
-      "Program name on disk (first character used by the boot shell):",
-      "a",
+      "Program name on disk (max 8 chars):",
+      "program",
     );
     if (!requestedName) return;
 
