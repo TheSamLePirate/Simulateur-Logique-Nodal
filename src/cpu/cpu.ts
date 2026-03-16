@@ -30,6 +30,40 @@ export interface DisassemblyLine {
   mnemonic: string;
 }
 
+export interface HttpRequest {
+  method: "GET" | "POST";
+  url: string;
+  body?: string;
+}
+
+export type HttpFetchHandler = (request: HttpRequest) => Promise<string>;
+
+async function defaultHttpFetch(request: HttpRequest): Promise<string> {
+  if (typeof globalThis.fetch !== "function") {
+    throw new Error("Fetch API unavailable in this environment.");
+  }
+
+  const response = await globalThis.fetch(request.url, {
+    method: request.method,
+    headers:
+      request.method === "POST"
+        ? { "Content-Type": "application/json; charset=UTF-8" }
+        : undefined,
+    body: request.method === "POST" ? request.body ?? "" : undefined,
+  });
+  const text = await response.text();
+
+  if (text.length > 0) {
+    return text;
+  }
+
+  if (!response.ok) {
+    return `HTTP ${response.status} ${response.statusText}`.trim();
+  }
+
+  return "";
+}
+
 export class CPU {
   state: CPUState;
   consoleOutput: string[];
@@ -42,6 +76,9 @@ export class CPU {
   driveLastAddr: number;
   driveLastRead: number;
   driveLastWrite: number;
+  httpResponseBuffer: number[];
+  httpPending: boolean;
+  httpFetch: HttpFetchHandler;
   onConsoleOutput?: (text: string) => void;
 
   /** Last executed opcode (for hardware visualization) */
@@ -56,6 +93,8 @@ export class CPU {
   randCounter = 0;
   /** Sleep counter (decrements each step, CPU idles while > 0) */
   sleepCounter = 0;
+  /** Monotonic request id so stale async responses can be ignored */
+  httpRequestSerial = 0;
 
   constructor() {
     this.state = createInitialState();
@@ -69,6 +108,9 @@ export class CPU {
     this.driveLastAddr = 0;
     this.driveLastRead = 0;
     this.driveLastWrite = 0;
+    this.httpResponseBuffer = [];
+    this.httpPending = false;
+    this.httpFetch = defaultHttpFetch;
   }
 
   /** Reset CPU to initial state, clearing memory */
@@ -83,6 +125,9 @@ export class CPU {
     this.driveLastAddr = 0;
     this.driveLastRead = 0;
     this.driveLastWrite = 0;
+    this.httpResponseBuffer = [];
+    this.httpPending = false;
+    this.httpRequestSerial++;
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
@@ -153,6 +198,51 @@ export class CPU {
   private output(text: string): void {
     this.consoleOutput.push(text);
     this.onConsoleOutput?.(text);
+  }
+
+  private setZeroNegativeFlags(value: number): void {
+    const val = value & 0xff;
+    this.state.flags.z = val === 0;
+    this.state.flags.n = (val & 0x80) !== 0;
+  }
+
+  private readCString(addr: number): { value: string; nextAddr: number } {
+    const chars: string[] = [];
+    let cursor = addr & ADDR_MASK;
+
+    for (let i = 0; i < MEMORY_SIZE; i++) {
+      const byte = this.read(cursor);
+      cursor = (cursor + 1) & ADDR_MASK;
+      if (byte === 0) break;
+      chars.push(String.fromCharCode(byte));
+    }
+
+    return { value: chars.join(""), nextAddr: cursor };
+  }
+
+  private queueHttpResponse(text: string): void {
+    const encoded = new TextEncoder().encode(text);
+    this.httpResponseBuffer = Array.from(encoded, (byte) => byte & 0xff);
+  }
+
+  private startHttpRequest(method: "GET" | "POST", url: string, body?: string): void {
+    const requestId = ++this.httpRequestSerial;
+    this.httpPending = true;
+    this.httpResponseBuffer = [];
+
+    void this.httpFetch({ method, url, body })
+      .then((text) => {
+        if (requestId !== this.httpRequestSerial) return;
+        this.queueHttpResponse(text);
+        this.httpPending = false;
+      })
+      .catch((error: unknown) => {
+        if (requestId !== this.httpRequestSerial) return;
+        const message =
+          error instanceof Error ? error.message : "Unknown network error";
+        this.queueHttpResponse(`HTTP ERROR: ${message}`);
+        this.httpPending = false;
+      });
   }
 
   /** Push a character into the console input buffer */
@@ -346,6 +436,24 @@ export class CPU {
         this.plotterColor = { ...this.plotterColor, b: this.state.a };
         break;
 
+      case Opcode.HTTPIN:
+        if (this.httpResponseBuffer.length > 0) {
+          this.state.a = this.httpResponseBuffer.shift()!;
+          this.setZeroNegativeFlags(this.state.a);
+          this.state.flags.c = false;
+        } else if (this.httpPending) {
+          this.state.a = 0;
+          this.state.flags.z = true;
+          this.state.flags.n = false;
+          this.state.flags.c = true;
+        } else {
+          this.state.a = 0;
+          this.state.flags.z = true;
+          this.state.flags.n = false;
+          this.state.flags.c = false;
+        }
+        break;
+
       // ─── Stack (1-byte) ───
       case Opcode.RET:
         nextPC = this.pop16(); // pop 16-bit return address
@@ -524,6 +632,25 @@ export class CPU {
         break;
       }
 
+      case Opcode.HTTPGET: {
+        const { value: url } = this.readCString(operand);
+        this.startHttpRequest("GET", url);
+        this.state.a = 1;
+        this.updateFlags(this.state.a);
+        this.state.flags.c = false;
+        break;
+      }
+
+      case Opcode.HTTPPOST: {
+        const { value: url, nextAddr } = this.readCString(operand);
+        const { value: body } = this.readCString(nextAddr);
+        this.startHttpRequest("POST", url, body);
+        this.state.a = 1;
+        this.updateFlags(this.state.a);
+        this.state.flags.c = false;
+        break;
+      }
+
       // ─── Jumps (2-byte) ───
       case Opcode.JMP:
         nextPC = operand;
@@ -578,6 +705,22 @@ export class CPU {
     while (this.state.cycles - startCycles < maxCycles) {
       if (!this.step()) break;
     }
+    return this.state.cycles - startCycles;
+  }
+
+  async runAsync(maxCycles = 10000, yieldEvery = 256): Promise<number> {
+    const startCycles = this.state.cycles;
+    let stepsSinceYield = 0;
+
+    while (this.state.cycles - startCycles < maxCycles) {
+      if (!this.step()) break;
+      stepsSinceYield++;
+      if (stepsSinceYield >= yieldEvery) {
+        stepsSinceYield = 0;
+        await Promise.resolve();
+      }
+    }
+
     return this.state.cycles - startCycles;
   }
 

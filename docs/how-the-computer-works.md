@@ -223,6 +223,7 @@ wait:
 | `COLR`    | 0x1A   | 1     | Set plotter red channel from A   |
 | `COLG`    | 0x1B   | 1     | Set plotter green channel from A |
 | `COLB`    | 0x1C   | 1     | Set plotter blue channel from A  |
+| `HTTPIN`  | 0x1D   | 1     | A = next byte from the HTTP response buffer |
 | `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) in current plotter color |
 | `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
 | `DRVRD`   | 0x24   | 1     | A = external_drive[(page<<8) + A] |
@@ -279,6 +280,19 @@ Example:
 | `LBM addr` | 0x93  | 3     | B = MEM[addr]             |
 | `LDAI addr`| 0x94  | 3     | A = MEM[addr + A] (indexed load)  |
 | `STAI addr`| 0x95  | 3     | MEM[addr + B] = A (indexed store) |
+| `HTTPGET addr` | 0x96 | 3  | Start HTTP GET using a zero-terminated URL string in memory |
+| `HTTPPOST addr`| 0x97 | 3  | Start HTTP POST using `url\0body\0` data in memory |
+
+#### Host Network I/O
+
+The simulator can also bridge to the browser's JavaScript `fetch()` API.
+
+- `HTTPGET addr` reads a zero-terminated URL string from memory and starts a `GET`
+- `HTTPPOST addr` reads `url\0body\0` from memory and starts a `POST`
+- `HTTPIN` returns the next byte of the response body
+- while a request is still pending and no byte is ready yet, `HTTPIN` sets the Carry flag
+
+That Carry-while-pending behavior is what lets the C built-in `gethttpchar()` block without confusing "still waiting" with "end of response".
 
 #### Jumps (Conditional & Unconditional)
 
@@ -297,8 +311,8 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 | Updates flags?  | Instructions                             |
 |-----------------|------------------------------------------|
-| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, ANDB, ORB, XORB, CMPB, MULB, DIVB, MODB, INA, GETKEY, RAND, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI |
-| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, COLR, COLG, COLB, DRAW, CLR, SLEEP, NOP, HLT |
+| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, ANDB, ORB, XORB, CMPB, MULB, DIVB, MODB, INA, GETKEY, RAND, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI, HTTPIN |
+| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, HTTPGET, HTTPPOST, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, COLR, COLG, COLB, DRAW, CLR, SLEEP, NOP, HLT |
 
 **Critical rule:** Never put a flag-modifying instruction between a comparison (CMP) and a conditional jump (JZ/JNZ). Example of a **bug**:
 
@@ -678,7 +692,7 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Unary | `! ~ ++ --` | Prefix and postfix |
 | Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
-| Input | `getchar()`, `getKey(0)` | Console and keyboard built-ins |
+| Input | `getchar()`, `getKey(0)`, `get("...")`, `post("...", "...")`, `gethttpchar()` | Console, keyboard, and HTTP built-ins |
 | Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
 | External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()`, `drive_set_page(p)`, `drive_read_at(p, a)`, `drive_write_at(p, a, v)` | 8 KB persistent storage |
 | Constants | `#define MAX 100` | Preprocessor |
@@ -697,6 +711,29 @@ int main() {
   return 0;
 }
 ```
+
+### HTTP Input in C
+
+The compiler also exposes the host browser's `fetch()` API through three built-ins:
+
+- `get("url")` starts a `GET`
+- `post("url", "body")` starts a `POST`
+- `gethttpchar()` blocks until the next response byte is ready, then returns `0` at end-of-response
+
+Example:
+
+```c
+int main() {
+  int c;
+  get("https://jsonplaceholder.typicode.com/todos/1");
+  while ((c = gethttpchar()) != 0) {
+    putchar(c);
+  }
+  return 0;
+}
+```
+
+Right now these functions only accept string literals, because this tiny C dialect does not yet support normal pointer-based strings.
 
 Under the hood, `getchar()` compiles to a busy-wait loop:
 

@@ -50,6 +50,8 @@ Everything in the simulator is built from simple gates upward:
   Level 6:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
 ```
 
+The new HTTP network interface is different: it is a **software-host bridge**, not a gate-level node. C programs can issue `get(...)` and `post(...)`, but those calls are handled by the JavaScript runtime through `fetch()`, then fed back into the CPU as byte-oriented I/O.
+
 ---
 
 ## 2. Logic Gates — The Foundation

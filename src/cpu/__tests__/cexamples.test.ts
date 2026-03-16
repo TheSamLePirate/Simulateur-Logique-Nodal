@@ -8,7 +8,7 @@
 import { describe, it, expect } from "vitest";
 import { compile } from "../compiler";
 import { assemble } from "../assembler";
-import { CPU } from "../cpu";
+import { CPU, type HttpFetchHandler } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
 import { writeProgramToBootDisk } from "../bootloader";
 import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
@@ -41,9 +41,10 @@ function compileAndRun(
     input?: string;
     keyState?: number[];
     driveData?: ArrayLike<number>;
+    httpFetch?: HttpFetchHandler;
   } = {},
 ): RunResult {
-  const { maxCycles = 500_000, input, keyState, driveData } = options;
+  const { maxCycles = 500_000, input, keyState, driveData, httpFetch } = options;
 
   // Compile C → ASM
   const cr = compile(source);
@@ -63,6 +64,9 @@ function compileAndRun(
 
   // Run on CPU
   const cpu = new CPU();
+  if (httpFetch) {
+    cpu.httpFetch = httpFetch;
+  }
   if (driveData) {
     cpu.loadDriveData(driveData);
   }
@@ -81,6 +85,63 @@ function compileAndRun(
   }
 
   cpu.run(maxCycles);
+
+  return {
+    output: cpu.consoleOutput.join(""),
+    halted: cpu.state.halted,
+    cycles: cpu.state.cycles,
+    cpu,
+    codeSize: ar.bytes.length,
+    memoryLayout: cr.memoryLayout!,
+  };
+}
+
+async function compileAndRunAsync(
+  source: string,
+  options: {
+    maxCycles?: number;
+    input?: string;
+    keyState?: number[];
+    driveData?: ArrayLike<number>;
+    httpFetch?: HttpFetchHandler;
+  } = {},
+): Promise<RunResult> {
+  const { maxCycles = 500_000, input, keyState, driveData, httpFetch } = options;
+
+  const cr = compile(source);
+  if (!cr.success) {
+    throw new Error(
+      `Compile failed:\n${cr.errors.map((e) => `  [${e.phase}] L${e.line}: ${e.message}`).join("\n")}`,
+    );
+  }
+
+  const ar = assemble(cr.assembly);
+  if (!ar.success) {
+    throw new Error(
+      `Assemble failed:\n${ar.errors.map((e) => `  L${e.line}: ${e.message}`).join("\n")}`,
+    );
+  }
+
+  const cpu = new CPU();
+  if (httpFetch) {
+    cpu.httpFetch = httpFetch;
+  }
+  if (driveData) {
+    cpu.loadDriveData(driveData);
+  }
+  cpu.loadProgram(ar.bytes);
+
+  if (keyState) {
+    cpu.keyState = [...keyState];
+  }
+
+  if (input) {
+    for (const ch of input) {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+  }
+
+  await cpu.runAsync(maxCycles);
 
   return {
     output: cpu.consoleOutput.join(""),
@@ -841,6 +902,31 @@ describe("Compiler — Edge Cases", () => {
       { input: "XY" },
     );
     expect(r.output).toBe("XY");
+    expect(r.halted).toBe(true);
+  });
+
+  it("HTTP GET streams response bytes through gethttpchar()", async () => {
+    const r = await compileAndRunAsync(
+      `
+      int main() {
+        int c;
+        get("https://example.com/todos/1");
+        while ((c = gethttpchar()) != 0) {
+          putchar(c);
+        }
+        return 0;
+      }
+    `,
+      {
+        httpFetch: async ({ method, url }) => {
+          expect(method).toBe("GET");
+          expect(url).toBe("https://example.com/todos/1");
+          return "OK";
+        },
+      },
+    );
+
+    expect(r.output).toBe("OK");
     expect(r.halted).toBe(true);
   });
 

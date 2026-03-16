@@ -155,6 +155,9 @@ const C_BUILTINS = new Set([
   "drive_set_page",
   "drive_read_at",
   "drive_write_at",
+  "get",
+  "post",
+  "gethttpchar",
 ]);
 
 function highlightCLine(line: string): React.ReactNode[] {

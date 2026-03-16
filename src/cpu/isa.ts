@@ -50,6 +50,7 @@ export const Opcode = {
   COLR: 0x1a, // plotter color red channel ← A
   COLG: 0x1b, // plotter color green channel ← A
   COLB: 0x1c, // plotter color blue channel ← A
+  HTTPIN: 0x1d, // A ← next HTTP response byte, C=1 while request still pending
 
   // Stack (1-byte)
   RET: 0x10,
@@ -83,6 +84,8 @@ export const Opcode = {
   LBM: 0x93,
   LDAI: 0x94, // A ← MEM[addr + A] (indexed load)
   STAI: 0x95, // MEM[addr + B] ← A (indexed store)
+  HTTPGET: 0x96, // start HTTP GET from zero-terminated string at addr
+  HTTPPOST: 0x97, // start HTTP POST from "url\\0body\\0" blob at addr
 
   // Jumps (3-byte, operand = 16-bit target address)
   JMP: 0xa0,
@@ -169,6 +172,11 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     size: 1,
     description: "plotter color blue ← A",
   },
+  [Opcode.HTTPIN]: {
+    mnemonic: "HTTPIN",
+    size: 1,
+    description: "A ← next HTTP response byte, C=1 while waiting",
+  },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },
   [Opcode.PUSH]: { mnemonic: "PUSH", size: 1, description: "push A" },
@@ -241,6 +249,16 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "STAI",
     size: 3,
     description: "MEM[addr + B] ← A",
+  },
+  [Opcode.HTTPGET]: {
+    mnemonic: "HTTPGET",
+    size: 3,
+    description: "Start HTTP GET using zero-terminated URL at addr",
+  },
+  [Opcode.HTTPPOST]: {
+    mnemonic: "HTTPPOST",
+    size: 3,
+    description: 'Start HTTP POST using "url\\0body\\0" data at addr',
   },
 
   [Opcode.JMP]: { mnemonic: "JMP", size: 3, description: "PC ← addr" },

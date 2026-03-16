@@ -76,6 +76,10 @@ export function generate(program: Program): {
   const globalArrays = new Map<string, ArrayInfo>(); // array name → info
   const funcTable = new Map<string, FuncInfo>();
   const runtimeHelpersUsed = new Set<string>();
+  const constantData: { label: string; bytes: number[] }[] = [];
+  const cStringPool = new Map<string, string>();
+  const httpPostPool = new Map<string, string>();
+  let dataLabelCounter = 0;
   const builtins = new Set([
     "putchar",
     "print_num",
@@ -94,6 +98,9 @@ export function generate(program: Program): {
     "drive_set_page",
     "drive_read_at",
     "drive_write_at",
+    "get",
+    "post",
+    "gethttpchar",
   ]);
 
   // Loop context stack for break/continue
@@ -115,6 +122,37 @@ export function generate(program: Program): {
 
   function fmt(addr: number): string {
     return "0x" + (addr & 0xffff).toString(16).padStart(4, "0");
+  }
+
+  function bytesForString(value: string): number[] {
+    return [...value].map((ch) => ch.charCodeAt(0) & 0xff);
+  }
+
+  function reserveCString(value: string): string {
+    const existing = cStringPool.get(value);
+    if (existing) return existing;
+
+    const label = `__str_${dataLabelCounter++}`;
+    cStringPool.set(value, label);
+    constantData.push({
+      label,
+      bytes: [...bytesForString(value), 0],
+    });
+    return label;
+  }
+
+  function reserveHttpPostData(url: string, body: string): string {
+    const key = `${url}\0${body}`;
+    const existing = httpPostPool.get(key);
+    if (existing) return existing;
+
+    const label = `__http_post_${dataLabelCounter++}`;
+    httpPostPool.set(key, label);
+    constantData.push({
+      label,
+      bytes: [...bytesForString(url), 0, ...bytesForString(body), 0],
+    });
+    return label;
   }
 
   interface PlannedArrayInfo {
@@ -439,6 +477,7 @@ export function generate(program: Program): {
   }
 
   emitRuntimeHelpers();
+  emitConstantData();
 
   if (!program.functions.find((f) => f.name === "main")) {
     errors.push({ line: 1, message: "Fonction 'main' requise" });
@@ -600,6 +639,19 @@ export function generate(program: Program): {
       emit(`__rt_shr_end:`);
       emit(`  LDM ${fmt(TEMP_BASE)}`);
       emit(`  RET`);
+    }
+  }
+
+  function emitConstantData() {
+    if (constantData.length === 0) return;
+
+    emit("");
+    emitComment("--- constant data ---");
+    for (const block of constantData) {
+      emit(`${block.label}:`);
+      for (let i = 0; i < block.bytes.length; i += 16) {
+        emit(`  .db ${block.bytes.slice(i, i + 16).join(", ")}`);
+      }
     }
   }
 
@@ -1532,6 +1584,54 @@ export function generate(program: Program): {
         emit(`  DRVWR`);
         emit(`  TBA`); // expression result = written value
       }
+      return;
+    }
+
+    // ── Built-in: get("url") — start an HTTP GET request ──
+    if (expr.name === "get") {
+      if (expr.args.length >= 1) {
+        if (expr.args[0].kind === "StringLiteral") {
+          emit(`  HTTPGET ${reserveCString(expr.args[0].value)}`);
+        } else {
+          errors.push({
+            line: expr.line,
+            message: 'get() attend une URL sous forme de chaine litterale',
+          });
+        }
+      }
+      return;
+    }
+
+    // ── Built-in: post("url", "body") — start an HTTP POST request ──
+    if (expr.name === "post") {
+      if (expr.args.length >= 2) {
+        if (
+          expr.args[0].kind === "StringLiteral" &&
+          expr.args[1].kind === "StringLiteral"
+        ) {
+          emit(
+            `  HTTPPOST ${reserveHttpPostData(
+              expr.args[0].value,
+              expr.args[1].value,
+            )}`,
+          );
+        } else {
+          errors.push({
+            line: expr.line,
+            message:
+              'post() attend une URL et un corps sous forme de chaines litterales',
+          });
+        }
+      }
+      return;
+    }
+
+    // ── Built-in: gethttpchar() — wait for next HTTP byte, return 0 at EOF ──
+    if (expr.name === "gethttpchar") {
+      const waitLabel = newLabel();
+      emit(`${waitLabel}:`);
+      emit(`  HTTPIN`);
+      emit(`  JC ${waitLabel}`);
       return;
     }
 

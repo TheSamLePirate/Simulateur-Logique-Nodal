@@ -2850,4 +2850,37 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "HTTP JSONPlaceholder",
+    description: "GET et POST vers l'API JSONPlaceholder",
+    code: `// Demo reseau avec JSONPlaceholder
+// Affiche d'abord un todo en JSON, puis la reponse d'un POST
+
+void print_http_response() {
+  int c;
+  while ((c = gethttpchar()) != 0) {
+    putchar(c);
+  }
+}
+
+int main() {
+  print("GET /todos/1");
+  putchar(10);
+  get("https://jsonplaceholder.typicode.com/todos/1");
+  print_http_response();
+  putchar(10);
+  putchar(10);
+
+  print("POST /posts");
+  putchar(10);
+  post(
+    "https://jsonplaceholder.typicode.com/posts",
+    "{\\"title\\":\\"foo\\",\\"body\\":\\"bar\\",\\"userId\\":1}"
+  );
+  print_http_response();
+  putchar(10);
+
+  return 0;
+}`,
+  },
 ];

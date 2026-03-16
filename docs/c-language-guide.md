@@ -542,6 +542,52 @@ if (ch == '@') {
 }
 ```
 
+### HTTP network I/O
+
+#### `get("url")`
+
+Starts an HTTP `GET` request using a string literal URL.
+
+```c
+get("https://jsonplaceholder.typicode.com/todos/1");
+```
+
+#### `post("url", "body")`
+
+Starts an HTTP `POST` request using string literal URL and body values.
+
+```c
+post(
+  "https://jsonplaceholder.typicode.com/posts",
+  "{\"title\":\"foo\",\"body\":\"bar\",\"userId\":1}"
+);
+```
+
+#### `gethttpchar()`
+
+Reads the next byte from the most recent HTTP response.
+
+It waits while the request is still in flight, then returns:
+
+- the next response byte when one is available
+- `0` when the response is fully consumed
+
+Typical pattern:
+
+```c
+int c;
+get("https://jsonplaceholder.typicode.com/todos/1");
+while ((c = gethttpchar()) != 0) {
+  putchar(c);
+}
+```
+
+Current limitations:
+
+- `get(...)` and `post(...)` only accept string literals
+- the response is exposed as bytes/chars, not parsed JSON
+- `post(...)` sends the body exactly as written
+
 ### Keyboard state
 
 #### `getKey(index)`
