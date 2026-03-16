@@ -1452,3 +1452,34 @@ describe("C Examples — Execution Properties", () => {
     });
   }
 });
+
+describe("C Examples — Interactive Halt", () => {
+  const haltableExamples: Array<{
+    name: string;
+    input?: string;
+    maxCycles?: number;
+  }> = [
+    { name: "Echo (Saisie)", input: "@", maxCycles: 100_000 },
+    { name: "Compteur de lettres", input: "@", maxCycles: 100_000 },
+    { name: "Calculatrice", input: "@", maxCycles: 200_000 },
+    { name: "Traceur de droite", input: "@", maxCycles: 100_000 },
+    { name: "Clavier", input: "@", maxCycles: 200_000 },
+    { name: "Pong", input: "@", maxCycles: 200_000 },
+    { name: "Démo Ultime", input: "@", maxCycles: 200_000 },
+    { name: "Calculatrice Graphique", input: "@", maxCycles: 200_000 },
+    { name: "Mini Shell", input: "@", maxCycles: 200_000 },
+    { name: "FS Disque Externe", input: "@", maxCycles: 200_000 },
+  ];
+
+  for (const exampleConfig of haltableExamples) {
+    const example = C_EXAMPLES.find((e) => e.name === exampleConfig.name)!;
+
+    it(`"${exampleConfig.name}" halts when @ is entered`, () => {
+      const r = compileAndRun(example.code, {
+        input: exampleConfig.input,
+        maxCycles: exampleConfig.maxCycles,
+      });
+      expect(r.halted).toBe(true);
+    });
+  }
+});

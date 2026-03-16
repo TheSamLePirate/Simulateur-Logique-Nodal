@@ -181,6 +181,10 @@ int main() {
 
   while (1) {
     c = getchar();
+    if (c == 64) {
+      putchar(10);
+      return 0;
+    }
     if (c == 10) {
       putchar(10);
     } else {
@@ -205,10 +209,18 @@ int main() {
     print("> ");
 
     c = getchar();
+    if (c == 64) {
+      putchar(10);
+      return 0;
+    }
     while (c != 10) {
       count += 1;
       putchar(c);
       c = getchar();
+      if (c == 64) {
+        putchar(10);
+        return 0;
+      }
     }
 
     putchar(10);
@@ -230,6 +242,7 @@ int main() {
 int last;
 int last_frac;
 int last_has_frac;
+int quit_flag;
 
 int print_2d(int n) {
   putchar(48 + n / 10);
@@ -245,8 +258,15 @@ int read_num() {
   n = 0;
   frac = 0;
   digits = 0;
+  quit_flag = 0;
   last_has_frac = 0;
   c = getchar();
+  if (c == 64) {
+    last = 64;
+    last_frac = 0;
+    quit_flag = 1;
+    return 0;
+  }
   while (c >= 48) {
     if (c > 57) { break; }
     putchar(c);
@@ -273,6 +293,9 @@ int read_num() {
       putchar(c);
       c = getchar();
     }
+  }
+  if (c == 64) {
+    quit_flag = 1;
   }
   last = c;
   last_frac = frac;
@@ -301,11 +324,23 @@ int main() {
   while (1) {
     print("> ");
     ai = read_num();
+    if (quit_flag) {
+      putchar(10);
+      return 0;
+    }
     af = last_frac;
     a_dec = last_has_frac;
     op = last;
+    if (op == 64) {
+      putchar(10);
+      return 0;
+    }
     putchar(op);
     bi = read_num();
+    if (quit_flag) {
+      putchar(10);
+      return 0;
+    }
     bf = last_frac;
     b_dec = last_has_frac;
     putchar(10);
@@ -538,12 +573,28 @@ int main() {
   int err;
 
   print("a=");
-  a = getchar() - 48;
+  a = getchar();
+  while (a != 64) {
+    if (a >= 48) {
+      if (a <= 57) { break; }
+    }
+    a = getchar();
+  }
+  if (a == 64) { return 0; }
+  a = a - 48;
   putchar(a + 48);
   putchar(10);
 
   print("b=");
-  b = getchar() - 48;
+  b = getchar();
+  while (b != 64) {
+    if (b >= 48) {
+      if (b <= 57) { break; }
+    }
+    b = getchar();
+  }
+  if (b == 64) { return 0; }
+  b = b - 48;
   putchar(b + 48);
   putchar(10);
 
@@ -553,7 +604,15 @@ int main() {
   }
 
   print("c=");
-  c = getchar() - 48;
+  c = getchar();
+  while (c != 64) {
+    if (c >= 48) {
+      if (c <= 57) { break; }
+    }
+    c = getchar();
+  }
+  if (c == 64) { return 0; }
+  c = c - 48;
   putchar(c + 48);
   putchar(10);
 
@@ -643,12 +702,15 @@ int main() {
   int lx;
   int ly;
   int lf;
+  int ch;
 
   x = 127;
   y = 200;
   lf = 0;
 
   while (1) {
+    ch = getchar_nb();
+    if (ch == 64) { return 0; }
     clear();
 
     // Lecture clavier
@@ -1001,13 +1063,15 @@ int main() {
   int bx; int by;
   int bdx; int bdy;
   int py; int ay;
-  int i; int tmp;
+  int i; int tmp; int ch;
 
   bx = 128; by = 128;
   bdx = 1; bdy = 1;
   py = 118; ay = 118;
 
   while (1) {
+    ch = getchar_nb();
+    if (ch == 64) { return 0; }
     clear();
 
     // Joueur (vitesse 2)
@@ -1071,12 +1135,20 @@ int main() {
 int seed;
 int mode;
 int values[8];
+int quit_flag;
 
 int read_digit() {
   int c;
   c = getchar();
-  while (c < 48 || c > 57) {
+  while (c != 64) {
+    if (c >= 48) {
+      if (c <= 57) { break; }
+    }
     c = getchar();
+  }
+  if (c == 64) {
+    quit_flag = 1;
+    return 0;
   }
   putchar(c);
   putchar(10);
@@ -1261,6 +1333,7 @@ int main() {
   putchar(10);
   print("Entrez un chiffre 0-9: ");
   seed = read_digit();
+  if (quit_flag) { return 0; }
 
   mode = read_mode();
   print("Mode clavier=");
@@ -1330,12 +1403,20 @@ int c;
 int zoom;
 int cx;
 int enter_prev;
+int quit_flag;
 
 int read_digit() {
   int ch;
   ch = getchar();
-  while (ch < 48 || ch > 57) {
+  while (ch != 64) {
+    if (ch >= 48) {
+      if (ch <= 57) { break; }
+    }
     ch = getchar();
+  }
+  if (ch == 64) {
+    quit_flag = 1;
+    return 0;
   }
   putchar(ch);
   putchar(10);
@@ -1524,10 +1605,13 @@ int main() {
   putchar(10);
   print("A=");
   a = read_digit();
+  if (quit_flag) { return 0; }
   print("B=");
   b = read_digit();
+  if (quit_flag) { return 0; }
   print("C=");
   c = read_digit();
+  if (quit_flag) { return 0; }
   print("TRACE L/R  ZOOM U/D  ENTER=STD");
   putchar(10);
 
@@ -1537,6 +1621,8 @@ int main() {
   dirty = 1;
 
   while (1) {
+    key = getchar_nb();
+    if (key == 64) { return 0; }
     if (dirty) {
       clear();
       draw_grid();
@@ -1635,6 +1721,10 @@ int main() {
     lp = 0;
     ch = getchar();
     while (ch != 10) {
+      if (ch == 64) {
+        putchar(10);
+        return 0;
+      }
       if (lp < 31) {
         line[lp] = ch;
         lp = lp + 1;
@@ -2008,6 +2098,7 @@ int read_line() {
   n = 0;
   ch = getchar();
   while (ch != 10) {
+    if (ch == 64) { return 255; }
     if (n < 15) {
       line[n] = ch;
       n = n + 1;
@@ -2160,6 +2251,10 @@ int main() {
   while (1) {
     print("# ");
     n = read_line();
+    if (n == 255) {
+      putchar(10);
+      return 0;
+    }
     if (n == 0) { continue; }
 
     if (line[0] == 'f') {

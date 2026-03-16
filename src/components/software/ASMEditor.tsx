@@ -145,6 +145,7 @@ const C_BUILTINS = new Set([
   "draw",
   "clear",
   "getchar",
+  "getchar_nb",
   "getKey",
   "rand",
   "sleep",

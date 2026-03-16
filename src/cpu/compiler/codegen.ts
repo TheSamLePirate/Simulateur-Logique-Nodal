@@ -83,6 +83,7 @@ export function generate(program: Program): {
     "draw",
     "clear",
     "getchar",
+    "getchar_nb",
     "getKey",
     "rand",
     "sleep",
@@ -1418,6 +1419,12 @@ export function generate(program: Program): {
       emit(`  INA`);
       emit(`  CMP 0`);
       emit(`  JZ ${waitLabel}`);
+      return;
+    }
+
+    // ── Built-in: getchar_nb() — read one char from console input (non-blocking) ──
+    if (expr.name === "getchar_nb") {
+      emit(`  INA`);
       return;
     }
 

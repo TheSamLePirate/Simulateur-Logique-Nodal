@@ -1,4 +1,5 @@
 import { assemble } from "./assembler";
+import { CPU } from "./cpu";
 import { CODE_SIZE, DRIVE_PAGE_SIZE, DRIVE_SIZE } from "./isa";
 
 export const BOOTLOADER_START = 0x1100;
@@ -13,6 +14,7 @@ export const BOOT_DISK_PAGE_COUNT = DRIVE_SIZE / DRIVE_PAGE_SIZE;
 export const BOOT_PROGRAM_MAX_PAGES = CODE_SIZE / DRIVE_PAGE_SIZE;
 export const BOOT_ENTRY_TYPE_FILE = 1;
 export const BOOT_ENTRY_TYPE_PROGRAM = 2;
+export const BOOTLOADER_PROMPT = "unix$ ";
 
 export interface BootDiskEntry {
   name: string;
@@ -653,4 +655,37 @@ export function getBootloaderImage(): BootloaderImage {
     startAddr: BOOTLOADER_START,
   };
   return bootloaderCache;
+}
+
+export function bootCpuToShell(
+  cpu: CPU,
+  options: { preserveConsole?: boolean; maxSteps?: number } = {},
+): boolean {
+  const { preserveConsole = true, maxSteps = 200000 } = options;
+  const previousConsole = preserveConsole ? [...cpu.consoleOutput] : [];
+  if (
+    preserveConsole &&
+    previousConsole.length > 0 &&
+    previousConsole[previousConsole.length - 1] !== "\n"
+  ) {
+    previousConsole.push("\n");
+  }
+  const image = getBootloaderImage();
+
+  cpu.reset();
+  if (preserveConsole) {
+    cpu.consoleOutput = previousConsole;
+  }
+  cpu.loadProgram(image.bytes, image.startAddr);
+
+  for (let i = 0; i < maxSteps; i++) {
+    if (cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT)) {
+      return true;
+    }
+    if (!cpu.step()) {
+      return false;
+    }
+  }
+
+  return cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT);
 }

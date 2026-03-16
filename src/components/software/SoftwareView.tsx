@@ -25,6 +25,7 @@ import {
   type MemoryLayout,
 } from "../../cpu/compiler";
 import {
+  bootCpuToShell,
   getBootloaderImage,
   writeProgramToBootDisk,
 } from "../../cpu/bootloader";
@@ -159,6 +160,33 @@ export function SoftwareView({
     [language],
   );
 
+  const ensureBootloaderReady = useCallback(
+    (preserveConsole = true) => {
+      const cpu = cpuRef.current;
+      const image = getBootloaderImage();
+      let hasBootloader = true;
+
+      for (let i = 0; i < image.bytes.length; i++) {
+        if (cpu.state.memory[image.startAddr + i] !== image.bytes[i]) {
+          hasBootloader = false;
+          break;
+        }
+      }
+
+      if (hasBootloader) {
+        return true;
+      }
+
+      cpu.reset();
+      cpu.loadProgram(image.bytes, image.startAddr);
+      const booted = bootCpuToShell(cpu, { preserveConsole });
+      syncCpuView(cpu);
+      onProgramLoaded?.(image);
+      return booted;
+    },
+    [onProgramLoaded, syncCpuView],
+  );
+
   // ─── Assemble / Compile ───
   const handleAssemble = useCallback(() => {
     const loadImage = (
@@ -166,14 +194,24 @@ export function SoftwareView({
       sourceMap: Map<number, number>,
       layout: MemoryLayout | null,
     ) => {
+      if (useBootloader) {
+        ensureBootloaderReady(false);
+        sourceMapRef.current = new Map();
+        setCompiledProgramBytes(programBytes);
+        setAssembled(true);
+        setErrors([]);
+        setCodeSize(programBytes.length);
+        setMemLayout(layout);
+        setMemHighlights(new Set());
+        return;
+      }
+
       const cpu = cpuRef.current;
-      const image = useBootloader
-        ? getBootloaderImage()
-        : { bytes: programBytes, startAddr: 0 };
+      const image = { bytes: programBytes, startAddr: 0 };
 
       cpu.reset();
       cpu.loadProgram(image.bytes, image.startAddr);
-      sourceMapRef.current = useBootloader ? new Map() : sourceMap;
+      sourceMapRef.current = sourceMap;
       syncCpuView(cpu);
       setCompiledProgramBytes(programBytes);
       setAssembled(true);
@@ -252,6 +290,7 @@ export function SoftwareView({
     cCode,
     asmCode,
     language,
+    ensureBootloaderReady,
     onProgramLoaded,
     syncCpuView,
     useBootloader,
@@ -260,10 +299,17 @@ export function SoftwareView({
   // ─── Step ───
   const handleStep = useCallback(() => {
     if (!assembled) return;
+    if (useBootloader && !ensureBootloaderReady()) return;
     const cpu = cpuRef.current;
     const prevMem = new Uint8Array(cpu.state.memory);
 
     cpu.step();
+
+    if (cpu.state.halted && useBootloader) {
+      bootCpuToShell(cpu, { preserveConsole: true });
+      syncCpuView(cpu);
+      return;
+    }
 
     // Detect memory writes
     const writes = new Set<number>();
@@ -286,13 +332,19 @@ export function SoftwareView({
     if (cpu.state.halted) {
       setIsRunning(false);
     }
-  }, [assembled, syncCpuView]);
+  }, [assembled, ensureBootloaderReady, syncCpuView, useBootloader]);
 
   // ─── Run / Stop ───
   const handleRun = useCallback(() => {
-    if (!assembled || cpuRef.current.state.halted) return;
+    if (!assembled) return;
+    if (useBootloader && !ensureBootloaderReady()) return;
+    if (cpuRef.current.state.halted) {
+      if (!useBootloader) return;
+      if (!bootCpuToShell(cpuRef.current, { preserveConsole: true })) return;
+      syncCpuView(cpuRef.current);
+    }
     setIsRunning(true);
-  }, [assembled]);
+  }, [assembled, ensureBootloaderReady, syncCpuView, useBootloader]);
 
   const handleStop = useCallback(() => {
     setIsRunning(false);
@@ -312,6 +364,9 @@ export function SoftwareView({
       const cpu = cpuRef.current;
       for (let i = 0; i < runSpeed; i++) {
         if (!cpu.step()) {
+          if (useBootloader && bootCpuToShell(cpu, { preserveConsole: true })) {
+            break;
+          }
           setIsRunning(false);
           break;
         }
@@ -325,7 +380,7 @@ export function SoftwareView({
         runIntervalRef.current = null;
       }
     };
-  }, [isRunning, runSpeed, syncCpuView]);
+  }, [isRunning, runSpeed, syncCpuView, useBootloader]);
 
   // ─── Reset ───
   const handleReset = useCallback(() => {
@@ -406,13 +461,15 @@ export function SoftwareView({
       setAssembled(false);
       setCompiledProgramBytes(null);
       setErrors([]);
-      setIsRunning(false);
-      const cpu = cpuRef.current;
-      cpu.reset();
-      syncCpuView(cpu);
       setMemHighlights(new Set());
+      if (!useBootloader) {
+        setIsRunning(false);
+        const cpu = cpuRef.current;
+        cpu.reset();
+        syncCpuView(cpu);
+      }
     },
-    [setCode, syncCpuView],
+    [setCode, syncCpuView, useBootloader],
   );
 
   const handleCompileToDisk = useCallback(() => {
@@ -528,7 +585,7 @@ export function SoftwareView({
 
         <button
           onClick={handleStep}
-          disabled={!assembled || isRunning || cpuState.halted}
+          disabled={!assembled || isRunning || (cpuState.halted && !useBootloader)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <SkipForward size={14} /> Step
@@ -544,7 +601,7 @@ export function SoftwareView({
         ) : (
           <button
             onClick={handleRun}
-            disabled={!assembled || cpuState.halted}
+            disabled={!assembled || (cpuState.halted && !useBootloader)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-bold transition-colors bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Play size={14} /> Run

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { assemble } from "../assembler";
 import { CPU } from "../cpu";
 import {
+  bootCpuToShell,
   getBootloaderImage,
   readBootDiskEntries,
   writeFileToBootDisk,
@@ -71,6 +72,18 @@ describe("bootloader shell", () => {
     const result = runBootCommand(disk, "run a");
     expect(result.output).toContain("OK");
     expect(result.cpu.state.halted).toBe(true);
+  });
+
+  it("can return to the shell prompt after a program halts", () => {
+    const disk = writeProgramToBootDisk(new Uint8Array(8192), "a", asm.bytes);
+    const result = runBootCommand(disk, "run a");
+    const resumed = bootCpuToShell(result.cpu, { preserveConsole: true });
+    const output = result.cpu.consoleOutput.join("");
+
+    expect(resumed).toBe(true);
+    expect(result.cpu.state.halted).toBe(false);
+    expect(output).toContain("OK\nUNIX BOOT");
+    expect(output).toContain("unix$ ");
   });
 
   it("cats a text file from disk", () => {
