@@ -2883,4 +2883,261 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Meteo Ales",
+    description: "Open-Meteo en direct avec scene graphique premium",
+    code: `// Meteo temps reel pour Ales via Open-Meteo
+// Coordonnees: 44.1249, 4.0808
+
+int temp_abs;
+int temp_neg;
+int weather_code;
+int is_day_now;
+
+int num_started;
+int num_value;
+int num_sign;
+int num_decimal;
+int in_string;
+
+void hline(int x1, int x2, int y) {
+  int x;
+  x = x1;
+  while (1) {
+    draw(x, y);
+    if (x == x2) { return; }
+    x = x + 1;
+  }
+}
+
+void fill_rect(int x1, int y1, int x2, int y2, int r, int g, int b) {
+  int y;
+  color(r, g, b);
+  y = y1;
+  while (1) {
+    hline(x1, x2, y);
+    if (y == y2) { return; }
+    y = y + 1;
+  }
+}
+
+void disc(int cx, int cy, int radius, int r, int g, int b) {
+  int dy;
+  int dx;
+  color(r, g, b);
+  dy = 0;
+  while (dy <= radius) {
+    dx = radius - (dy >> 1);
+    hline(cx - dx, cx + dx, cy + dy);
+    if (dy != 0) { hline(cx - dx, cx + dx, cy - dy); }
+    dy = dy + 1;
+  }
+}
+
+void cloud(int x, int y, int tone) {
+  disc(x, y, 11, tone, tone, tone + 8);
+  disc(x + 13, y - 4, 9, tone + 8, tone + 8, tone + 12);
+  disc(x + 24, y, 11, tone, tone, tone + 8);
+  fill_rect(x - 4, y, x + 28, y + 8, tone - 8, tone - 8, tone);
+}
+
+void reset_num() {
+  num_started = 0;
+  num_value = 0;
+  num_sign = 0;
+  num_decimal = 0;
+}
+
+int feed_num(int c) {
+  if (!num_started) {
+    if (c == 45) { num_started = 1; num_sign = 1; return 0; }
+    if (c >= 48 && c <= 57) {
+      num_started = 1;
+      num_value = c - 48;
+    }
+    return 0;
+  }
+  if (c >= 48 && c <= 57) {
+    if (num_decimal == 0) {
+      num_value = num_value * 10 + (c - 48);
+    } else if (num_decimal == 1) {
+      if (c >= 53) { num_value = num_value + 1; }
+      num_decimal = 2;
+    }
+    return 0;
+  }
+  if (c == 46 && num_decimal == 0) {
+    num_decimal = 1;
+    return 0;
+  }
+  return 1;
+}
+
+void fetch_weather() {
+  int c;
+  int depth;
+  int object_hits;
+  int field;
+  int started;
+
+  temp_abs = 0;
+  temp_neg = 0;
+  is_day_now = 1;
+  weather_code = 0;
+  in_string = 0;
+  depth = 0;
+  object_hits = 0;
+  field = 0;
+  started = 0;
+  reset_num();
+
+  get("https://api.open-meteo.com/v1/forecast?latitude=44.1249&longitude=4.0808&current=temperature_2m,is_day,weather_code");
+
+  while ((c = gethttpchar()) != 0) {
+    if (c == 34) {
+      in_string = !in_string;
+      continue;
+    }
+    if (!in_string) {
+      if (started) {
+        if (feed_num(c)) {
+          if (field == 1) {
+            temp_abs = num_value;
+            temp_neg = num_sign;
+          }
+          if (field == 2) { is_day_now = num_value; }
+          if (field == 3) {
+            weather_code = num_value;
+            return;
+          }
+          field = field + 1;
+          reset_num();
+        }
+      }
+      if (c == 123) {
+        depth = depth + 1;
+        if (depth == 2) {
+          object_hits = object_hits + 1;
+          if (object_hits == 2) {
+            started = 1;
+            field = 0;
+            reset_num();
+          }
+        }
+      }
+      if (c == 125) { depth = depth - 1; }
+    }
+  }
+}
+
+void draw_scene() {
+  int x;
+  int y;
+  int level;
+
+  clear();
+
+  if (is_day_now) {
+    if (weather_code == 0) {
+      color(98, 192, 255);
+    } else {
+      color(112, 154, 210);
+    }
+  } else {
+    color(26, 36, 74);
+  }
+
+  y = 6;
+  while (y < 118) {
+    hline(0, 255, y);
+    y = y + 18;
+  }
+
+  if (is_day_now) {
+    disc(204, 44, 20, 255, 220, 96);
+    disc(204, 44, 11, 255, 244, 188);
+  } else {
+    disc(206, 42, 13, 240, 240, 220);
+    disc(212, 38, 13, 20, 30, 72);
+    color(255, 244, 216);
+    draw(28, 18); draw(72, 28); draw(118, 16); draw(168, 22); draw(216, 14);
+  }
+
+  if (weather_code != 0) {
+    if (weather_code <= 3) {
+      cloud(56, 78, 220);
+      cloud(150, 92, 208);
+    } else {
+      cloud(52, 78, 154);
+      cloud(138, 82, 142);
+    }
+  }
+
+  if ((weather_code >= 51 && weather_code <= 67) || (weather_code >= 80 && weather_code <= 82)) {
+    color(126, 190, 255);
+    x = 20;
+    while (x < 240) {
+      draw(x, 94); draw(x + 2, 100); draw(x + 4, 106);
+      x = x + 16;
+    }
+  }
+
+  if ((weather_code >= 71 && weather_code <= 77) || weather_code == 85 || weather_code == 86) {
+    color(250, 250, 255);
+    x = 22;
+    while (x < 240) {
+      draw(x, 90); draw(x - 1, 90); draw(x + 1, 90); draw(x, 89); draw(x, 91);
+      x = x + 18;
+    }
+  }
+
+  if (weather_code == 45 || weather_code == 48) {
+    fill_rect(16, 94, 240, 100, 184, 190, 198);
+    fill_rect(28, 118, 228, 124, 170, 176, 186);
+  }
+
+  if (weather_code >= 95) {
+    color(255, 244, 180);
+    draw(182, 64); draw(174, 82); draw(180, 82);
+  }
+
+  color(34, 58, 42);
+  hline(0, 255, 186);
+  hline(0, 255, 202);
+  hline(0, 255, 218);
+  fill_rect(34, 156, 48, 218, 22, 24, 28);
+  fill_rect(74, 144, 92, 218, 18, 20, 24);
+  fill_rect(154, 150, 172, 218, 22, 24, 28);
+
+  fill_rect(18, 40, 28, 182, 232, 236, 242);
+  fill_rect(20, 42, 26, 180, 38, 42, 58);
+  disc(23, 194, 10, 238, 240, 246);
+
+  level = temp_abs;
+  if (level > 34) { level = 34; }
+  if (temp_neg) {
+    fill_rect(21, 180 - level * 4, 25, 180, 112, 192, 255);
+    disc(23, 194, 6, 112, 192, 255);
+  } else if (temp_abs > 27) {
+    fill_rect(21, 180 - level * 4, 25, 180, 255, 118, 88);
+    disc(23, 194, 6, 255, 118, 88);
+  } else {
+    fill_rect(21, 180 - level * 4, 25, 180, 255, 176, 92);
+    disc(23, 194, 6, 255, 176, 92);
+  }
+}
+
+int main() {
+  putchar(62);
+  fetch_weather();
+  putchar(84);
+  if (temp_neg) { putchar(45); } else { putchar(43); }
+  print_num(temp_abs);
+  putchar(32);
+  print_num(weather_code);
+  putchar(10);
+  draw_scene();
+  return 0;
+}`,
+  },
 ];

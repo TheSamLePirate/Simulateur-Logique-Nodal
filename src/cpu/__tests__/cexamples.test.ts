@@ -930,6 +930,24 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it('"Meteo Ales" fetches weather and draws on the plotter', async () => {
+    const weatherExample = C_EXAMPLES.find((example) => example.name === "Meteo Ales");
+    expect(weatherExample).toBeDefined();
+
+    const r = await compileAndRunAsync(weatherExample!.code, {
+      maxCycles: 500_000,
+      httpFetch: async ({ method, url }) => {
+        expect(method).toBe("GET");
+        expect(url).toContain("api.open-meteo.com");
+        return '{"latitude":44.12,"longitude":4.08,"generationtime_ms":0.1,"utc_offset_seconds":3600,"timezone":"Europe/Paris","timezone_abbreviation":"GMT+1","elevation":130.0,"current_units":{"temperature_2m":"°C","is_day":"","weather_code":"wmo code"},"current":{"time":"2026-03-16T21:00","temperature_2m":11.4,"is_day":1,"weather_code":3}}';
+      },
+    });
+
+    expect(r.output.startsWith(">")).toBe(true);
+    expect(r.halted).toBe(true);
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
+  });
+
   it("getKey returns 0 when no key pressed", () => {
     const r = compileAndRun(`
       int main() {
