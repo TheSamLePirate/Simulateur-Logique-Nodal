@@ -1,4 +1,5 @@
 import type { CPUState as CPUStateType } from "../../cpu/isa";
+import { MEMORY_SIZE } from "../../cpu/isa";
 
 interface CPUStateProps {
   state: CPUStateType;
@@ -60,7 +61,7 @@ export function CPUStatePanel({ state }: CPUStateProps) {
             PC
           </div>
           <div className="text-sm font-mono font-bold text-green-400">
-            {hex(state.pc, 3)}
+            {hex(state.pc, 4)}
           </div>
           <div className="text-[10px] font-mono text-slate-400">{state.pc}</div>
         </div>
@@ -71,9 +72,15 @@ export function CPUStatePanel({ state }: CPUStateProps) {
             SP
           </div>
           <div className="text-sm font-mono font-bold text-purple-400">
-            {hex(state.sp, 3)}
+            {hex(state.sp, 4)}
           </div>
-          <div className="text-[10px] font-mono text-slate-400">{state.sp}</div>
+          <div className="text-[10px] font-mono text-slate-400">
+            {state.sp}
+            <span className="text-slate-600 ml-1">
+              ({MEMORY_SIZE - 1 - state.sp}
+              <span className="text-[8px]">stk</span>)
+            </span>
+          </div>
         </div>
       </div>
 

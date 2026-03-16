@@ -18,6 +18,7 @@ import { CPUStatePanel } from "./CPUState";
 import { MemoryView } from "./MemoryView";
 import { ConsolePanel } from "./ConsolePanel";
 import { PlotterPanel } from "./PlotterPanel";
+import { ResizablePanel } from "./ResizablePanel";
 
 interface EditorError {
   line: number;
@@ -573,56 +574,82 @@ export function SoftwareView({
 
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left panel: Editor */}
-        <div className="w-1/2 flex flex-col p-2 gap-2 overflow-hidden">
-          <div className="flex-1 overflow-hidden">
-            <ASMEditor
-              code={code}
-              onChange={setCode}
-              errors={errors}
-              currentLine={currentLine}
-              onSelectExample={handleSelectExample}
-              language={language}
-            />
-          </div>
-        </div>
-
-        {/* Right panel: CPU state + Memory + Console */}
-        <div className="w-1/2 flex flex-col p-2 gap-2 overflow-hidden border-l border-slate-800">
-          {/* CPU Registers */}
-          <div className="shrink-0">
-            <CPUStatePanel state={cpuState} />
-          </div>
-
-          {/* Memory + Console split */}
-          <div className="flex-1 flex gap-2 overflow-hidden">
-            {/* Memory */}
-            <div className="w-1/2 overflow-hidden">
-              <MemoryView
-                memory={cpuState.memory}
-                pc={cpuState.pc}
-                highlights={memHighlights}
-              />
-            </div>
-
-            {/* Console + Plotter stacked */}
-            <div className="w-1/2 flex flex-col gap-2 overflow-hidden">
-              <div className="h-1/2 overflow-hidden">
-                <ConsolePanel
-                  output={consoleOutput}
-                  onClear={handleClearConsole}
-                  onInput={handleConsoleInput}
-                />
-              </div>
-              <div className="h-1/2 overflow-hidden">
-                <PlotterPanel
-                  pixels={plotterPixels}
-                  onClear={handleClearPlotter}
+        <ResizablePanel
+          direction="horizontal"
+          initialRatio={0.5}
+          minRatio={0.25}
+          maxRatio={0.75}
+          className="flex-1 h-full"
+          first={
+            <div className="flex flex-col p-2 gap-2 h-full overflow-hidden">
+              <div className="flex-1 overflow-hidden">
+                <ASMEditor
+                  code={code}
+                  onChange={setCode}
+                  errors={errors}
+                  currentLine={currentLine}
+                  onSelectExample={handleSelectExample}
+                  language={language}
                 />
               </div>
             </div>
-          </div>
-        </div>
+          }
+          second={
+            <div className="flex flex-col p-2 gap-2 h-full overflow-hidden">
+              {/* CPU Registers */}
+              <div className="shrink-0">
+                <CPUStatePanel state={cpuState} />
+              </div>
+
+              {/* Memory + Console/Plotter split */}
+              <div className="flex-1 overflow-hidden">
+                <ResizablePanel
+                  direction="horizontal"
+                  initialRatio={0.5}
+                  minRatio={0.3}
+                  maxRatio={0.7}
+                  className="h-full"
+                  first={
+                    <div className="h-full overflow-hidden">
+                      <MemoryView
+                        memory={cpuState.memory}
+                        pc={cpuState.pc}
+                        sp={cpuState.sp}
+                        highlights={memHighlights}
+                      />
+                    </div>
+                  }
+                  second={
+                    <ResizablePanel
+                      direction="vertical"
+                      initialRatio={0.5}
+                      minRatio={0.2}
+                      maxRatio={0.8}
+                      className="h-full"
+                      first={
+                        <div className="h-full overflow-hidden">
+                          <ConsolePanel
+                            output={consoleOutput}
+                            onClear={handleClearConsole}
+                            onInput={handleConsoleInput}
+                          />
+                        </div>
+                      }
+                      second={
+                        <div className="h-full overflow-hidden">
+                          <PlotterPanel
+                            pixels={plotterPixels}
+                            onClear={handleClearPlotter}
+                          />
+                        </div>
+                      }
+                    />
+                  }
+                />
+              </div>
+            </div>
+          }
+        />
       </div>
     </div>
   );
