@@ -466,6 +466,7 @@ export const initialNodes: Node[] = [
       label: "PLOTTER",
       pixels: [],
       prevDraw: 0,
+      colorSource: "wires",
       currentColor: DEFAULT_PLOTTER_COLOR,
     },
   },
@@ -483,19 +484,37 @@ export const initialNodes: Node[] = [
     position: { x: 2000, y: 610 },
     data: { label: "PLOT_CLR", value: 0 },
   },
+  {
+    id: "plotColorR",
+    type: "inputNumber",
+    position: { x: 1710, y: 250 },
+    data: { label: "PLOT_R", value: DEFAULT_PLOTTER_COLOR.r },
+  },
+  {
+    id: "plotColorG",
+    type: "inputNumber",
+    position: { x: 1710, y: 430 },
+    data: { label: "PLOT_G", value: DEFAULT_PLOTTER_COLOR.g },
+  },
+  {
+    id: "plotColorB",
+    type: "inputNumber",
+    position: { x: 1710, y: 610 },
+    data: { label: "PLOT_B", value: DEFAULT_PLOTTER_COLOR.b },
+  },
 
   // Keyboard controller — reads arrow keys and Enter
   {
     id: "keyboard",
     type: "keyboard",
-    position: { x: 2100, y: 700 },
+    position: { x: 2100, y: 940 },
     data: { label: "KEYBOARD", keys: [0, 0, 0, 0, 0] },
   },
   // Keyboard read strobe (for GETKEY instruction)
   {
     id: "keyRd",
     type: "input",
-    position: { x: 2350, y: 880 },
+    position: { x: 2350, y: 1120 },
     data: { label: "KEY_RD", value: 0 },
   },
 
@@ -503,7 +522,7 @@ export const initialNodes: Node[] = [
   {
     id: "drive",
     type: "drive",
-    position: { x: 2100, y: 1060 },
+    position: { x: 2100, y: 1280 },
     data: {
       label: "EXT DRIVE",
       bytes: Array(65536).fill(0),
@@ -518,20 +537,65 @@ export const initialNodes: Node[] = [
   {
     id: "driveRd",
     type: "input",
-    position: { x: 2350, y: 1210 },
+    position: { x: 2350, y: 1430 },
     data: { label: "DRV_RD", value: 0 },
   },
   {
     id: "driveWr",
     type: "input",
-    position: { x: 2000, y: 1210 },
+    position: { x: 2000, y: 1430 },
     data: { label: "DRV_WR", value: 0 },
   },
   {
     id: "driveClear",
     type: "input",
-    position: { x: 2000, y: 1280 },
+    position: { x: 2000, y: 1500 },
     data: { label: "DRV_CLR", value: 0 },
+  },
+  {
+    id: "network",
+    type: "network",
+    position: { x: 2100, y: 1710 },
+    data: {
+      label: "NETWORK",
+      method: "GET",
+      url: "https://jsonplaceholder.typicode.com/todos/1",
+      body: "{\"title\":\"foo\"}",
+      q: Array(8).fill(0),
+      avail: 0,
+      pending: 0,
+      responseBuffer: [],
+      requestSerial: 0,
+      responseSize: 0,
+      lastByte: 0,
+      prevGet: 0,
+      prevPost: 0,
+      prevRd: 0,
+    },
+  },
+  {
+    id: "netGet",
+    type: "input",
+    position: { x: 1980, y: 1750 },
+    data: { label: "NET_GET", value: 0 },
+  },
+  {
+    id: "netPost",
+    type: "input",
+    position: { x: 1980, y: 1820 },
+    data: { label: "NET_POST", value: 0 },
+  },
+  {
+    id: "netRd",
+    type: "input",
+    position: { x: 2390, y: 1820 },
+    data: { label: "NET_RD", value: 0 },
+  },
+  {
+    id: "netClear",
+    type: "input",
+    position: { x: 1980, y: 1890 },
+    data: { label: "NET_CLR", value: 0 },
   },
 
   // ═════════════════════════════════
@@ -745,6 +809,9 @@ export const initialEdges: Edge[] = [
   // Plotter control signals
   wire("e-plot-draw", "plotDraw", "plotter", "out", "draw"),
   wire("e-plot-clr", "plotClear", "plotter", "out", "clr"),
+  ...bus8("e-plot-r-", "plotColorR", "plotter", "out", "r"),
+  ...bus8("e-plot-g-", "plotColorG", "plotter", "out", "g"),
+  ...bus8("e-plot-b-", "plotColorB", "plotter", "out", "b"),
 
   // ══════════════════════════════════════
   //  KEYBOARD: control wires
@@ -762,4 +829,13 @@ export const initialEdges: Edge[] = [
   wire("e-drive-rd", "driveRd", "drive", "out", "rd"),
   wire("e-drive-wr", "driveWr", "drive", "out", "wr"),
   wire("e-drive-clr", "driveClear", "drive", "out", "clr"),
+
+  // ══════════════════════════════════════
+  //  NETWORK: manual host bridge peripheral
+  // ══════════════════════════════════════
+
+  wire("e-net-get", "netGet", "network", "out", "get"),
+  wire("e-net-post", "netPost", "network", "out", "post"),
+  wire("e-net-rd", "netRd", "network", "out", "rd"),
+  wire("e-net-clr", "netClear", "network", "out", "clr"),
 ];

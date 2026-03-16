@@ -1,4 +1,4 @@
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useUpdateNodeInternals } from "@xyflow/react";
 import { useEffect, useMemo, useRef } from "react";
 import { Grid3X3 } from "lucide-react";
 import { DEFAULT_PLOTTER_COLOR, type PlotterColor, type PlotterPixel } from "../../plotter";
@@ -6,8 +6,9 @@ import { DEFAULT_PLOTTER_COLOR, type PlotterColor, type PlotterPixel } from "../
 const CANVAS_SIZE = 128; // display size in CSS pixels
 const GRID_SIZE = 256; // logical pixel grid (256×256)
 
-export const PlotterNode = ({ data }: any) => {
+export const PlotterNode = ({ id, data }: any) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const updateNodeInternals = useUpdateNodeInternals();
   const pixels = useMemo(
     () => (data.pixels as PlotterPixel[]) || [],
     [data.pixels],
@@ -31,6 +32,10 @@ export const PlotterNode = ({ data }: any) => {
       ctx.fillRect(x, y, 1, 1);
     }
   }, [pixels]);
+
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, updateNodeInternals]);
 
   return (
     <div className="bg-slate-800 border-2 border-cyan-600 rounded-md p-2 min-w-[180px] shadow-lg flex flex-col">
@@ -75,8 +80,33 @@ export const PlotterNode = ({ data }: any) => {
       </div>
 
       <div className="flex justify-between">
-        {/* Left side: X0-X7 */}
         <div className="flex flex-col gap-1">
+          {[
+            ["R", "red", "text-red-400", "bg-red-400"],
+            ["G", "green", "text-green-400", "bg-green-400"],
+            ["B", "blue", "text-blue-400", "bg-blue-400"],
+          ].map(([label, prefix, textClass, dotClass]) => (
+            <div key={prefix} className="flex flex-col gap-1">
+              <div className={`text-[8px] font-bold ${textClass}`}>
+                {label} [0..7]
+              </div>
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <div key={`${prefix}${i}`} className="relative h-3 flex items-center">
+                  <Handle
+                    type="target"
+                    position={Position.Left}
+                    id={`${prefix.toLowerCase()}${i}`}
+                    className={`w-2 h-2 -ml-3 ${dotClass}`}
+                  />
+                  <span className="text-[8px] text-slate-500 font-mono ml-1">
+                    {label}
+                    {i}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
+
           <div className="text-[8px] text-teal-400 font-bold">X [0..7]</div>
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
             <div key={`x${i}`} className="relative h-3 flex items-center">

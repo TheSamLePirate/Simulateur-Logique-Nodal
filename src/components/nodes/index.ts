@@ -15,6 +15,7 @@ import { ConsoleNode } from "./ConsoleNode";
 import { PlotterNode } from "./PlotterNode";
 import { KeyboardNode } from "./KeyboardNode";
 import { DriveNode } from "./DriveNode";
+import { NetworkControllerNode } from "./NetworkControllerNode";
 
 export {
   InputNode,
@@ -34,6 +35,7 @@ export {
   PlotterNode,
   KeyboardNode,
   DriveNode,
+  NetworkControllerNode,
 };
 
 export const nodeTypes = {
@@ -54,4 +56,5 @@ export const nodeTypes = {
   plotter: PlotterNode,
   keyboard: KeyboardNode,
   drive: DriveNode,
+  network: NetworkControllerNode,
 };

@@ -72,6 +72,12 @@ export interface HardwareSyncData {
   driveLastAddr: number;
   driveLastRead: number;
   driveLastWrite: number;
+  networkMethod: "GET" | "POST";
+  networkUrl: string;
+  networkBody: string;
+  networkPending: boolean;
+  networkResponseBuffer: number[];
+  networkLastByte: number;
   halted: boolean;
 }
 
@@ -155,6 +161,12 @@ export function SoftwareView({
         driveLastAddr: cpu.driveLastAddr,
         driveLastRead: cpu.driveLastRead,
         driveLastWrite: cpu.driveLastWrite,
+        networkMethod: cpu.httpLastMethod,
+        networkUrl: cpu.httpLastUrl,
+        networkBody: cpu.httpLastBody,
+        networkPending: cpu.httpPending,
+        networkResponseBuffer: [...cpu.httpResponseBuffer],
+        networkLastByte: cpu.httpLastByte,
         halted: cpu.state.halted,
       });
     },

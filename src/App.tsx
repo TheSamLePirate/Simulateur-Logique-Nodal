@@ -35,6 +35,7 @@ import {
   ChevronDown,
   Keyboard,
   HardDrive,
+  Globe,
 } from "lucide-react";
 
 import type {
@@ -262,6 +263,64 @@ export default function App() {
     };
     window.addEventListener("keyboard-state", handler);
     return () => window.removeEventListener("keyboard-state", handler);
+  }, [setNodes]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { nodeId, ...patch } = e.detail as {
+        nodeId: string;
+        method?: "GET" | "POST";
+        url?: string;
+        body?: string;
+      };
+
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId && node.type === "network"
+            ? { ...node, data: { ...node.data, ...patch } }
+            : node,
+        ),
+      );
+    };
+
+    window.addEventListener("network-node-config", handler);
+    return () => window.removeEventListener("network-node-config", handler);
+  }, [setNodes]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      const {
+        nodeId,
+        requestSerial,
+        text,
+      }: { nodeId: string; requestSerial: number; text: string } = e.detail;
+      const encoded = Array.from(
+        new TextEncoder().encode(text),
+        (byte) => byte & 0xff,
+      );
+
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id !== nodeId || node.type !== "network") return node;
+          if ((node.data.requestSerial as number) !== requestSerial) return node;
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              q: Array(8).fill(0),
+              avail: encoded.length > 0 ? 1 : 0,
+              pending: 0,
+              responseBuffer: encoded,
+              responseSize: encoded.length,
+              lastByte: 0,
+            },
+          };
+        }),
+      );
+    };
+
+    window.addEventListener("network-node-response", handler);
+    return () => window.removeEventListener("network-node-response", handler);
   }, [setNodes]);
 
   // --- Simulation loop (20Hz) ---
@@ -953,6 +1012,7 @@ export default function App() {
             label: "PLOTTER",
             pixels: [],
             prevDraw: 0 as Bit,
+            colorSource: "wires",
             currentColor: DEFAULT_PLOTTER_COLOR,
           },
         };
@@ -982,6 +1042,29 @@ export default function App() {
             lastWrite: 0,
             prevRd: 0 as Bit,
             prevWr: 0 as Bit,
+          },
+        };
+        break;
+      case "network":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "NETWORK",
+            method: "GET",
+            url: "",
+            body: "",
+            q: Array(8).fill(0),
+            avail: 0 as Bit,
+            pending: 0 as Bit,
+            responseBuffer: [],
+            requestSerial: 0,
+            responseSize: 0,
+            lastByte: 0,
+            prevGet: 0 as Bit,
+            prevPost: 0 as Bit,
+            prevRd: 0 as Bit,
           },
         };
         break;
@@ -1115,6 +1198,7 @@ export default function App() {
                 data: {
                   ...node.data,
                   pixels: data.plotterPixels,
+                  colorSource: "cpu",
                   currentColor: data.plotterColor,
                 },
               };
@@ -1130,6 +1214,22 @@ export default function App() {
                   lastWrite: data.driveLastWrite || 0,
                   prevRd: 0,
                   prevWr: 0,
+                },
+              };
+            case "network":
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  method: data.networkMethod,
+                  url: data.networkUrl,
+                  body: data.networkBody,
+                  q: toBits(data.networkLastByte || 0),
+                  avail: data.networkResponseBuffer.length > 0 ? 1 : 0,
+                  pending: data.networkPending ? 1 : 0,
+                  responseBuffer: [...data.networkResponseBuffer],
+                  responseSize: data.networkResponseBuffer.length,
+                  lastByte: data.networkLastByte || 0,
                 },
               };
             default:
@@ -1202,6 +1302,9 @@ export default function App() {
     const driveRd = op === Opcode.DRVRD ? 1 : 0;
     const driveWr = op === Opcode.DRVWR ? 1 : 0;
     const driveClr = op === Opcode.DRVCLR ? 1 : 0;
+    const netGet = op === Opcode.HTTPGET ? 1 : 0;
+    const netPost = op === Opcode.HTTPPOST ? 1 : 0;
+    const netRd = op === Opcode.HTTPIN ? 1 : 0;
 
     // PC jump control (sel=1 routes jump target to PC via pcSrcMux)
     let pcJmpSig = 0;
@@ -1316,6 +1419,7 @@ export default function App() {
               data: {
                 ...node.data,
                 pixels: serializePlotterPixels(cpu.plotterPixels),
+                colorSource: "cpu",
                 currentColor: cpu.plotterColor,
                 prevDraw: plotDraw,
               },
@@ -1332,6 +1436,25 @@ export default function App() {
                 lastWrite: cpu.driveLastWrite || 0,
                 prevRd: driveRd,
                 prevWr: driveWr,
+              },
+            };
+          case "network":
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                method: cpu.httpLastMethod,
+                url: cpu.httpLastUrl,
+                body: cpu.httpLastBody,
+                q: toBits(cpu.httpLastByte || 0),
+                avail: cpu.httpResponseBuffer.length > 0 ? 1 : 0,
+                pending: cpu.httpPending ? 1 : 0,
+                responseBuffer: [...cpu.httpResponseBuffer],
+                responseSize: cpu.httpResponseBuffer.length,
+                lastByte: cpu.httpLastByte || 0,
+                prevGet: netGet,
+                prevPost: netPost,
+                prevRd: netRd,
               },
             };
 
@@ -1390,6 +1513,14 @@ export default function App() {
             return { ...node, data: { ...node.data, value: driveWr } };
           case "driveClear":
             return { ...node, data: { ...node.data, value: driveClr } };
+          case "netGet":
+            return { ...node, data: { ...node.data, value: netGet } };
+          case "netPost":
+            return { ...node, data: { ...node.data, value: netPost } };
+          case "netRd":
+            return { ...node, data: { ...node.data, value: netRd } };
+          case "netClear":
+            return { ...node, data: { ...node.data, value: 0 } };
 
           // ── Console read control ──
           case "consoleRd":
@@ -1650,7 +1781,21 @@ export default function App() {
     setHwCpuRunning(false);
     setHwCpuHalted(false);
     syncHwCpuToNodes();
-  }, [syncHwCpuToNodes]);
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.type === "plotter"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                colorSource: "wires",
+                currentColor: DEFAULT_PLOTTER_COLOR,
+              },
+            }
+          : node,
+      ),
+    );
+  }, [setNodes, syncHwCpuToNodes]);
 
   // Hardware CPU run loop — paced by the clock node's frequency
   // At clock=1Hz, i/tick=1 → 1 instruction per second
@@ -1994,6 +2139,13 @@ export default function App() {
                 >
                   <HardDrive size={18} className="text-amber-400" />
                   <span className="font-bold">External Drive</span>
+                </button>
+                <button
+                  onClick={() => addNode("network")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-sky-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <Globe size={18} className="text-sky-400" />
+                  <span className="font-bold">Network Controller</span>
                 </button>
               </div>
             </div>

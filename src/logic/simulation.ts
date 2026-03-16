@@ -9,6 +9,42 @@ import {
   type PlotterColor,
   type PlotterPixel,
 } from "../plotter";
+import { defaultHttpFetch } from "../network";
+
+const dispatchNetworkNodeResponse = (
+  nodeId: string,
+  requestSerial: number,
+  text: string,
+) => {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("network-node-response", {
+      detail: { nodeId, requestSerial, text },
+    }),
+  );
+};
+
+const startNetworkNodeRequest = (
+  nodeId: string,
+  requestSerial: number,
+  method: "GET" | "POST",
+  url: string,
+  body?: string,
+) => {
+  void defaultHttpFetch({ method, url, body })
+    .then((text) => {
+      dispatchNetworkNodeResponse(nodeId, requestSerial, text);
+    })
+    .catch((error: unknown) => {
+      const message =
+        error instanceof Error ? error.message : "Unknown network error";
+      dispatchNetworkNodeResponse(
+        nodeId,
+        requestSerial,
+        `HTTP ERROR: ${message}`,
+      );
+    });
+};
 
 /**
  * Resolve the value of a specific input handle on a target node
@@ -106,6 +142,16 @@ export const getInputValue = (
       const idx = parseInt(edge.sourceHandle.replace("q", ""));
       return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
     }
+  }
+  if (sourceNode.type === "network") {
+    if (edge.sourceHandle?.startsWith("q")) {
+      const idx = parseInt(edge.sourceHandle.replace("q", ""));
+      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
+    }
+    if (edge.sourceHandle === "avail")
+      return (sourceNode.data.avail as Bit) || 0;
+    if (edge.sourceHandle === "pending")
+      return (sourceNode.data.pending as Bit) || 0;
   }
   return 0;
 };
@@ -480,21 +526,43 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         changed = true;
       }
     } else if (node.type === "plotter") {
+      const readBusValue = (prefix: string) => {
+        let value = 0;
+        for (let i = 0; i < 8; i++) {
+          if (getVal(node.id, `${prefix}${i}`)) value |= 1 << i;
+        }
+        return value & 0xff;
+      };
+      const hasBusInput = (prefix: string) =>
+        edges.some(
+          (edge) =>
+            edge.target === node.id && edge.targetHandle?.startsWith(prefix),
+        );
+
       // Read X and Y coordinates
-      let x = 0;
-      for (let i = 0; i < 8; i++) {
-        if (getVal(node.id, `x${i}`)) x |= 1 << i;
-      }
-      let y = 0;
-      for (let i = 0; i < 8; i++) {
-        if (getVal(node.id, `y${i}`)) y |= 1 << i;
-      }
+      const x = readBusValue("x");
+      const y = readBusValue("y");
       const draw = getVal(node.id, "draw");
       const prevDraw = (node.data.prevDraw as Bit) || 0;
       const clr = getVal(node.id, "clr");
 
       const currentColor =
         (node.data.currentColor as PlotterColor) || DEFAULT_PLOTTER_COLOR;
+      const allowWiredColor = node.data.colorSource !== "cpu";
+      const nextColor: PlotterColor = {
+        r:
+          allowWiredColor && hasBusInput("r")
+            ? readBusValue("r")
+            : currentColor.r,
+        g:
+          allowWiredColor && hasBusInput("g")
+            ? readBusValue("g")
+            : currentColor.g,
+        b:
+          allowWiredColor && hasBusInput("b")
+            ? readBusValue("b")
+            : currentColor.b,
+      };
       let pixels = (node.data.pixels as PlotterPixel[]) || [];
       let pixelsChanged = false;
 
@@ -512,7 +580,7 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         const nextPixel: PlotterPixel = {
           x,
           y,
-          ...currentColor,
+          ...nextColor,
         };
         if (existingIndex === -1) {
           pixels = [...pixels, nextPixel];
@@ -525,9 +593,9 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
             existing.b,
           );
           const nextColor = packPlotterColor(
-            currentColor.r,
-            currentColor.g,
-            currentColor.b,
+            nextPixel.r,
+            nextPixel.g,
+            nextPixel.b,
           );
           if (existingColor !== nextColor) {
             pixels = [...pixels];
@@ -540,11 +608,115 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
       if (
         pixelsChanged ||
         node.data.prevDraw !== draw ||
-        node.data.currentColor !== currentColor
+        currentColor.r !== nextColor.r ||
+        currentColor.g !== nextColor.g ||
+        currentColor.b !== nextColor.b
       ) {
         newNodes[index] = {
           ...node,
-          data: { ...node.data, pixels, prevDraw: draw, currentColor },
+          data: {
+            ...node.data,
+            pixels,
+            prevDraw: draw,
+            currentColor: nextColor,
+          },
+        };
+        changed = true;
+      }
+    } else if (node.type === "network") {
+      const get = getVal(node.id, "get");
+      const post = getVal(node.id, "post");
+      const rd = getVal(node.id, "rd");
+      const clr = getVal(node.id, "clr");
+      const prevGet = (node.data.prevGet as Bit) || 0;
+      const prevPost = (node.data.prevPost as Bit) || 0;
+      const prevRd = (node.data.prevRd as Bit) || 0;
+
+      let q = (node.data.q as Bit[]) || Array(8).fill(0);
+      let avail = ((node.data.avail as Bit) || 0) as Bit;
+      let pending = ((node.data.pending as Bit) || 0) as Bit;
+      let responseBuffer = (node.data.responseBuffer as number[]) || [];
+      let requestSerial = (node.data.requestSerial as number) || 0;
+      let responseSize =
+        (node.data.responseSize as number) || responseBuffer.length;
+      let lastByte = (node.data.lastByte as number) || 0;
+      const url = ((node.data.url as string) || "").trim();
+      const body = (node.data.body as string) || "";
+      let method = (node.data.method as "GET" | "POST") || "GET";
+      let nodeChanged = false;
+
+      if (clr === 1) {
+        if (
+          responseBuffer.length > 0 ||
+          pending === 1 ||
+          avail === 1 ||
+          lastByte !== 0 ||
+          responseSize !== 0
+        ) {
+          requestSerial += 1;
+          responseBuffer = [];
+          q = Array(8).fill(0);
+          avail = 0;
+          pending = 0;
+          responseSize = 0;
+          lastByte = 0;
+          nodeChanged = true;
+        }
+      } else if (prevGet === 0 && get === 1 && url.length > 0) {
+        requestSerial += 1;
+        responseBuffer = [];
+        q = Array(8).fill(0);
+        avail = 0;
+        pending = 1;
+        responseSize = 0;
+        lastByte = 0;
+        method = "GET";
+        startNetworkNodeRequest(node.id, requestSerial, "GET", url);
+        nodeChanged = true;
+      } else if (prevPost === 0 && post === 1 && url.length > 0) {
+        requestSerial += 1;
+        responseBuffer = [];
+        q = Array(8).fill(0);
+        avail = 0;
+        pending = 1;
+        responseSize = 0;
+        lastByte = 0;
+        method = "POST";
+        startNetworkNodeRequest(node.id, requestSerial, "POST", url, body);
+        nodeChanged = true;
+      }
+
+      if (prevRd === 0 && rd === 1 && responseBuffer.length > 0) {
+        const byte = responseBuffer[0] & 0xff;
+        responseBuffer = responseBuffer.slice(1);
+        q = Array.from({ length: 8 }, (_, i) => ((byte >> i) & 1) as Bit);
+        lastByte = byte;
+        avail = responseBuffer.length > 0 ? 1 : 0;
+        nodeChanged = true;
+      }
+
+      if (
+        nodeChanged ||
+        node.data.prevGet !== get ||
+        node.data.prevPost !== post ||
+        node.data.prevRd !== rd
+      ) {
+        newNodes[index] = {
+          ...node,
+          data: {
+            ...node.data,
+            method,
+            q,
+            avail,
+            pending,
+            responseBuffer,
+            requestSerial,
+            responseSize,
+            lastByte,
+            prevGet: get,
+            prevPost: post,
+            prevRd: rd,
+          },
         };
         changed = true;
       }
@@ -788,6 +960,15 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
         if (edge.sourceHandle?.startsWith("k")) {
           const idx = parseInt(edge.sourceHandle.replace("k", ""));
           isActive = (sourceNode.data.keys as number[])?.[idx] === 1;
+        }
+      } else if (sourceNode.type === "network") {
+        if (edge.sourceHandle?.startsWith("q")) {
+          const idx = parseInt(edge.sourceHandle.replace("q", ""));
+          isActive = (sourceNode.data.q as Bit[])?.[idx] === 1;
+        } else if (edge.sourceHandle === "avail") {
+          isActive = sourceNode.data.avail === 1;
+        } else if (edge.sourceHandle === "pending") {
+          isActive = sourceNode.data.pending === 1;
         }
       }
     }

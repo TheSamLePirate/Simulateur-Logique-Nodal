@@ -1132,8 +1132,27 @@ const plotterNodes: Node[] = [
       label: "PLOTTER",
       pixels: [],
       prevDraw: 0,
+      colorSource: "wires",
       currentColor: DEFAULT_PLOTTER_COLOR,
     },
+  },
+  {
+    id: "red",
+    type: "inputNumber",
+    position: { x: 340, y: -10 },
+    data: { label: "Rouge", value: DEFAULT_PLOTTER_COLOR.r },
+  },
+  {
+    id: "green",
+    type: "inputNumber",
+    position: { x: 340, y: 170 },
+    data: { label: "Vert", value: DEFAULT_PLOTTER_COLOR.g },
+  },
+  {
+    id: "blue",
+    type: "inputNumber",
+    position: { x: 340, y: 350 },
+    data: { label: "Bleu", value: DEFAULT_PLOTTER_COLOR.b },
   },
 ];
 
@@ -1151,6 +1170,9 @@ const plotterEdges: Edge[] = [
   // Clock → draw
   wire("e-clk-draw", "clk", "plotter", "out", "draw"),
   wire("e-clr-plot", "clr", "plotter", "out", "clr"),
+  ...bus8("e-red-plot-", "red", "plotter", "out", "r"),
+  ...bus8("e-green-plot-", "green", "plotter", "out", "g"),
+  ...bus8("e-blue-plot-", "blue", "plotter", "out", "b"),
   // Display
   ...bus8("e-ctr-disp-", "counter", "disp", "q", "in"),
 ];

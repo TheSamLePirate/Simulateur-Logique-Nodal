@@ -292,6 +292,8 @@ The simulator can also bridge to the browser's JavaScript `fetch()` API.
 - `HTTPIN` returns the next byte of the response body
 - while a request is still pending and no byte is ready yet, `HTTPIN` sets the Carry flag
 
+On the hardware tab, these instructions are mirrored by the **network controller** node, which shows pending state and exposes response bytes on `Q0-Q7`.
+
 That Carry-while-pending behavior is what lets the C built-in `gethttpchar()` block without confusing "still waiting" with "end of response".
 
 #### Jumps (Conditional & Unconditional)

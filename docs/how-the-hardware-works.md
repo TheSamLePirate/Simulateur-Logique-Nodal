@@ -46,11 +46,11 @@ Everything in the simulator is built from simple gates upward:
   Level 2:  ADDERS        Full Adder (1-bit), Ripple Carry Adder (8-bit)
   Level 3:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (1024x8)
   Level 4:  ALU           8 operations (ADD, SUB, AND, OR, XOR, NOT, SHL, SHR)
-  Level 5:  PERIPHERALS   Console (text I/O), Plotter (256×256 RGB pixel display)
+  Level 5:  PERIPHERALS   Console, Plotter, Drive, Network host bridge
   Level 6:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
 ```
 
-The new HTTP network interface is different: it is a **software-host bridge**, not a gate-level node. C programs can issue `get(...)` and `post(...)`, but those calls are handled by the JavaScript runtime through `fetch()`, then fed back into the CPU as byte-oriented I/O.
+The HTTP network interface is still a **software-host bridge**, not a gate-level implementation of TCP/IP. In the hardware editor it appears as a dedicated **network controller node**: you configure the URL/body in the node UI, trigger GET/POST with wires, and read the response back as bytes through `Q0-Q7`.
 
 ---
 
@@ -761,10 +761,15 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **plotter** | Plotter | 256×256 RGB pixel display |
 | **plotDraw** | Input | Plotter draw strobe |
 | **plotClear** | Input | Clear plotter display |
+| **plotColorR/G/B** | InputNumber | 8-bit RGB color buses for the plotter |
 | **drive** | Drive | 8 KB external storage peripheral |
 | **driveRd** | Input | Drive read strobe |
 | **driveWr** | Input | Drive write strobe |
 | **driveClear** | Input | Clear the external drive |
+| **network** | Network Controller | HTTP host bridge with byte output queue |
+| **netGet / netPost** | Input | Start a GET or POST request |
+| **netRd** | Input | Pop next response byte onto Q0-Q7 |
+| **netClear** | Input | Clear queued response bytes |
 
 ### Console Node Details
 
@@ -788,10 +793,38 @@ The console also has a **keyboard input field** at the bottom. Text typed there 
 The plotter stores a full **RGB color** for each pixel.
 
 - **X0-X7** and **Y0-Y7** select the pixel coordinate
+- **R0-R7**, **G0-G7**, and **B0-B7** provide 8-bit red/green/blue color inputs
 - **DRAW** plots one pixel on the rising edge
 - **CLR** clears the whole screen
 - When the software CPU is driving the hardware view, the current plotter color is latched by the `COLR`, `COLG`, and `COLB` instructions (these are what C `color(r, g, b)` compiles to)
 - A later `DRAW` uses that latched color for the pixel it writes
+
+If no RGB wires are attached, the plotter keeps its current color. That keeps older scenes compatible while letting hardware circuits drive colors directly.
+
+### Network Controller Node Details
+
+The network controller is a **hardware-usable host bridge**.
+
+**Inside the node UI:**
+
+- choose `GET` or `POST`
+- enter the request URL
+- optionally enter a POST body
+
+**Left side (inputs):**
+
+- **GET**: rising edge starts the configured `GET` request
+- **POST**: rising edge starts the configured `POST` request
+- **RD**: rising edge pops the next response byte onto `Q0-Q7`
+- **CLR**: clears the queued response bytes and status
+
+**Right side (outputs):**
+
+- **Q0-Q7**: the last response byte read
+- **AVAIL**: `1` when at least one unread byte is queued
+- **PEND**: `1` while the HTTP request is still in flight
+
+When the software CPU is driving the hardware view, `HTTPGET`, `HTTPPOST`, and `HTTPIN` update this node too, so the hardware tab mirrors the software network state live.
 
 ### External Drive Node Details
 

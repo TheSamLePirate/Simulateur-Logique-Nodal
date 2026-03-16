@@ -23,6 +23,7 @@ import {
   type PlotterColor,
   type PlotterPixels,
 } from "../plotter";
+import { defaultHttpFetch, type HttpRequest } from "../network";
 
 export interface DisassemblyLine {
   addr: number;
@@ -30,39 +31,7 @@ export interface DisassemblyLine {
   mnemonic: string;
 }
 
-export interface HttpRequest {
-  method: "GET" | "POST";
-  url: string;
-  body?: string;
-}
-
 export type HttpFetchHandler = (request: HttpRequest) => Promise<string>;
-
-async function defaultHttpFetch(request: HttpRequest): Promise<string> {
-  if (typeof globalThis.fetch !== "function") {
-    throw new Error("Fetch API unavailable in this environment.");
-  }
-
-  const response = await globalThis.fetch(request.url, {
-    method: request.method,
-    headers:
-      request.method === "POST"
-        ? { "Content-Type": "application/json; charset=UTF-8" }
-        : undefined,
-    body: request.method === "POST" ? request.body ?? "" : undefined,
-  });
-  const text = await response.text();
-
-  if (text.length > 0) {
-    return text;
-  }
-
-  if (!response.ok) {
-    return `HTTP ${response.status} ${response.statusText}`.trim();
-  }
-
-  return "";
-}
 
 export class CPU {
   state: CPUState;
@@ -79,6 +48,10 @@ export class CPU {
   httpResponseBuffer: number[];
   httpPending: boolean;
   httpFetch: HttpFetchHandler;
+  httpLastMethod: "GET" | "POST";
+  httpLastUrl: string;
+  httpLastBody: string;
+  httpLastByte: number;
   onConsoleOutput?: (text: string) => void;
 
   /** Last executed opcode (for hardware visualization) */
@@ -111,6 +84,10 @@ export class CPU {
     this.httpResponseBuffer = [];
     this.httpPending = false;
     this.httpFetch = defaultHttpFetch;
+    this.httpLastMethod = "GET";
+    this.httpLastUrl = "";
+    this.httpLastBody = "";
+    this.httpLastByte = 0;
   }
 
   /** Reset CPU to initial state, clearing memory */
@@ -128,6 +105,10 @@ export class CPU {
     this.httpResponseBuffer = [];
     this.httpPending = false;
     this.httpRequestSerial++;
+    this.httpLastMethod = "GET";
+    this.httpLastUrl = "";
+    this.httpLastBody = "";
+    this.httpLastByte = 0;
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
@@ -227,6 +208,10 @@ export class CPU {
 
   private startHttpRequest(method: "GET" | "POST", url: string, body?: string): void {
     const requestId = ++this.httpRequestSerial;
+    this.httpLastMethod = method;
+    this.httpLastUrl = url;
+    this.httpLastBody = body ?? "";
+    this.httpLastByte = 0;
     this.httpPending = true;
     this.httpResponseBuffer = [];
 
@@ -439,15 +424,18 @@ export class CPU {
       case Opcode.HTTPIN:
         if (this.httpResponseBuffer.length > 0) {
           this.state.a = this.httpResponseBuffer.shift()!;
+          this.httpLastByte = this.state.a;
           this.setZeroNegativeFlags(this.state.a);
           this.state.flags.c = false;
         } else if (this.httpPending) {
           this.state.a = 0;
+          this.httpLastByte = 0;
           this.state.flags.z = true;
           this.state.flags.n = false;
           this.state.flags.c = true;
         } else {
           this.state.a = 0;
+          this.httpLastByte = 0;
           this.state.flags.z = true;
           this.state.flags.n = false;
           this.state.flags.c = false;
