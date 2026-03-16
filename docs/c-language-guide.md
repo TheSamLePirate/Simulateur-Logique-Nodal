@@ -822,6 +822,28 @@ while (!getKey(4)) {
 }
 ```
 
+### Build a cursor-driven editor loop
+
+```c
+int ch;
+
+while (1) {
+  ch = getchar_nb();
+  if (ch == '@') {
+    break;
+  }
+
+  if (getKey(0)) {
+    // move cursor left
+  }
+  if (getKey(1)) {
+    // move cursor right
+  }
+}
+```
+
+This pattern is useful for text editors, games, or plotter tools that need immediate arrow-key movement while still accepting typed commands from the console.
+
 ### Read characters until Enter
 
 ```c
@@ -870,6 +892,8 @@ Useful ones to start with:
 - `Factorielle` for recursion
 - `Echo (Saisie)` for `getchar()`
 - `Clavier` for `getKey()`
+- `Éditeur Texte FS` for a tiny single-file drive editor
+- `Éditeur Multi-fichier FS` for opening, editing, and saving multiple files with arrow-key cursor movement
 - `Plotter`, `Courbe`, and `Spirale` for graphics
 - `Tableau (Tri)` for arrays
 

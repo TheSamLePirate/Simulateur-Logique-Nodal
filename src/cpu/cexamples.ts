@@ -2471,6 +2471,689 @@ int main() {
 }`,
   },
   {
+    name: "Éditeur Texte FS",
+    description: "Mini editeur texte pour les fichiers du disque partage",
+    code: `// Mini editeur texte sur le FS partage avec le bootloader
+// Fichier fixe: "notes"
+// Tapez du texte pour l'ajouter
+// Ligne vide = sauvegarder, /show = afficher, /clear = vider, @ = quitter
+
+int clear_entry(int base) {
+  int j;
+  j = 0;
+  while (j < 12) {
+    drive_write(base + j, 0);
+    j = j + 1;
+  }
+  return 0;
+}
+
+int format_drive() {
+  int base;
+  int i;
+  drive_clear();
+  drive_set_page(0);
+  drive_write(0, 66);
+  drive_write(1, 3);
+  base = 16;
+  i = 0;
+  while (i < 8) {
+    clear_entry(base);
+    base = base + 12;
+    i = i + 1;
+  }
+  return 0;
+}
+
+int ensure_drive() {
+  drive_set_page(0);
+  if (drive_read(0) != 66) {
+    format_drive();
+  }
+  drive_set_page(0);
+  if (drive_read(1) != 3) {
+    format_drive();
+  }
+  return 0;
+}
+
+int is_notes(int base) {
+  if (drive_read(base + 0) != 'n') { return 0; }
+  if (drive_read(base + 1) != 'o') { return 0; }
+  if (drive_read(base + 2) != 't') { return 0; }
+  if (drive_read(base + 3) != 'e') { return 0; }
+  if (drive_read(base + 4) != 's') { return 0; }
+  if (drive_read(base + 5) != 0) { return 0; }
+  return 1;
+}
+
+int init_notes_entry(int base, int page, int size) {
+  drive_write(base + 0, 'n');
+  drive_write(base + 1, 'o');
+  drive_write(base + 2, 't');
+  drive_write(base + 3, 'e');
+  drive_write(base + 4, 's');
+  drive_write(base + 5, 0);
+  drive_write(base + 6, 0);
+  drive_write(base + 7, 0);
+  drive_write(base + 8, 1);
+  drive_write(base + 9, page);
+  drive_write(base + 10, 1);
+  drive_write(base + 11, size);
+  return 0;
+}
+
+int find_or_create_notes() {
+  int base;
+  int i;
+  int free_base;
+  int free_page;
+  free_base = 255;
+  free_page = 0;
+  base = 16;
+  i = 0;
+  while (i < 8) {
+    if (drive_read(base) == 0) {
+      if (free_base == 255) {
+        free_base = base;
+        free_page = 255 - i;
+      }
+    } else {
+      if (is_notes(base)) {
+        return base;
+      }
+    }
+    base = base + 12;
+    i = i + 1;
+  }
+  if (free_base == 255) {
+    return 255;
+  }
+  init_notes_entry(free_base, free_page, 0);
+  return free_base;
+}
+
+int show_notes(int page, int len) {
+  int i;
+  if (len == 0) {
+    print("(empty)");
+    putchar(10);
+    return 0;
+  }
+  i = 0;
+  while (i < len) {
+    putchar(drive_read_at(page, i));
+    i = i + 1;
+  }
+  if (drive_read_at(page, len - 1) != 10) {
+    putchar(10);
+  }
+  return 0;
+}
+
+int main() {
+  int line[40];
+  int n;
+  int ch;
+  int base;
+  int page;
+  int text_len;
+  int i;
+
+  ensure_drive();
+  base = find_or_create_notes();
+  if (base == 255) {
+    print("disk full");
+    putchar(10);
+    return 0;
+  }
+
+  page = drive_read(base + 9);
+  text_len = drive_read(base + 11);
+
+  print("=== EDITEUR TEXTE FS ===");
+  putchar(10);
+  print("notes | vide=save | /show | /clear | @ quit");
+  putchar(10);
+  show_notes(page, text_len);
+
+  while (1) {
+    print("notes> ");
+    n = 0;
+    ch = getchar();
+    while (ch != 10) {
+      if (ch == 64) {
+        putchar(10);
+        return 0;
+      }
+      if (n < 39) {
+        line[n] = ch;
+        n = n + 1;
+      }
+      putchar(ch);
+      ch = getchar();
+    }
+    line[n] = 0;
+    putchar(10);
+
+    if (n == 0) {
+      drive_set_page(0);
+      drive_write(base + 11, text_len);
+      print("saved notes");
+      putchar(10);
+      continue;
+    }
+
+    if (line[0] == '/') {
+      if (line[1] == 's') {
+        if (line[2] == 'h') {
+          if (line[3] == 'o') {
+            if (line[4] == 'w') {
+              if (line[5] == 0) {
+                show_notes(page, text_len);
+                continue;
+              }
+            }
+          }
+        }
+      }
+      if (line[1] == 'c') {
+        if (line[2] == 'l') {
+          if (line[3] == 'e') {
+            if (line[4] == 'a') {
+              if (line[5] == 'r') {
+                if (line[6] == 0) {
+                  text_len = 0;
+                  print("buffer cleared");
+                  putchar(10);
+                  continue;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    i = 0;
+    while (i < n) {
+      if (text_len == 255) {
+        print("full");
+        putchar(10);
+        i = 255;
+        break;
+      }
+      drive_write_at(page, text_len, line[i]);
+      text_len = text_len + 1;
+      i = i + 1;
+    }
+    if (i == 255) { continue; }
+    if (text_len < 255) {
+      drive_write_at(page, text_len, 10);
+      text_len = text_len + 1;
+    }
+    print("appended");
+    putchar(10);
+  }
+  return 0;
+}`,
+  },
+  {
+    name: "Éditeur Multi-fichier FS",
+    description: "Editeur texte leger pour ouvrir ou creer plusieurs fichiers",
+    code: `// Editeur multi-fichier avec curseur
+// o nom = ouvrir/creer, l = liste, v = vue, s = sauver, c = vider, d = effacer
+// Fleches: gauche/droite = curseur, haut = debut, bas = fin
+// Toute autre ligne est inseree au curseur, vide = sauver, @ = quitter
+
+int clear_entry(int base) {
+  int j;
+  j = 0;
+  while (j < 12) {
+    drive_write(base + j, 0);
+    j = j + 1;
+  }
+  return 0;
+}
+
+int format_drive() {
+  int base;
+  int i;
+  drive_clear();
+  drive_set_page(0);
+  drive_write(0, 66);
+  drive_write(1, 3);
+  base = 16;
+  i = 0;
+  while (i < 8) {
+    clear_entry(base);
+    base = base + 12;
+    i = i + 1;
+  }
+  return 0;
+}
+
+int ensure_drive() {
+  drive_set_page(0);
+  if (drive_read(0) != 66) {
+    format_drive();
+  }
+  drive_set_page(0);
+  if (drive_read(1) != 3) {
+    format_drive();
+  }
+  return 0;
+}
+
+int print_entry_name(int base) {
+  int i;
+  int ch;
+  i = 0;
+  while (i < 8) {
+    ch = drive_read(base + i);
+    if (ch == 0) { break; }
+    putchar(ch);
+    i = i + 1;
+  }
+  return 0;
+}
+
+int show_file(int page, int len) {
+  int i;
+  if (len == 0) {
+    print("(empty)");
+    putchar(10);
+    return 0;
+  }
+  i = 0;
+  while (i < len) {
+    putchar(drive_read_at(page, i));
+    i = i + 1;
+  }
+  if (drive_read_at(page, len - 1) != 10) {
+    putchar(10);
+  }
+  return 0;
+}
+
+int draw_view(int base, int page, int len, int cursor) {
+  int i;
+
+  if (base == 255) {
+    print("(o nom pour ouvrir)");
+    putchar(10);
+    return 0;
+  }
+
+  putchar('[');
+  print_entry_name(base);
+  putchar(']');
+  putchar(' ');
+  print_num(cursor);
+  putchar('/');
+  print_num(len);
+  putchar(10);
+
+  i = 0;
+  while (i < len) {
+    if (i == cursor) { putchar('|'); }
+    putchar(drive_read_at(page, i));
+    i = i + 1;
+  }
+  if (cursor == len) { putchar('|'); }
+  if (len == 0) { putchar('|'); }
+  putchar(10);
+  return 0;
+}
+
+int main() {
+  int line[40];
+  int n;
+  int ch;
+  int base;
+  int i;
+  int j;
+  int found;
+  int free_base;
+  int free_page;
+  int start;
+  int name_len;
+  int match;
+  int current_base;
+  int current_page;
+  int current_len;
+  int cursor;
+  int left_prev;
+  int right_prev;
+  int up_prev;
+  int down_prev;
+  int key;
+  int dirty;
+  int extra;
+
+  ensure_drive();
+  current_base = 255;
+  current_page = 0;
+  current_len = 0;
+  cursor = 0;
+  left_prev = 0;
+  right_prev = 0;
+  up_prev = 0;
+  down_prev = 0;
+  dirty = 1;
+
+  print("=== EDITEUR CURSEUR FS ===");
+  putchar(10);
+  print("o nom | l | v | s | c | d | texte");
+  putchar(10);
+
+  while (1) {
+    ch = getchar_nb();
+    if (ch == 64) {
+      putchar(10);
+      return 0;
+    }
+
+    if (ch != 0) {
+      if (ch == 10) {
+        line[n] = 0;
+
+        if (n == 0) {
+          if (current_base == 255) {
+            print("open?");
+            putchar(10);
+          } else {
+            drive_set_page(0);
+            drive_write(current_base + 11, current_len);
+            print("saved ");
+            print_entry_name(current_base);
+            putchar(10);
+          }
+          dirty = 1;
+          n = 0;
+        } else {
+          drive_set_page(0);
+
+          if (line[0] == 'l') {
+            if (line[1] == 0) {
+              base = 16;
+              i = 0;
+              while (i < 8) {
+                if (drive_read(base) != 0) {
+                  putchar('f');
+                  putchar(' ');
+                  print_entry_name(base);
+                  putchar(' ');
+                  print_num(drive_read(base + 11));
+                  putchar('b');
+                  putchar(10);
+                }
+                base = base + 12;
+                i = i + 1;
+              }
+              dirty = 1;
+              n = 0;
+            }
+          }
+
+          if (n != 0) {
+            if (line[0] == 'v') {
+              if (line[1] == 0) {
+                dirty = 1;
+                n = 0;
+              }
+            }
+          }
+
+          if (n != 0) {
+            if (line[0] == 's') {
+              if (line[1] == 0) {
+                if (current_base == 255) {
+                  print("open?");
+                  putchar(10);
+                } else {
+                  drive_write(current_base + 11, current_len);
+                  print("saved ");
+                  print_entry_name(current_base);
+                  putchar(10);
+                }
+                dirty = 1;
+                n = 0;
+              }
+            }
+          }
+
+          if (n != 0) {
+            if (line[0] == 'c') {
+              if (line[1] == 0) {
+                if (current_base == 255) {
+                  print("open?");
+                  putchar(10);
+                } else {
+                  current_len = 0;
+                  cursor = 0;
+                  print("cleared ");
+                  print_entry_name(current_base);
+                  putchar(10);
+                }
+                dirty = 1;
+                n = 0;
+              }
+            }
+          }
+
+          if (n != 0) {
+            if (line[0] == 'd') {
+              if (line[1] == 0) {
+                if (current_base == 255) {
+                  print("open?");
+                  putchar(10);
+                } else {
+                  if (cursor > 0) {
+                    cursor = cursor - 1;
+                    i = cursor;
+                    while (i + 1 < current_len) {
+                      drive_write_at(current_page, i, drive_read_at(current_page, i + 1));
+                      i = i + 1;
+                    }
+                    current_len = current_len - 1;
+                    print("deleted");
+                    putchar(10);
+                  }
+                }
+                dirty = 1;
+                n = 0;
+              }
+            }
+          }
+
+          if (n != 0) {
+            if (line[0] == 'o') {
+              if (line[1] == ' ') {
+                start = 2;
+                name_len = 0;
+                while (1) {
+                  ch = line[start + name_len];
+                  if (ch == 0) { break; }
+                  if (ch == ' ') { break; }
+                  if (name_len == 8) { name_len = 255; break; }
+                  name_len = name_len + 1;
+                }
+                if (name_len == 0 || name_len == 255) {
+                  print("name?");
+                  putchar(10);
+                  dirty = 1;
+                  n = 0;
+                } else {
+                  found = 255;
+                  free_base = 255;
+                  free_page = 0;
+                  base = 16;
+                  i = 0;
+                  while (i < 8) {
+                    if (drive_read(base) == 0) {
+                      if (free_base == 255) {
+                        free_base = base;
+                        free_page = 255 - i;
+                      }
+                    } else {
+                      match = 1;
+                      j = 0;
+                      while (j < 8) {
+                        ch = drive_read(base + j);
+                        if (j < name_len) {
+                          if (ch != line[start + j]) { match = 0; }
+                        } else {
+                          if (ch != 0) { match = 0; }
+                        }
+                        j = j + 1;
+                      }
+                      if (match == 1) { found = base; }
+                    }
+                    base = base + 12;
+                    i = i + 1;
+                  }
+
+                  if (found == 255) {
+                    if (free_base == 255) {
+                      print("disk full");
+                      putchar(10);
+                    } else {
+                      j = 0;
+                      while (j < 8) {
+                        if (j < name_len) {
+                          drive_write(free_base + j, line[start + j]);
+                        } else {
+                          drive_write(free_base + j, 0);
+                        }
+                        j = j + 1;
+                      }
+                      drive_write(free_base + 8, 1);
+                      drive_write(free_base + 9, free_page);
+                      drive_write(free_base + 10, 1);
+                      drive_write(free_base + 11, 0);
+                      current_base = free_base;
+                      current_page = free_page;
+                      current_len = 0;
+                      cursor = 0;
+                      print("created ");
+                      print_entry_name(current_base);
+                      putchar(10);
+                    }
+                  } else {
+                    current_base = found;
+                    current_page = drive_read(found + 9);
+                    current_len = drive_read(found + 11);
+                    cursor = current_len;
+                    print("opened ");
+                    print_entry_name(current_base);
+                    putchar(10);
+                  }
+                  dirty = 1;
+                  n = 0;
+                }
+              }
+            }
+          }
+
+          if (n != 0) {
+            if (current_base == 255) {
+              print("open?");
+              putchar(10);
+              dirty = 1;
+              n = 0;
+            } else {
+              extra = n + 1;
+              if (current_len + extra > 255) {
+                print("full");
+                putchar(10);
+                dirty = 1;
+                n = 0;
+              } else {
+                i = current_len;
+                while (i > cursor) {
+                  i = i - 1;
+                  drive_write_at(current_page, i + extra, drive_read_at(current_page, i));
+                }
+                i = 0;
+                while (i < n) {
+                  drive_write_at(current_page, cursor + i, line[i]);
+                  i = i + 1;
+                }
+                drive_write_at(current_page, cursor + n, 10);
+                current_len = current_len + extra;
+                cursor = cursor + extra;
+                print("inserted");
+                putchar(10);
+                dirty = 1;
+                n = 0;
+              }
+            }
+          }
+        }
+      } else {
+        if (n < 39) {
+          line[n] = ch;
+          n = n + 1;
+        }
+      }
+    }
+
+    key = getKey(0);
+    if (key) {
+      if (left_prev == 0) {
+        if (cursor > 0) {
+          cursor = cursor - 1;
+          dirty = 1;
+        }
+      }
+    }
+    left_prev = key;
+
+    key = getKey(1);
+    if (key) {
+      if (right_prev == 0) {
+        if (cursor < current_len) {
+          cursor = cursor + 1;
+          dirty = 1;
+        }
+      }
+    }
+    right_prev = key;
+
+    key = getKey(2);
+    if (key) {
+      if (up_prev == 0) {
+        if (cursor != 0) {
+          cursor = 0;
+          dirty = 1;
+        }
+      }
+    }
+    up_prev = key;
+
+    key = getKey(3);
+    if (key) {
+      if (down_prev == 0) {
+        if (cursor != current_len) {
+          cursor = current_len;
+          dirty = 1;
+        }
+      }
+    }
+    down_prev = key;
+
+    if (dirty) {
+      draw_view(current_base, current_page, current_len, cursor);
+      dirty = 0;
+    }
+
+    sleep(2);
+  }
+  return 0;
+}`,
+  },
+  {
     name: "Système Solaire 255",
     description: "Soleil et une planete en orbite circulaire colorés sur 255x255",
     code: `// Soleil RGB + une planete en orbite circulaire

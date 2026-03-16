@@ -619,6 +619,148 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.driveData[0]).toBe(66);
   }, 10_000);
 
+  it('"Éditeur Texte FS" creates, edits, saves and reloads a disk file', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Texte FS");
+    expect(example).toBeDefined();
+
+    const prog = assemble(`
+      OUT 'O'
+      OUT 'K'
+      HLT
+    `);
+    expect(prog.success).toBe(true);
+    const disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "program",
+      prog.bytes,
+    );
+
+    const r = compileAndRun(example!.code, {
+      input: "hello\nworld\n\n/show\n@\n",
+      maxCycles: 5_000_000,
+      driveData: disk,
+    });
+
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("=== EDITEUR TEXTE FS ===");
+    expect(r.output).toContain("saved notes");
+    expect(r.output).toContain("appended");
+    expect(r.output).toContain("hello");
+    expect(r.output).toContain("world");
+    expect(r.cpu.driveData[0]).toBe(66);
+  }, 10_000);
+
+  it('"Éditeur Multi-fichier FS" opens, creates and saves different files', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Multi-fichier FS");
+    expect(example).toBeDefined();
+
+    const prog = assemble(`
+      OUT 'O'
+      OUT 'K'
+      HLT
+    `);
+    expect(prog.success).toBe(true);
+    const disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "program",
+      prog.bytes,
+    );
+
+    const r = compileAndRun(example!.code, {
+      input: "o notes\nhello\ns\no todo\nbuy milk\ns\nl\no notes\nv\n@\n",
+      maxCycles: 5_000_000,
+      driveData: disk,
+    });
+
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("created notes");
+    expect(r.output).toContain("saved notes");
+    expect(r.output).toContain("created todo");
+    expect(r.output).toContain("saved todo");
+    expect(r.output).toContain("f notes 6b");
+    expect(r.output).toContain("f todo 9b");
+    expect(r.output).toContain("hello");
+    expect(r.cpu.driveData[0]).toBe(66);
+  }, 10_000);
+
+  it('"Éditeur Multi-fichier FS" moves the cursor with arrow keys before deleting', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Multi-fichier FS");
+    expect(example).toBeDefined();
+
+    const cr = compile(example!.code);
+    expect(cr.success).toBe(true);
+    const ar = assemble(cr.assembly);
+    expect(ar.success).toBe(true);
+
+    const prog = assemble(`
+      OUT 'O'
+      OUT 'K'
+      HLT
+    `);
+    expect(prog.success).toBe(true);
+    const disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "program",
+      prog.bytes,
+    );
+
+    const cpu = new CPU();
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(ar.bytes);
+
+    const pushText = (text: string) => {
+      for (const ch of text) {
+        cpu.pushInput(ch.charCodeAt(0));
+      }
+    };
+    const stepMany = (count: number) => {
+      for (let i = 0; i < count && !cpu.state.halted; i++) {
+        cpu.step();
+      }
+    };
+    const runUntil = (predicate: () => boolean, limit = 1_000_000) => {
+      for (let i = 0; i < limit && !cpu.state.halted; i++) {
+        if (predicate()) return;
+        cpu.step();
+      }
+      expect(predicate()).toBe(true);
+    };
+    const tapKey = (index: number) => {
+      cpu.keyState[index] = 1;
+      stepMany(20);
+      cpu.keyState[index] = 0;
+      stepMany(20);
+    };
+
+    pushText("o notes\nab\n");
+    runUntil(() => cpu.consoleOutput.join("").includes("inserted"));
+
+    tapKey(0);
+    pushText("d\ns\n@\n");
+    runUntil(() => cpu.state.halted);
+
+    let notesBase = -1;
+    for (let base = 16; base < 16 + 8 * 12; base += 12) {
+      if (
+        cpu.driveData[base + 0] === "n".charCodeAt(0) &&
+        cpu.driveData[base + 1] === "o".charCodeAt(0) &&
+        cpu.driveData[base + 2] === "t".charCodeAt(0) &&
+        cpu.driveData[base + 3] === "e".charCodeAt(0) &&
+        cpu.driveData[base + 4] === "s".charCodeAt(0)
+      ) {
+        notesBase = base;
+        break;
+      }
+    }
+
+    expect(notesBase).toBeGreaterThanOrEqual(0);
+    const page = cpu.driveData[notesBase + 9];
+    const size = cpu.driveData[notesBase + 11];
+    expect(size).toBe(2);
+    expect(cpu.driveData[(page << 8) + 0]).toBe("a".charCodeAt(0));
+    expect(cpu.driveData[(page << 8) + 1]).toBe(10);
+  }, 10_000);
+
   it('"Système Solaire 255" draws a sun and one orbiting planet', () => {
     const example = C_EXAMPLES.find((e) => e.name === "Système Solaire 255");
     expect(example).toBeDefined();
@@ -1587,6 +1729,8 @@ describe("C Examples — Execution Properties", () => {
     "Calculatrice Graphique",
     "Mini Shell",
     "FS Disque Externe",
+    "Éditeur Texte FS",
+    "Éditeur Multi-fichier FS",
     "Système Solaire 255",
   ];
 
@@ -1617,6 +1761,8 @@ describe("C Examples — Interactive Halt", () => {
     { name: "Calculatrice Graphique", input: "@", maxCycles: 200_000 },
     { name: "Mini Shell", input: "@", maxCycles: 200_000 },
     { name: "FS Disque Externe", input: "@", maxCycles: 200_000 },
+    { name: "Éditeur Texte FS", input: "@", maxCycles: 200_000 },
+    { name: "Éditeur Multi-fichier FS", input: "@", maxCycles: 200_000 },
     { name: "Système Solaire 255", input: "@", maxCycles: 200_000 },
   ];
 
