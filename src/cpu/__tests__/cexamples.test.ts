@@ -448,6 +448,44 @@ describe("C Examples — Output Verification", () => {
     // Should have drawn pixels (paddles + ball)
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
   });
+
+  it('"Démo Ultime" combines console, keyboard, arrays, recursion and plotter', () => {
+    const r = compileAndRun(C_EXAMPLES[20].code, {
+      input: "7",
+      keyState: [1, 0, 1, 0, 1],
+      maxCycles: 5_000_000,
+    });
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("=== DEMO ULTIME ===");
+    expect(r.output).toContain("Entrez un chiffre 0-9: 7");
+    expect(r.output).toContain("Mode clavier=21");
+    expect(r.output).toContain("Somme recursive=28");
+    expect(r.output).toContain("Brut: ");
+    expect(r.output).toContain("Trie: ");
+    expect(r.output).toContain("Checksum=");
+    expect(r.output).toContain("FIN");
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(100);
+  });
+
+  it('"Calculatrice Graphique" draws a full-screen TI-style graph view', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Calculatrice Graphique");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      input: "321",
+      maxCycles: 5_000_000,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("=== TI GRAPH ===");
+    expect(r.output).toContain("Y1 = A*(X/8)^2 + B*X + C");
+    expect(r.output).toContain("TRACE L/R  ZOOM U/D  ENTER=STD");
+    expect(r.cpu.plotterPixels.size).toBeGreaterThan(900);
+    expect(r.cpu.plotterPixels.has((0 << 8) | 0)).toBe(true);
+    expect(r.cpu.plotterPixels.has((255 << 8) | 255)).toBe(true);
+    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
+    expect(r.cpu.plotterPixels.has((124 << 8) | 128)).toBe(true);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1293,6 +1331,8 @@ describe("C Examples — Execution Properties", () => {
     "Compteur de lettres",
     "Calculatrice",
     "Traceur de droite",
+    "Démo Ultime",
+    "Calculatrice Graphique",
   ];
 
   for (const name of inputExamples) {

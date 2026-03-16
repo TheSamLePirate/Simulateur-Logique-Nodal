@@ -1061,4 +1061,531 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Démo Ultime",
+    description: "Console, clavier, hasard, tableaux, recursion et plotter",
+    code: `// Demo ultime du petit ordinateur
+// Utilise: input console, clavier, hasard, sleep, plotter,
+// fonctions, recursion, tableaux globaux et locaux, tri, bitwise
+
+int seed;
+int mode;
+int values[8];
+
+int read_digit() {
+  int c;
+  c = getchar();
+  while (c < 48 || c > 57) {
+    c = getchar();
+  }
+  putchar(c);
+  putchar(10);
+  return c - 48;
+}
+
+int sum_to(int n) {
+  if (n <= 0) { return 0; }
+  return n + sum_to(n - 1);
+}
+
+int absdiff(int a, int b) {
+  if (a >= b) { return a - b; }
+  return b - a;
+}
+
+int read_mode() {
+  int m;
+  m = 0;
+  if (getKey(0)) { m += 1; }
+  if (getKey(1)) { m += 2; }
+  if (getKey(2)) { m += 4; }
+  if (getKey(3)) { m += 8; }
+  if (getKey(4)) { m += 16; }
+  return m;
+}
+
+int fill_data() {
+  int i;
+  int v;
+  i = 0;
+  while (i < 8) {
+    v = (((seed + (i * 3)) << 2) ^ rand()) % 90;
+    if (v < 10) { v += 10; }
+    if ((mode & 1) && v > 60) { v -= 7; }
+    if ((mode & 2) && v < 40) { v += 9; }
+    values[i] = v;
+    i++;
+  }
+  return 0;
+}
+
+int sort_data() {
+  int i;
+  int j;
+  int tmp;
+  i = 0;
+  while (i < 7) {
+    j = 0;
+    while (j < 7 - i) {
+      if (values[j] > values[j + 1]) {
+        tmp = values[j];
+        values[j] = values[j + 1];
+        values[j + 1] = tmp;
+      }
+      j++;
+    }
+    i++;
+  }
+  return 0;
+}
+
+int print_values() {
+  int i;
+  i = 0;
+  while (i < 8) {
+    print_num(values[i]);
+    putchar(32);
+    i++;
+  }
+  putchar(10);
+  return 0;
+}
+
+int draw_frame() {
+  int x;
+  int y;
+  x = 0;
+  while (x < 128) {
+    draw(x, 0);
+    draw(x, 99);
+    x++;
+  }
+  y = 0;
+  while (y < 100) {
+    draw(0, y);
+    draw(127, y);
+    y++;
+  }
+  return 0;
+}
+
+int draw_ship(int x, int y) {
+  draw(x, y);
+  draw(x + 1, y);
+  draw(x + 2, y);
+  draw(x + 1, y - 1);
+  draw(x + 1, y + 1);
+  return 0;
+}
+
+int show_scene() {
+  int stars[16];
+  int frame;
+  int i;
+  int x;
+  int y;
+  int shipx;
+  int shipy;
+  int h;
+  int by;
+  i = 0;
+  while (i < 16) {
+    stars[i] = rand();
+    i++;
+  }
+
+  frame = 0;
+  while (frame < 6) {
+    clear();
+    draw_frame();
+
+    i = 0;
+    while (i < 16) {
+      if ((stars[i] & 1) == 0) {
+        i++;
+        continue;
+      }
+      x = (stars[i] + (frame * 5)) & 127;
+      y = ((stars[i] >> 1) + (i * 3)) % 100;
+      if (y > 94) {
+        i++;
+        continue;
+      }
+      draw(x, y);
+      i++;
+    }
+
+    i = 0;
+    while (i < 8) {
+      x = 8 + (i * 14);
+      h = values[i] / 3;
+      by = 98;
+      while (h > 0) {
+        draw(x, by);
+        draw(x + 1, by);
+        by--;
+        h--;
+      }
+      i++;
+    }
+
+    shipx = 60 + ((mode & 3) * 8);
+    shipy = 50 + ((mode >> 2) & 3) * 6;
+    if (getKey(0)) { shipx -= 8; }
+    if (getKey(1)) { shipx += 8; }
+    if (getKey(2)) { shipy -= 6; }
+    if (getKey(3)) { shipy += 6; }
+    draw_ship(shipx, shipy);
+
+    if (getKey(4)) {
+      draw(shipx + 1, shipy - 4);
+      draw(shipx + 1, shipy - 6);
+    }
+
+    sleep(3);
+    frame++;
+  }
+  return 0;
+}
+
+int main() {
+  int local[4];
+  int i;
+  int total;
+  int avg;
+  int rem;
+  int spread;
+  int chk;
+
+  print("=== DEMO ULTIME ===");
+  putchar(10);
+  print("Entrez un chiffre 0-9: ");
+  seed = read_digit();
+
+  mode = read_mode();
+  print("Mode clavier=");
+  print_num(mode);
+  putchar(10);
+
+  print("Somme recursive=");
+  print_num(sum_to(seed));
+  putchar(10);
+
+  fill_data();
+  print("Brut: ");
+  print_values();
+
+  sort_data();
+  print("Trie: ");
+  print_values();
+
+  total = 0;
+  i = 0;
+  while (i < 8) {
+    total += values[i];
+    i++;
+  }
+
+  avg = total / 8;
+  rem = total % 8;
+  spread = absdiff(values[7], values[0]);
+
+  local[0] = avg;
+  local[1] = rem;
+  local[2] = spread;
+  local[3] = (avg ^ spread) & 63;
+
+  print("Moy=");
+  print_num(local[0]);
+  print(" R=");
+  print_num(local[1]);
+  print(" Amp=");
+  print_num(local[2]);
+  putchar(10);
+
+  print("Mix=");
+  print_num(local[3]);
+  putchar(10);
+
+  show_scene();
+
+  chk = local[0] + local[1] + local[2] + local[3];
+  print("Checksum=");
+  print_num(chk);
+  putchar(10);
+  print("FIN");
+  return 0;
+}`,
+  },
+  {
+    name: "Calculatrice Graphique",
+    description: "Mode Y= style TI-83 sur tout le plotter, avec trace et zoom",
+    code: `// Calculatrice graphique style TI-83
+// Entrez A, B, C pour Y = A*(X/8)^2 + B*X + C
+// LEFT/RIGHT = trace, UP/DOWN = zoom, ENTER = fenetre standard
+
+int a;
+int b;
+int c;
+int zoom;
+int cx;
+int enter_prev;
+
+int read_digit() {
+  int ch;
+  ch = getchar();
+  while (ch < 48 || ch > 57) {
+    ch = getchar();
+  }
+  putchar(ch);
+  putchar(10);
+  return ch - 48;
+}
+
+int eval_y(int sx) {
+  int mag;
+  int quad;
+  int lin;
+  int y;
+
+  y = 128 - (c * 4);
+
+  if (sx >= 128) {
+    mag = (sx - 128) / zoom;
+    lin = (b * mag) / 5;
+    y = y - lin;
+  } else {
+    mag = (128 - sx) / zoom;
+    lin = (b * mag) / 5;
+    y = y + lin;
+  }
+
+  quad = mag / 8;
+  quad = quad * quad;
+  quad = quad * a;
+  y = y - quad;
+
+  return y;
+}
+
+int draw_frame() {
+  int i;
+
+  i = 0;
+  while (i < 255) {
+    draw(i, 0);
+    draw(i, 255);
+    draw(i, 128);
+    if ((i & 31) == 0) {
+      draw(i, 127);
+      draw(i, 129);
+      draw(i, 126);
+      draw(i, 130);
+    }
+    i = i + 1;
+  }
+  draw(255, 0);
+  draw(255, 255);
+  draw(255, 128);
+
+  i = 0;
+  while (i < 255) {
+    draw(0, i);
+    draw(255, i);
+    draw(128, i);
+    if ((i & 31) == 0) {
+      draw(127, i);
+      draw(129, i);
+      draw(126, i);
+      draw(130, i);
+    }
+    i = i + 1;
+  }
+  draw(0, 255);
+  draw(255, 255);
+  draw(128, 255);
+
+  return 0;
+}
+
+int draw_grid() {
+  int x;
+  int y;
+
+  x = 32;
+  while (1) {
+    if (x != 128) {
+      y = 4;
+      while (1) {
+        draw(x, y);
+        if (y > 246) { break; }
+        y = y + 8;
+      }
+    }
+    if (x > 223) { break; }
+    x = x + 32;
+  }
+
+  y = 32;
+  while (1) {
+    if (y != 128) {
+      x = 4;
+      while (1) {
+        draw(x, y);
+        if (x > 246) { break; }
+        x = x + 8;
+      }
+    }
+    if (y > 223) { break; }
+    y = y + 32;
+  }
+
+  return 0;
+}
+
+int plot_curve() {
+  int x;
+  int y;
+  int py;
+  int t;
+
+  py = 255;
+  x = 0;
+  while (x < 255) {
+    y = eval_y(x);
+    if (y > 0) {
+      draw(x, y);
+      if (py > 0) {
+        if (y > py) {
+          t = py;
+          while (t < y) {
+            draw(x, t);
+            t = t + 1;
+          }
+        } else {
+          t = y;
+          while (t < py) {
+            draw(x, t);
+            t = t + 1;
+          }
+        }
+      }
+    }
+    py = y;
+    x = x + 1;
+  }
+  y = eval_y(255);
+  if (y > 0) { draw(255, y); }
+
+  return 0;
+}
+
+int draw_cursor() {
+  int y;
+  int i;
+
+  y = eval_y(cx);
+  if (y == 0) { return 0; }
+
+  i = 0;
+  while (i < 255) {
+    if ((i & 7) == 0) {
+      draw(cx, i);
+    }
+    i = i + 1;
+  }
+  draw(cx, 255);
+
+  i = 0;
+  while (i < 255) {
+    if ((i & 7) == 0) {
+      draw(i, y);
+    }
+    i = i + 1;
+  }
+  draw(255, y);
+
+  draw(cx, y);
+  if (cx > 2) { draw(cx - 1, y); draw(cx - 2, y); }
+  if (cx < 253) { draw(cx + 1, y); draw(cx + 2, y); }
+  if (y > 2) { draw(cx, y - 1); draw(cx, y - 2); }
+  if (y < 253) { draw(cx, y + 1); draw(cx, y + 2); }
+
+  return 0;
+}
+
+int main() {
+  int key;
+  int dirty;
+
+  print("=== TI GRAPH ===");
+  putchar(10);
+  print("Y1 = A*(X/8)^2 + B*X + C");
+  putchar(10);
+  print("A=");
+  a = read_digit();
+  print("B=");
+  b = read_digit();
+  print("C=");
+  c = read_digit();
+  print("TRACE L/R  ZOOM U/D  ENTER=STD");
+  putchar(10);
+
+  zoom = 6;
+  cx = 128;
+  enter_prev = 0;
+  dirty = 1;
+
+  while (1) {
+    if (dirty) {
+      clear();
+      draw_grid();
+      draw_frame();
+      plot_curve();
+      draw_cursor();
+      dirty = 0;
+    }
+
+    if (getKey(0)) {
+      if (cx > 1) {
+        cx = cx - 1;
+        dirty = 1;
+      }
+    }
+    if (getKey(1)) {
+      if (cx < 254) {
+        cx = cx + 1;
+        dirty = 1;
+      }
+    }
+    if (getKey(2)) {
+      if (zoom > 4) {
+        zoom = zoom - 1;
+        dirty = 1;
+      }
+    }
+    if (getKey(3)) {
+      if (zoom < 12) {
+        zoom = zoom + 1;
+        dirty = 1;
+      }
+    }
+
+    key = getKey(4);
+    if (key) {
+      if (enter_prev == 0) {
+        zoom = 6;
+        cx = 128;
+        dirty = 1;
+      }
+      enter_prev = 1;
+    } else {
+      enter_prev = 0;
+    }
+
+    sleep(3);
+  }
+  return 0;
+}`,
+  },
 ];
