@@ -254,21 +254,37 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Longueur: 3");
   });
 
-  it('"Calculatrice" computes 3+5=8', () => {
+  it('"Calculatrice" computes 123+45=168', () => {
     const r = compileAndRun(C_EXAMPLES[9].code, {
-      input: "3+5\n",
-      maxCycles: 100_000,
-    });
-    expect(r.output).toContain("3+5");
-    expect(r.output).toContain("= 8");
-  });
-
-  it('"Calculatrice" computes 9*7=63', () => {
-    const r = compileAndRun(C_EXAMPLES[9].code, {
-      input: "9*7\n",
+      input: "123+45\n",
       maxCycles: 500_000,
     });
-    expect(r.output).toContain("= 63");
+    expect(r.output).toContain("123+45");
+    expect(r.output).toContain("= 168");
+  });
+
+  it('"Calculatrice" computes 25*4=100', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "25*4\n",
+      maxCycles: 500_000,
+    });
+    expect(r.output).toContain("= 100");
+  });
+
+  it('"Calculatrice" computes 100/4=25', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "100/4\n",
+      maxCycles: 500_000,
+    });
+    expect(r.output).toContain("= 25");
+  });
+
+  it('"Calculatrice" computes 10%3=1', () => {
+    const r = compileAndRun(C_EXAMPLES[9].code, {
+      input: "10%3\n",
+      maxCycles: 500_000,
+    });
+    expect(r.output).toContain("= 1");
   });
 
   it('"Traceur de droite" plots y=2x (a=2, b=1, c=0) with DDA', () => {
@@ -938,9 +954,11 @@ describe("Compiler — Edge Cases", () => {
 
   it("code size overflow is detected", () => {
     // Generate a program that's way too big (lots of print statements)
+    // Each print("AAAAAAAAAA") = 10 × OUT (3 bytes) = 30 bytes
+    // 200 × 30 = 6000 bytes > 4096 CODE_SIZE
     let code = "int main() {\n";
-    for (let i = 0; i < 60; i++) {
-      code += `  print("AAAAAAAAAA");\n`; // 10 chars × 3 bytes = 30 bytes each
+    for (let i = 0; i < 200; i++) {
+      code += `  print("AAAAAAAAAA");\n`;
     }
     code += "  return 0;\n}";
 

@@ -107,9 +107,9 @@ The stack is a region of memory used for **temporary storage**. Think of it like
 ```
 Memory addresses:    Stack grows DOWNWARD
 
-  0x7FD  [empty]          <-- SP after 3 pushes
-  0x7FE  [value 2]
-  0x7FF  [value 1]        <-- where SP started
+  0x1FFD [empty]          <-- SP after 3 pushes
+  0x1FFE [value 2]
+  0x1FFF [value 1]        <-- where SP started
 ```
 
 ---
@@ -268,7 +268,7 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 ```asm
   DEC         ; sets Z flag when result is 0
-  STA 0x400   ; saves A (STA does NOT touch flags)
+  STA 0x1000  ; saves A (STA does NOT touch flags)
   JZ done     ; Z flag from DEC is still valid!
 ```
 
@@ -430,11 +430,11 @@ Walks the AST and produces ASM instructions. This is the most complex part.
 Since the CPU has no stack-relative addressing, every variable gets a **fixed memory address**:
 
 ```
-  Global variables:  0x400, 0x401, 0x402, ...  (up to 16)
-  Arithmetic temps:  0x410-0x415               (for multiply, divide, etc.)
-  Return value save: 0x417
-  Function locals:   0x418, 0x419, 0x41A, ...  (per function, unique addresses)
-  Stack:             0x600-0x7FF               (grows downward from 0x7FF)
+  Global variables:  0x1000, 0x1001, 0x1002, ... (up to 16)
+  Arithmetic temps:  0x1010-0x1015               (for multiply, divide, etc.)
+  Return value save: 0x1017
+  Function locals:   0x1018, 0x1019, 0x101A, ... (per function, unique addresses)
+  Stack:             0x1800-0x1FFF               (grows downward from 0x1FFF)
 ```
 
 #### How Expressions Are Compiled
@@ -448,9 +448,9 @@ x + y
 Generates:
 
 ```asm
-  LDM 0x418     ; A = x (load from memory)
+  LDM 0x1018     ; A = x (load from memory)
   PUSH          ; save x on stack
-  LDM 0x419     ; A = y
+  LDM 0x1019    ; A = y
   TAB           ; B = y
   POP           ; A = x
   ADDB          ; A = x + y
@@ -470,7 +470,7 @@ Generates:
 
 ```asm
   ; evaluate condition (result in A: 0 or 1)
-  LDM 0x418     ; A = x
+  LDM 0x1018     ; A = x
   ...           ; comparison → A = 0 or 1
   CMP 0
   JZ __L1       ; if false, jump to else
@@ -498,15 +498,15 @@ Generates:
 ```asm
 __L0:          ; loop start
   ; evaluate condition
-  LDM 0x418
+  LDM 0x1018
   ...          ; comparison
   CMP 0
   JZ __L1      ; if false, exit loop
 
   ; loop body
-  LDM 0x418
+  LDM 0x1018
   DEC
-  STA 0x418
+  STA 0x1018
 
   JMP __L0     ; back to loop start
 __L1:          ; loop end
@@ -538,7 +538,7 @@ When calling a function, the compiler does:
 This means each function call uses stack space proportional to:
 `(number of variables) + 6 (temps) + (number of args) + 2 (16-bit return address)`
 
-With 512 bytes of stack (0x600-0x7FF), that's enough for many levels of recursion.
+With 2048 bytes of stack (0x1800-0x1FFF), that's enough for many levels of recursion.
 
 #### How Multiply Works (No MUL Instruction!)
 
@@ -552,26 +552,26 @@ In ASM:
 
 ```asm
   ; t1 = left value, t2 = counter, t3 = result
-  STA 0x410       ; t1 = left
-  STA 0x411       ; t2 = right (counter)
+  STA 0x1010      ; t1 = left
+  STA 0x1011      ; t2 = right (counter)
   LDA 0
-  STA 0x412       ; t3 = 0 (result)
+  STA 0x1012      ; t3 = 0 (result)
 
 __loop:
-  LDM 0x411       ; A = counter
+  LDM 0x1011      ; A = counter
   CMP 0
   JZ __done       ; if counter == 0, done
-  LDM 0x412       ; A = result
-  LBM 0x410       ; B = left value
+  LDM 0x1012      ; A = result
+  LBM 0x1010      ; B = left value
   ADDB            ; A = result + left
-  STA 0x412       ; result = A
-  LDM 0x411       ; A = counter
+  STA 0x1012      ; result = A
+  LDM 0x1011      ; A = counter
   DEC             ; counter--
-  STA 0x411
+  STA 0x1011
   JMP __loop
 
 __done:
-  LDM 0x412       ; A = final result
+  LDM 0x1012      ; A = final result
 ```
 
 #### How Division Works
@@ -589,28 +589,28 @@ Arrays use two special opcodes for **indexed memory access**:
 - `LDAI base` — Indexed load: `A ← MEM[base + A]` (index in A)
 - `STAI base` — Indexed store: `MEM[base + B] ← A` (index in B, value in A)
 
-Arrays are allocated as contiguous bytes in the same memory regions as scalars (globals at 0x400+, locals at 0x418+).
+Arrays are allocated as contiguous bytes in the same memory regions as scalars (globals at 0x1000+, locals at 0x1018+).
 
 **Reading** `x = arr[i]`:
 
 ```asm
   ; compute index → A
-  LDM 0x41A       ; A = i
-  LDAI 0x418      ; A = MEM[0x418 + A]  (arr[i])
-  STA 0x41B       ; x = result
+  LDM 0x101A      ; A = i
+  LDAI 0x1018     ; A = MEM[0x1018 + A]  (arr[i])
+  STA 0x101B      ; x = result
 ```
 
 **Writing** `arr[i] = expr`:
 
 ```asm
   ; compute value → A
-  LDM 0x41B       ; A = value
+  LDM 0x101B      ; A = value
   PUSH            ; save value on stack
   ; compute index → A
-  LDM 0x41A       ; A = i
+  LDM 0x101A      ; A = i
   TAB             ; B = index
   POP             ; A = value (restored)
-  STAI 0x418      ; MEM[0x418 + B] = A  (arr[i] = value)
+  STAI 0x1018     ; MEM[0x1018 + B] = A  (arr[i] = value)
 ```
 
 **Complex index** `arr[j+1]` works because the index expression is fully evaluated into A before the LDAI/STAI instruction.
@@ -803,15 +803,15 @@ int main() {
 
 What happens under the hood:
 
-1. Compiler allocates address 0x418 for `fact`'s parameter `n`
-2. `fact(5)` → saves main's vars to stack, writes 5 to 0x418, calls `__fact`
+1. Compiler allocates address 0x1018 for `fact`'s parameter `n`
+2. `fact(5)` → saves main's vars to stack, writes 5 to 0x1018, calls `__fact`
 3. Inside `fact`: checks `n <= 1`? No. Computes `n - 1 = 4`.
-4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x418, calls `__fact` again
+4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x1018, calls `__fact` again
 5. This repeats until `n = 1`, which returns 1
 6. Unwinding: `fact(2)` computes `2 * 1 = 2`, `fact(3)` computes `3 * 2 = 6`, etc.
 7. Final result: `fact(5) = 120`
 
-Each level of recursion uses stack space for variable saves + temp saves + return address. With 512 bytes of stack space (0x600-0x7FF), that's enough for many levels.
+Each level of recursion uses stack space for variable saves + temp saves + return address. With 2048 bytes of stack space (0x1800-0x1FFF), that's enough for many levels.
 
 ### Example 5: Character Counter (C — Console Input)
 
@@ -875,10 +875,10 @@ int main() {
 
 What happens under the hood:
 
-1. `int t[8]` allocates 8 contiguous bytes starting at address 0x418
-2. `t[0] = 64` compiles to: `LDA 64; STAI 0x418` (with B=0, from index expression)
-3. `t[j]` compiles to: load `j` into A → `LDAI 0x418` (A = MEM[0x418 + j])
-4. `t[j+1] = tmp` compiles to: load `tmp` → PUSH → load `j+1` → TAB → POP → `STAI 0x418`
+1. `int t[8]` allocates 8 contiguous bytes starting at address 0x1018
+2. `t[0] = 64` compiles to: `LDA 64; STAI 0x1018` (with B=0, from index expression)
+3. `t[j]` compiles to: load `j` into A → `LDAI 0x1018` (A = MEM[0x1018 + j])
+4. `t[j+1] = tmp` compiles to: load `tmp` → PUSH → load `j+1` → TAB → POP → `STAI 0x1018`
 5. The comparison `t[j] > t[j+1]` evaluates both indexed reads, compares, and branches
 
 The LDAI/STAI opcodes make array access efficient — each read or write is a single 3-byte instruction, with the index register doing the address arithmetic in hardware.
@@ -987,9 +987,9 @@ Individual feature tests:
   ✓ #define preprocessor
   ✓ Char literals
   ✓ getchar() with simulated input
-  ✓ Stack pointer restoration after function calls (SP = 0x7FF)
+  ✓ Stack pointer restoration after function calls (SP = 0x1FFF)
   ✓ 16 globals allowed, 17th rejected
-  ✓ Code size overflow detected (> 1024 bytes)
+  ✓ Code size overflow detected (> 4096 bytes)
 ```
 
 #### Arrays (11 tests)

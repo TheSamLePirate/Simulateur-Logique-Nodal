@@ -221,11 +221,28 @@ int main() {
   },
   {
     name: "Calculatrice",
-    description: "Calculatrice interactive : tapez a op b",
+    description: "Calculatrice interactive avec nombres 0-255",
     code: `// Calculatrice interactive (8-bit)
-// Tapez: chiffre op chiffre (ex: 3+5)
-// Operateurs: + - * /
-// Valeurs: 0-9 (un seul chiffre)
+// Tapez: nombre op nombre (ex: 123+45)
+// Operateurs: + - * / %
+// Valeurs: 0-255
+
+int last;
+
+int read_num() {
+  int n;
+  int c;
+  n = 0;
+  c = getchar();
+  while (c >= 48) {
+    if (c > 57) { break; }
+    putchar(c);
+    n = n * 10 + (c - 48);
+    c = getchar();
+  }
+  last = c;
+  return n;
+}
 
 int main() {
   int a;
@@ -235,24 +252,18 @@ int main() {
 
   while (1) {
     print("> ");
-
-    a = getchar() - 48;
-    putchar(a + 48);
-
-    op = getchar();
+    a = read_num();
+    op = last;
     putchar(op);
-
-    b = getchar() - 48;
-    putchar(b + 48);
-
-    getchar();
+    b = read_num();
     putchar(10);
 
     r = 0;
     if (op == 43) { r = a + b; }
     if (op == 45) { r = a - b; }
     if (op == 42) { r = a * b; }
-    if (op == 47) { r = a / b; }
+    if (op == 47) { if (b != 0) { r = a / b; } }
+    if (op == 37) { if (b != 0) { r = a % b; } }
 
     print("= ");
     print_num(r);

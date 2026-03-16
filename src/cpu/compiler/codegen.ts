@@ -150,7 +150,7 @@ export function generate(program: Program): {
     }
     if (g.arraySize !== null) {
       // Array: allocate contiguous bytes
-      if (globalAddr + g.arraySize - 1 > 0x40f) {
+      if (globalAddr + g.arraySize - 1 > 0x100f) {
         errors.push({
           line: g.line,
           message: `Tableau global "${g.name}" trop grand (dépasse la zone globale, max 16 octets)`,
@@ -161,7 +161,7 @@ export function generate(program: Program): {
       globalAddr += g.arraySize;
     } else {
       // Scalar
-      if (globalAddr > 0x40f) {
+      if (globalAddr > 0x100f) {
         errors.push({
           line: g.line,
           message: "Trop de variables globales (max 16)",
