@@ -219,4 +219,540 @@ newline:
   OUT ' '
   JMP loop`,
   },
+  {
+    name: "Plotter RGB - Paysage",
+    description: "Grand paysage coloré en assembleur avec ciel, soleil, montagnes et sapins",
+    code: `; Paysage RGB plus ambitieux en assembleur
+; Bandes de ciel, soleil, nuages, montagnes, reflets et sapins
+; Temporaires: 0x1100=x0, 0x1101=x1, 0x1102=y
+  CLR
+
+  ; --- Ciel nocturne ---
+  LDA 8
+  COLR
+  LDA 18
+  COLG
+  LDA 70
+  COLB
+  LDB 0
+sky1_row:
+  LDA 0
+sky1_px:
+  DRAW
+  INC
+  JNZ sky1_px
+  TBA
+  INC
+  TAB
+  CMP 32
+  JNZ sky1_row
+
+  ; --- Ciel bleu ---
+  LDA 36
+  COLR
+  LDA 86
+  COLG
+  LDA 160
+  COLB
+sky2_row:
+  LDA 0
+sky2_px:
+  DRAW
+  INC
+  JNZ sky2_px
+  TBA
+  INC
+  TAB
+  CMP 72
+  JNZ sky2_row
+
+  ; --- Horizon chaud ---
+  LDA 255
+  COLR
+  LDA 132
+  COLG
+  LDA 82
+  COLB
+sky3_row:
+  LDA 0
+sky3_px:
+  DRAW
+  INC
+  JNZ sky3_px
+  TBA
+  INC
+  TAB
+  CMP 112
+  JNZ sky3_row
+
+  ; --- Lac ---
+  LDA 18
+  COLR
+  LDA 86
+  COLG
+  LDA 138
+  COLB
+lake_row:
+  LDA 0
+lake_px:
+  DRAW
+  INC
+  JNZ lake_px
+  TBA
+  INC
+  TAB
+  CMP 192
+  JNZ lake_row
+
+  ; --- Prairie / avant-plan ---
+  LDA 20
+  COLR
+  LDA 74
+  COLG
+  LDA 28
+  COLB
+meadow_row:
+  LDA 0
+meadow_px:
+  DRAW
+  INC
+  JNZ meadow_px
+  TBA
+  INC
+  TAB
+  JNZ meadow_row
+
+  ; --- Etoiles ---
+  LDA 255
+  COLR
+  LDA 255
+  COLG
+  LDA 255
+  COLB
+  LDA 18   ; (18,14)
+  LDB 14
+  DRAW
+  LDA 72   ; (72,10)
+  LDB 10
+  DRAW
+  LDA 136  ; (136,12)
+  LDB 12
+  DRAW
+  LDA 226  ; (226,16)
+  LDB 16
+  DRAW
+  LDA 244  ; (244,26)
+  LDB 26
+  DRAW
+
+  ; --- Nuages ---
+  LDA 228
+  COLR
+  LDA 228
+  COLG
+  LDA 228
+  COLB
+  LDB 40
+  LDA 34
+cloud1a:
+  DRAW
+  CMP 62
+  JZ cloud1b_go
+  INC
+  JMP cloud1a
+cloud1b_go:
+  LDB 44
+  LDA 28
+cloud1b:
+  DRAW
+  CMP 64
+  JZ cloud1c_go
+  INC
+  JMP cloud1b
+cloud1c_go:
+  LDB 48
+  LDA 38
+cloud1c:
+  DRAW
+  CMP 70
+  JZ cloud2_go
+  INC
+  JMP cloud1c
+
+cloud2_go:
+  LDB 54
+  LDA 188
+cloud2a:
+  DRAW
+  CMP 214
+  JZ cloud2b_go
+  INC
+  JMP cloud2a
+cloud2b_go:
+  LDB 58
+  LDA 180
+cloud2b:
+  DRAW
+  CMP 216
+  JZ cloud2c_go
+  INC
+  JMP cloud2b
+cloud2c_go:
+  LDB 62
+  LDA 192
+cloud2c:
+  DRAW
+  CMP 222
+  JZ sun_outer_go
+  INC
+  JMP cloud2c
+
+  ; --- Soleil externe ---
+sun_outer_go:
+  LDA 255
+  COLR
+  LDA 150
+  COLG
+  LDA 60
+  COLB
+  LDA 28
+  STA 0x1102
+sun1_row:
+  LDM 0x1102
+  TAB
+  LDA 176
+sun1_px:
+  DRAW
+  CMP 222
+  JZ sun1_next
+  INC
+  JMP sun1_px
+sun1_next:
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 69
+  JNZ sun1_row
+
+  ; --- Soleil moyen ---
+  LDA 255
+  COLR
+  LDA 214
+  COLG
+  LDA 88
+  COLB
+  LDA 34
+  STA 0x1102
+sun2_row:
+  LDM 0x1102
+  TAB
+  LDA 184
+sun2_px:
+  DRAW
+  CMP 214
+  JZ sun2_next
+  INC
+  JMP sun2_px
+sun2_next:
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 63
+  JNZ sun2_row
+
+  ; --- Coeur du soleil ---
+  LDA 255
+  COLR
+  LDA 245
+  COLG
+  LDA 190
+  COLB
+  LDA 40
+  STA 0x1102
+sun3_row:
+  LDM 0x1102
+  TAB
+  LDA 191
+sun3_px:
+  DRAW
+  CMP 207
+  JZ sun3_next
+  INC
+  JMP sun3_px
+sun3_next:
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 57
+  JNZ sun3_row
+
+  ; --- Montagne gauche ---
+  LDA 26
+  COLR
+  LDA 18
+  COLG
+  LDA 50
+  COLB
+  LDA 96
+  STA 0x1100
+  STA 0x1101
+  LDA 74
+  STA 0x1102
+m1_row:
+  LDM 0x1100
+m1_px:
+  LBM 0x1102
+  DRAW
+  LBM 0x1101
+  CMPB
+  JZ m1_next
+  INC
+  JMP m1_px
+m1_next:
+  LDM 0x1100
+  DEC
+  STA 0x1100
+  LDM 0x1101
+  INC
+  STA 0x1101
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 155
+  JNZ m1_row
+
+  ; --- Montagne droite ---
+  LDA 44
+  COLR
+  LDA 24
+  COLG
+  LDA 68
+  COLB
+  LDA 188
+  STA 0x1100
+  STA 0x1101
+  LDA 92
+  STA 0x1102
+m2_row:
+  LDM 0x1100
+m2_px:
+  LBM 0x1102
+  DRAW
+  LBM 0x1101
+  CMPB
+  JZ m2_next
+  INC
+  JMP m2_px
+m2_next:
+  LDM 0x1100
+  DEC
+  STA 0x1100
+  LDM 0x1101
+  INC
+  STA 0x1101
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 165
+  JNZ m2_row
+
+  ; --- Reflets sur le lac ---
+  LDA 255
+  COLR
+  LDA 210
+  COLG
+  LDA 90
+  COLB
+  LDB 142
+  LDA 184
+refl1:
+  DRAW
+  CMP 208
+  JZ refl2_go
+  INC
+  JMP refl1
+refl2_go:
+  LDB 150
+  LDA 180
+refl2:
+  DRAW
+  CMP 212
+  JZ refl3_go
+  INC
+  JMP refl2
+refl3_go:
+  LDB 158
+  LDA 176
+refl3:
+  DRAW
+  CMP 216
+  JZ refl4_go
+  INC
+  JMP refl3
+refl4_go:
+  LDA 255
+  COLR
+  LDA 255
+  COLG
+  LDA 220
+  COLB
+  LDB 146
+  LDA 192
+refl4:
+  DRAW
+  CMP 200
+  JZ refl5_go
+  INC
+  JMP refl4
+refl5_go:
+  LDB 154
+  LDA 190
+refl5:
+  DRAW
+  CMP 202
+  JZ trees_go
+  INC
+  JMP refl5
+
+  ; --- Sapin gauche ---
+trees_go:
+  LDA 70
+  COLR
+  LDA 40
+  COLG
+  LDA 20
+  COLB
+  LDA 210
+  STA 0x1102
+tree1_trunk:
+  LDM 0x1102
+  TAB
+  LDA 22
+tree1_trunk_px:
+  DRAW
+  CMP 24
+  JZ tree1_trunk_next
+  INC
+  JMP tree1_trunk_px
+tree1_trunk_next:
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 240
+  JNZ tree1_trunk
+
+  LDA 10
+  COLR
+  LDA 70
+  COLG
+  LDA 25
+  COLB
+  LDB 198
+  LDA 14
+tree1_a:
+  DRAW
+  CMP 32
+  JZ tree1_b_go
+  INC
+  JMP tree1_a
+tree1_b_go:
+  LDB 192
+  LDA 16
+tree1_b:
+  DRAW
+  CMP 30
+  JZ tree1_c_go
+  INC
+  JMP tree1_b
+tree1_c_go:
+  LDB 186
+  LDA 18
+tree1_c:
+  DRAW
+  CMP 28
+  JZ tree1_d_go
+  INC
+  JMP tree1_c
+tree1_d_go:
+  LDB 180
+  LDA 20
+tree1_d:
+  DRAW
+  CMP 26
+  JZ tree2_go
+  INC
+  JMP tree1_d
+
+  ; --- Sapin droit ---
+tree2_go:
+  LDA 70
+  COLR
+  LDA 40
+  COLG
+  LDA 20
+  COLB
+  LDA 214
+  STA 0x1102
+tree2_trunk:
+  LDM 0x1102
+  TAB
+  LDA 230
+tree2_trunk_px:
+  DRAW
+  CMP 232
+  JZ tree2_trunk_next
+  INC
+  JMP tree2_trunk_px
+tree2_trunk_next:
+  LDM 0x1102
+  INC
+  STA 0x1102
+  CMP 244
+  JNZ tree2_trunk
+
+  LDA 8
+  COLR
+  LDA 62
+  COLG
+  LDA 20
+  COLB
+  LDB 202
+  LDA 222
+tree2_a:
+  DRAW
+  CMP 240
+  JZ tree2_b_go
+  INC
+  JMP tree2_a
+tree2_b_go:
+  LDB 196
+  LDA 224
+tree2_b:
+  DRAW
+  CMP 238
+  JZ tree2_c_go
+  INC
+  JMP tree2_b
+tree2_c_go:
+  LDB 190
+  LDA 226
+tree2_c:
+  DRAW
+  CMP 236
+  JZ tree2_d_go
+  INC
+  JMP tree2_c
+tree2_d_go:
+  LDB 184
+  LDA 228
+tree2_d:
+  DRAW
+  CMP 234
+  JZ done_rgb_scene
+  INC
+  JMP tree2_d
+
+done_rgb_scene:
+  HLT`,
+  },
 ];

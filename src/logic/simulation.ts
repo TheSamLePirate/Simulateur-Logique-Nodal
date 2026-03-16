@@ -2,6 +2,13 @@ import type { Node, Edge } from "@xyflow/react";
 import type { Bit, GroupNodeData } from "../types";
 import { logicGates } from "./gates";
 import { add8 } from "./adder";
+import {
+  DEFAULT_PLOTTER_COLOR,
+  encodePlotterCoord,
+  packPlotterColor,
+  type PlotterColor,
+  type PlotterPixel,
+} from "../plotter";
 
 /**
  * Resolve the value of a specific input handle on a target node
@@ -486,7 +493,9 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
       const prevDraw = (node.data.prevDraw as Bit) || 0;
       const clr = getVal(node.id, "clr");
 
-      let pixels = (node.data.pixels as number[]) || [];
+      const currentColor =
+        (node.data.currentColor as PlotterColor) || DEFAULT_PLOTTER_COLOR;
+      let pixels = (node.data.pixels as PlotterPixel[]) || [];
       let pixelsChanged = false;
 
       if (clr === 1) {
@@ -496,17 +505,46 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         }
       } else if (prevDraw === 0 && draw === 1) {
         // Rising edge of DRAW
-        const encoded = (y << 8) | x;
-        if (!pixels.includes(encoded)) {
-          pixels = [...pixels, encoded];
+        const encoded = encodePlotterCoord(x, y);
+        const existingIndex = pixels.findIndex(
+          (pixel) => encodePlotterCoord(pixel.x, pixel.y) === encoded,
+        );
+        const nextPixel: PlotterPixel = {
+          x,
+          y,
+          ...currentColor,
+        };
+        if (existingIndex === -1) {
+          pixels = [...pixels, nextPixel];
           pixelsChanged = true;
+        } else {
+          const existing = pixels[existingIndex];
+          const existingColor = packPlotterColor(
+            existing.r,
+            existing.g,
+            existing.b,
+          );
+          const nextColor = packPlotterColor(
+            currentColor.r,
+            currentColor.g,
+            currentColor.b,
+          );
+          if (existingColor !== nextColor) {
+            pixels = [...pixels];
+            pixels[existingIndex] = nextPixel;
+            pixelsChanged = true;
+          }
         }
       }
 
-      if (pixelsChanged || node.data.prevDraw !== draw) {
+      if (
+        pixelsChanged ||
+        node.data.prevDraw !== draw ||
+        node.data.currentColor !== currentColor
+      ) {
         newNodes[index] = {
           ...node,
-          data: { ...node.data, pixels, prevDraw: draw },
+          data: { ...node.data, pixels, prevDraw: draw, currentColor },
         };
         changed = true;
       }

@@ -47,6 +47,9 @@ export const Opcode = {
   MULB: 0x17, // A ← A * B
   DIVB: 0x18, // A ← A / B
   MODB: 0x19, // A ← A % B
+  COLR: 0x1a, // plotter color red channel ← A
+  COLG: 0x1b, // plotter color green channel ← A
+  COLB: 0x1c, // plotter color blue channel ← A
 
   // Stack (1-byte)
   RET: 0x10,
@@ -151,6 +154,21 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
   [Opcode.MULB]: { mnemonic: "MULB", size: 1, description: "A ← A * B" },
   [Opcode.DIVB]: { mnemonic: "DIVB", size: 1, description: "A ← A / B" },
   [Opcode.MODB]: { mnemonic: "MODB", size: 1, description: "A ← A % B" },
+  [Opcode.COLR]: {
+    mnemonic: "COLR",
+    size: 1,
+    description: "plotter color red ← A",
+  },
+  [Opcode.COLG]: {
+    mnemonic: "COLG",
+    size: 1,
+    description: "plotter color green ← A",
+  },
+  [Opcode.COLB]: {
+    mnemonic: "COLB",
+    size: 1,
+    description: "plotter color blue ← A",
+  },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },
   [Opcode.PUSH]: { mnemonic: "PUSH", size: 1, description: "push A" },

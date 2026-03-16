@@ -16,6 +16,13 @@ import {
   DRIVE_PAGE_COUNT,
   type CPUState,
 } from "./isa";
+import {
+  DEFAULT_PLOTTER_COLOR,
+  encodePlotterCoord,
+  packPlotterColor,
+  type PlotterColor,
+  type PlotterPixels,
+} from "../plotter";
 
 export interface DisassemblyLine {
   addr: number;
@@ -26,7 +33,8 @@ export interface DisassemblyLine {
 export class CPU {
   state: CPUState;
   consoleOutput: string[];
-  plotterPixels: Set<number>;
+  plotterPixels: PlotterPixels;
+  plotterColor: PlotterColor;
   consoleInputBuffer: number[];
   keyState: number[]; // [left, right, up, down, enter] — 0 or 1
   driveData: Uint8Array;
@@ -52,7 +60,8 @@ export class CPU {
   constructor() {
     this.state = createInitialState();
     this.consoleOutput = [];
-    this.plotterPixels = new Set();
+    this.plotterPixels = new Map();
+    this.plotterColor = { ...DEFAULT_PLOTTER_COLOR };
     this.consoleInputBuffer = [];
     this.keyState = [0, 0, 0, 0, 0];
     this.driveData = new Uint8Array(DRIVE_SIZE);
@@ -66,7 +75,8 @@ export class CPU {
   reset(): void {
     this.state = createInitialState();
     this.consoleOutput = [];
-    this.plotterPixels = new Set();
+    this.plotterPixels = new Map();
+    this.plotterColor = { ...DEFAULT_PLOTTER_COLOR };
     this.consoleInputBuffer = [];
     this.keyState = [0, 0, 0, 0, 0];
     this.drivePage = 0;
@@ -324,6 +334,18 @@ export class CPU {
         }
         break;
 
+      case Opcode.COLR:
+        this.plotterColor = { ...this.plotterColor, r: this.state.a };
+        break;
+
+      case Opcode.COLG:
+        this.plotterColor = { ...this.plotterColor, g: this.state.a };
+        break;
+
+      case Opcode.COLB:
+        this.plotterColor = { ...this.plotterColor, b: this.state.a };
+        break;
+
       // ─── Stack (1-byte) ───
       case Opcode.RET:
         nextPC = this.pop16(); // pop 16-bit return address
@@ -348,11 +370,18 @@ export class CPU {
         break;
 
       case Opcode.DRAW:
-        this.plotterPixels.add((this.state.b << 8) | this.state.a);
+        this.plotterPixels.set(
+          encodePlotterCoord(this.state.a, this.state.b),
+          packPlotterColor(
+            this.plotterColor.r,
+            this.plotterColor.g,
+            this.plotterColor.b,
+          ),
+        );
         break;
 
       case Opcode.CLR:
-        this.plotterPixels = new Set();
+        this.plotterPixels = new Map();
         break;
 
       case Opcode.DRVRD:

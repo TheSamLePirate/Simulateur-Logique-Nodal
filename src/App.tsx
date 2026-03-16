@@ -57,6 +57,10 @@ import {
 import { CPU } from "./cpu/cpu";
 import { Opcode, DRIVE_SIZE } from "./cpu/isa";
 import { BUILTIN_PRESETS } from "./data/scenePresets";
+import {
+  DEFAULT_PLOTTER_COLOR,
+  serializePlotterPixels,
+} from "./plotter";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -949,6 +953,7 @@ export default function App() {
             label: "PLOTTER",
             pixels: [],
             prevDraw: 0 as Bit,
+            currentColor: DEFAULT_PLOTTER_COLOR,
           },
         };
         break;
@@ -1107,7 +1112,11 @@ export default function App() {
             case "plotter":
               return {
                 ...node,
-                data: { ...node.data, pixels: data.plotterPixels },
+                data: {
+                  ...node.data,
+                  pixels: data.plotterPixels,
+                  currentColor: data.plotterColor,
+                },
               };
             case "drive":
               return {
@@ -1306,7 +1315,8 @@ export default function App() {
               ...node,
               data: {
                 ...node.data,
-                pixels: Array.from(cpu.plotterPixels),
+                pixels: serializePlotterPixels(cpu.plotterPixels),
+                currentColor: cpu.plotterColor,
                 prevDraw: plotDraw,
               },
             };

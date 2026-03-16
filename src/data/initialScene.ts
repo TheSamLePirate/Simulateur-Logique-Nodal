@@ -1,4 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
+import { DEFAULT_PLOTTER_COLOR } from "../plotter";
 
 /**
  * Initial scene: A complete 8-bit von Neumann computer
@@ -461,7 +462,12 @@ export const initialNodes: Node[] = [
     id: "plotter",
     type: "plotter",
     position: { x: 2100, y: 340 },
-    data: { label: "PLOTTER", pixels: [], prevDraw: 0 },
+    data: {
+      label: "PLOTTER",
+      pixels: [],
+      prevDraw: 0,
+      currentColor: DEFAULT_PLOTTER_COLOR,
+    },
   },
   // Plotter draw strobe
   {

@@ -12,6 +12,7 @@ import { CPU } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
 import { writeProgramToBootDisk } from "../bootloader";
 import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
+import { encodePlotterCoord, packPlotterColor } from "../../plotter";
 
 // ─── Test helpers ───
 
@@ -101,6 +102,14 @@ function compileOnly(source: string) {
     asmResult = assemble(cr.assembly);
   }
   return { compile: cr, asm: asmResult };
+}
+
+function hasPixel(cpu: CPU, x: number, y: number): boolean {
+  return cpu.plotterPixels.has(encodePlotterCoord(x, y));
+}
+
+function pixelColor(cpu: CPU, x: number, y: number): number | undefined {
+  return cpu.plotterPixels.get(encodePlotterCoord(x, y));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -208,13 +217,13 @@ describe("C Examples — Output Verification", () => {
     // Should have drawn diagonal + frame pixels
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(100);
     // Check diagonal: pixel at (0,0) and (79,79)
-    expect(r.cpu.plotterPixels.has((0 << 8) | 0)).toBe(true); // (0,0)
-    expect(r.cpu.plotterPixels.has((79 << 8) | 79)).toBe(true); // (79,79)
+    expect(hasPixel(r.cpu, 0, 0)).toBe(true); // (0,0)
+    expect(hasPixel(r.cpu, 79, 79)).toBe(true); // (79,79)
     // Check frame corners
-    expect(r.cpu.plotterPixels.has((0 << 8) | 0)).toBe(true); // top-left
-    expect(r.cpu.plotterPixels.has((0 << 8) | 99)).toBe(true); // top-right
-    expect(r.cpu.plotterPixels.has((99 << 8) | 0)).toBe(true); // bottom-left
-    expect(r.cpu.plotterPixels.has((99 << 8) | 99)).toBe(true); // bottom-right
+    expect(hasPixel(r.cpu, 0, 0)).toBe(true); // top-left
+    expect(hasPixel(r.cpu, 99, 0)).toBe(true); // top-right
+    expect(hasPixel(r.cpu, 0, 99)).toBe(true); // bottom-left
+    expect(hasPixel(r.cpu, 99, 99)).toBe(true); // bottom-right
   });
 
   it('"Courbe" draws parabolic wave on plotter', () => {
@@ -224,17 +233,17 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
     // Pixel key = (y << 8) | x  (DRAW stores (B << 8) | A, draw(x,y) → A=x, B=y)
     // Endpoints at y=128 (t=0 → h=0 → y=128)
-    expect(r.cpu.plotterPixels.has((128 << 8) | 0)).toBe(true); // draw(0, 128)
+    expect(hasPixel(r.cpu, 0, 128)).toBe(true); // draw(0, 128)
     // Wave should reach above y=128 in first half (x<128)
     // At x=64 (midpoint of first arch), t=64, h=(16*15)=240, y=128-(120)=8
-    const hasUpperWave = Array.from(r.cpu.plotterPixels).some((key) => {
+    const hasUpperWave = Array.from(r.cpu.plotterPixels.keys()).some((key) => {
       const x = key & 0xff;
       const y = (key >> 8) & 0xff;
       return x < 128 && y < 100;
     });
     expect(hasUpperWave).toBe(true);
     // Wave should reach below y=128 in second half (x>=128)
-    const hasLowerWave = Array.from(r.cpu.plotterPixels).some((key) => {
+    const hasLowerWave = Array.from(r.cpu.plotterPixels.keys()).some((key) => {
       const x = key & 0xff;
       const y = (key >> 8) & 0xff;
       return x >= 128 && y > 156;
@@ -332,12 +341,12 @@ describe("C Examples — Output Verification", () => {
     // Pixel key = (y << 8) | x  (DRAW stores (B << 8) | A, draw(x,y) → A=x, B=y)
     // DDA: y increments by 2 each step (a=2, b=1)
     // x=1: y=2 → draw(1, 2) → key = (2 << 8) | 1
-    expect(r.cpu.plotterPixels.has((2 << 8) | 1)).toBe(true);
+    expect(hasPixel(r.cpu, 1, 2)).toBe(true);
     // x=10: y=20 → draw(10, 20) → key = (20 << 8) | 10
-    expect(r.cpu.plotterPixels.has((20 << 8) | 10)).toBe(true);
+    expect(hasPixel(r.cpu, 10, 20)).toBe(true);
     // x=200: y = (2*200) mod 256 = 144 → draw(200, 144)
     // DDA wraps smoothly through 255→0 (no jump discontinuity at x=128)
-    expect(r.cpu.plotterPixels.has((144 << 8) | 200)).toBe(true);
+    expect(hasPixel(r.cpu, 200, 144)).toBe(true);
   });
 
   it('"Traceur de droite" handles b=0 error', () => {
@@ -357,7 +366,7 @@ describe("C Examples — Output Verification", () => {
     // Should have drawn many pixels forming a ring
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
     // Center area (128,128) should NOT be drawn (d ≈ 0, not in 12..20 range)
-    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(false);
+    expect(hasPixel(r.cpu, 128, 128)).toBe(false);
   }, 15_000);
 
   it('"Clavier" draws triangle + laser with arrow keys', () => {
@@ -390,7 +399,7 @@ describe("C Examples — Output Verification", () => {
     // Should have drawn many pixels
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
     // Starting point at (128, 128) should be drawn
-    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
+    expect(hasPixel(r.cpu, 128, 128)).toBe(true);
   });
 
   it('"Tableau de nombres premiers" finds 25 primes up to 100', () => {
@@ -490,10 +499,10 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Y1 = A*(X/8)^2 + B*X + C");
     expect(r.output).toContain("TRACE L/R  ZOOM U/D  ENTER=STD");
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(900);
-    expect(r.cpu.plotterPixels.has((0 << 8) | 0)).toBe(true);
-    expect(r.cpu.plotterPixels.has((255 << 8) | 255)).toBe(true);
-    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
-    expect(r.cpu.plotterPixels.has((124 << 8) | 128)).toBe(true);
+    expect(hasPixel(r.cpu, 0, 0)).toBe(true);
+    expect(hasPixel(r.cpu, 255, 255)).toBe(true);
+    expect(hasPixel(r.cpu, 128, 128)).toBe(true);
+    expect(hasPixel(r.cpu, 128, 124)).toBe(true);
   }, 10_000);
 
   it('"Mini Shell" supports vars, aggregates and RAM file redirection', () => {
@@ -562,8 +571,8 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("sun + orbiting planet");
     expect(r.output).toContain("@ quit");
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(10);
-    expect(r.cpu.plotterPixels.has((128 << 8) | 128)).toBe(true);
-    expect(r.cpu.plotterPixels.has((128 << 8) | 212)).toBe(true);
+    expect(hasPixel(r.cpu, 128, 128)).toBe(true);
+    expect(hasPixel(r.cpu, 212, 128)).toBe(true);
   }, 10_000);
 });
 
@@ -868,6 +877,23 @@ describe("Compiler — Edge Cases", () => {
     );
     expect(r.output).toBe("1 1");
     expect(r.halted).toBe(true);
+  });
+
+  it("color built-in latches RGB values for subsequent draw calls", () => {
+    const r = compileAndRun(`
+      int main() {
+        color(0, 128, 255);
+        draw(10, 20);
+        color(255, 64, 0);
+        draw(11, 20);
+        draw(12, 20);
+        return 0;
+      }
+    `);
+    expect(r.halted).toBe(true);
+    expect(pixelColor(r.cpu, 10, 20)).toBe(packPlotterColor(0, 128, 255));
+    expect(pixelColor(r.cpu, 11, 20)).toBe(packPlotterColor(255, 64, 0));
+    expect(pixelColor(r.cpu, 12, 20)).toBe(packPlotterColor(255, 64, 0));
   });
 
   it("stack pointer is restored after function calls", () => {

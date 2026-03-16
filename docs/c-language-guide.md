@@ -571,9 +571,20 @@ if (getKey(0)) {
 
 ### Plotter graphics
 
+#### `color(r, g, b)`
+
+Sets the current drawing color for the plotter.
+
+Each channel is an 8-bit integer (`0..255`). All later `draw(x, y)` calls use that color until you change it again. If you never call `color(...)`, the default color stays the simulator's cyan.
+
+```c
+color(0, 128, 255);
+draw(10, 20);   // rgb(0,128,255)
+```
+
 #### `draw(x, y)`
 
-Draws one pixel on the plotter.
+Draws one pixel on the plotter using the current plotter color.
 
 ```c
 draw(10, 20);

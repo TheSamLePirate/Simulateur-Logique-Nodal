@@ -46,7 +46,7 @@ Everything in the simulator is built from simple gates upward:
   Level 2:  ADDERS        Full Adder (1-bit), Ripple Carry Adder (8-bit)
   Level 3:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (1024x8)
   Level 4:  ALU           8 operations (ADD, SUB, AND, OR, XOR, NOT, SHL, SHR)
-  Level 5:  PERIPHERALS   Console (text I/O), Plotter (256×256 pixel display)
+  Level 5:  PERIPHERALS   Console (text I/O), Plotter (256×256 RGB pixel display)
   Level 6:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
 ```
 
@@ -701,7 +701,7 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
   I/O Peripherals:
   ┌──────────────┐     ┌──────────┐
   │   CONSOLE    │     │ PLOTTER  │
-  │ (text I/O)   │     │ (256×256)│
+  │ (text I/O)   │     │256×256 RGB│
   │ D0-D7 → text │     └──────────┘
   │ Q0-Q7 ← input│       A → X, B → Y
   └──────────────┘       DRAW strobe
@@ -756,7 +756,7 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **consoleMode** | Input | Console mode: 0=ASCII, 1=decimal |
 | **consoleClear** | Input | Clear console display |
 | **consoleRd** | Input | Console read strobe (for INA instruction) |
-| **plotter** | Plotter | 256×256 pixel display |
+| **plotter** | Plotter | 256×256 RGB pixel display |
 | **plotDraw** | Input | Plotter draw strobe |
 | **plotClear** | Input | Clear plotter display |
 | **drive** | Drive | 8 KB external storage peripheral |
@@ -780,6 +780,16 @@ The console node is a **bidirectional** peripheral with both input and output ca
 - **RD**: Read strobe — on rising edge, pops next character from buffer
 
 The console also has a **keyboard input field** at the bottom. Text typed there and submitted with Enter is queued in the input buffer. The CPU reads from this buffer using the INA instruction.
+
+### Plotter Node Details
+
+The plotter stores a full **RGB color** for each pixel.
+
+- **X0-X7** and **Y0-Y7** select the pixel coordinate
+- **DRAW** plots one pixel on the rising edge
+- **CLR** clears the whole screen
+- When the software CPU is driving the hardware view, the current plotter color is latched by the `COLR`, `COLG`, and `COLB` instructions (these are what C `color(r, g, b)` compiles to)
+- A later `DRAW` uses that latched color for the pixel it writes
 
 ### External Drive Node Details
 

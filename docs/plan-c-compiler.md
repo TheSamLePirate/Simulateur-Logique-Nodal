@@ -39,7 +39,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
 | Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
 | Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes |
-| Built-in Plotter | `draw(x, y)`, `clear()` | Pixel drawing |
+| Built-in Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB pixel drawing |
 | Comments | `//` and `/* */` | |
 | Constants | `#define NAME value` | Preprocessed |
 
@@ -51,6 +51,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | `print_num(expr)` | Output a decimal number | Evaluate expr → A, then `OUTD` |
 | `print("str")` | Output a string literal | Series of `OUT` instructions |
 | `getchar()` | Read one char from input (blocks until available) | `INA; CMP 0; JZ wait` busy-wait loop |
+| `color(r, g, b)` | Set current plotter RGB color | `r -> COLR`, `g -> COLG`, `b -> COLB` |
 | `draw(x, y)` | Plot pixel at (x, y) on plotter | x → A, y → B, then `DRAW` |
 | `clear()` | Clear all pixels on plotter | `CLR` |
 

@@ -80,6 +80,7 @@ export function generate(program: Program): {
     "putchar",
     "print_num",
     "print",
+    "color",
     "draw",
     "clear",
     "getchar",
@@ -1389,6 +1390,23 @@ export function generate(program: Program): {
         for (const ch of expr.args[0].value) {
           emit(`  OUT ${ch.charCodeAt(0)}`);
         }
+      }
+      return;
+    }
+
+    // ── Built-in: draw(x, y) ──
+    if (expr.name === "color") {
+      if (expr.args.length >= 1) {
+        emitExpr(expr.args[0], ctx);
+        emit(`  COLR`);
+      }
+      if (expr.args.length >= 2) {
+        emitExpr(expr.args[1], ctx);
+        emit(`  COLG`);
+      }
+      if (expr.args.length >= 3) {
+        emitExpr(expr.args[2], ctx);
+        emit(`  COLB`);
       }
       return;
     }

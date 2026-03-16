@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { Trash2, Grid3x3, Maximize2, Minimize2 } from "lucide-react";
+import type { PlotterColor, PlotterPixels } from "../../plotter";
+import { DEFAULT_PLOTTER_COLOR, unpackPlotterColor } from "../../plotter";
 
 const CANVAS_SIZE = 256; // logical pixel grid (256×256)
 
 interface PlotterPanelProps {
-  pixels: Set<number>;
+  pixels: PlotterPixels;
+  currentColor?: PlotterColor;
   onClear: () => void;
 }
 
-export function PlotterPanel({ pixels, onClear }: PlotterPanelProps) {
+export function PlotterPanel({
+  pixels,
+  currentColor = DEFAULT_PLOTTER_COLOR,
+  onClear,
+}: PlotterPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
@@ -27,10 +34,11 @@ export function PlotterPanel({ pixels, onClear }: PlotterPanelProps) {
 
     // Draw pixels
     if (pixels.size > 0) {
-      ctx.fillStyle = "#22d3ee"; // cyan-400
-      for (const encoded of pixels) {
+      for (const [encoded, color] of pixels.entries()) {
+        const { r, g, b } = unpackPlotterColor(color);
         const x = encoded & 0xff;
         const y = (encoded >> 8) & 0xff;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fillRect(x, y, 1, 1);
       }
     }
@@ -58,6 +66,15 @@ export function PlotterPanel({ pixels, onClear }: PlotterPanelProps) {
             {pixels.size}px
           </span>
         )}
+        <span className="text-[9px] text-slate-500 font-mono">
+          rgb({currentColor.r},{currentColor.g},{currentColor.b})
+        </span>
+        <span
+          className="w-2.5 h-2.5 rounded-sm border border-slate-600"
+          style={{
+            backgroundColor: `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`,
+          }}
+        />
       </div>
       <div className="flex items-center gap-2">
         <button

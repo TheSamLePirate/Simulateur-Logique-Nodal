@@ -220,7 +220,10 @@ wait:
 |-----------|--------|-------|----------------------------------|
 | `OUTA`    | 0x20   | 1     | Print A as an ASCII character    |
 | `OUTD`    | 0x21   | 1     | Print A as a decimal number      |
-| `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) on plotter  |
+| `COLR`    | 0x1A   | 1     | Set plotter red channel from A   |
+| `COLG`    | 0x1B   | 1     | Set plotter green channel from A |
+| `COLB`    | 0x1C   | 1     | Set plotter blue channel from A  |
+| `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) in current plotter color |
 | `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
 | `DRVRD`   | 0x24   | 1     | A = external_drive[(page<<8) + A] |
 | `DRVWR`   | 0x25   | 1     | external_drive[(page<<8) + A] = B |
@@ -295,7 +298,7 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 | Updates flags?  | Instructions                             |
 |-----------------|------------------------------------------|
 | **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, ANDB, ORB, XORB, CMPB, MULB, DIVB, MODB, INA, GETKEY, RAND, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI |
-| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, SLEEP, NOP, HLT |
+| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, COLR, COLG, COLB, DRAW, CLR, SLEEP, NOP, HLT |
 
 **Critical rule:** Never put a flag-modifying instruction between a comparison (CMP) and a conditional jump (JZ/JNZ). Example of a **bug**:
 
@@ -676,7 +679,7 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
 | Input | `getchar()`, `getKey(0)` | Console and keyboard built-ins |
-| Plotter | `draw(x, y)`, `clear()` | Drawing built-ins |
+| Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
 | External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()`, `drive_set_page(p)`, `drive_read_at(p, a)`, `drive_write_at(p, a, v)` | 8 KB persistent storage |
 | Constants | `#define MAX 100` | Preprocessor |
 

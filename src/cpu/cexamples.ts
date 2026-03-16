@@ -116,11 +116,14 @@ int main() {
   int i;
 
   clear();
+  color(0, 200, 255);
 
   // Diagonale
   for (i = 0; i < 80; i++) {
     draw(i, i);
   }
+
+  color(255, 180, 0);
 
   // Cadre
   for (i = 0; i < 100; i++) {
@@ -2469,8 +2472,8 @@ int main() {
   },
   {
     name: "Système Solaire 255",
-    description: "Soleil et une planete en orbite circulaire sur 255x255",
-    code: `// Soleil + une planete en orbite circulaire
+    description: "Soleil et une planete en orbite circulaire colorés sur 255x255",
+    code: `// Soleil RGB + une planete en orbite circulaire
 // @ = quitter
 
 int gx;
@@ -2539,6 +2542,7 @@ int place(int p) {
 
 int orbit() {
   int p;
+  color(70, 90, 150);
   p = 0;
   while (p < 128) {
     place(p);
@@ -2552,6 +2556,7 @@ int planet(int p) {
   int tx;
   int ty;
   place(p);
+  color(70, 210, 255);
   draw(gx, gy);
   draw(gx + 1, gy);
   draw(gx - 1, gy);
@@ -2567,16 +2572,22 @@ int planet(int p) {
   draw(gx - 1, gy - 1);
   tx = gx;
   ty = gy;
+  color(255, 255, 255);
   place(p - 2);
   draw(gx, gy);
   place(p - 4);
   draw(gx, gy);
+  color(30, 180, 90);
+  draw(tx + 1, ty - 1);
+  draw(tx + 1, ty);
+  draw(tx + 1, ty + 1);
   gx = tx;
   gy = ty;
   return 0;
 }
 
 int sun() {
+  color(255, 220, 80);
   draw(128, 128);
   draw(127, 128); draw(129, 128);
   draw(128, 127); draw(128, 129);
@@ -2592,10 +2603,15 @@ int sun() {
   draw(128, 124); draw(128, 132);
   draw(125, 125); draw(131, 125);
   draw(125, 131); draw(131, 131);
+  color(255, 245, 190);
+  draw(128, 128);
+  draw(127, 128); draw(129, 128);
+  draw(128, 127); draw(128, 129);
   return 0;
 }
 
 int corona(int t) {
+  color(255, 140, 40);
   if ((t & 8) == 0) {
     draw(121, 128); draw(135, 128);
     draw(128, 121); draw(128, 135);
@@ -2631,10 +2647,11 @@ int main() {
     }
 
     clear();
+    color(180, 180, 220);
     draw(212, 128);
+    //orbit();
     sun();
     corona(t);
-    //orbit();
     planet(t);
 
     hold = 0;
@@ -2644,6 +2661,192 @@ int main() {
     }
     t = t + 1;
   }
+  return 0;
+}`,
+  },
+  {
+    name: "Paysage RGB",
+    description: "Grand paysage coloré avec ciel, montagnes, lac et sapins",
+    code: `// Paysage RGB plus complexe
+// Ciel en couches, soleil, montagnes, reflets et sapins
+
+int hline(int x0, int x1, int y) {
+  int x;
+  x = x0;
+  while (1) {
+    draw(x, y);
+    if (x == x1) {
+      return 0;
+    }
+    x = x + 1;
+  }
+  return 0;
+}
+
+int fill_rect(int x0, int y0, int x1, int y1, int r, int g, int b) {
+  int y;
+  color(r, g, b);
+  y = y0;
+  while (1) {
+    hline(x0, x1, y);
+    if (y == y1) {
+      return 0;
+    }
+    y = y + 1;
+  }
+  return 0;
+}
+
+int diamond(int cx, int cy, int radius, int r, int g, int b) {
+  int d;
+  color(r, g, b);
+  d = 0;
+  while (1) {
+    hline(cx - d, cx + d, cy - d);
+    if (d != 0) {
+      hline(cx - d, cx + d, cy + d);
+    }
+    if (d == radius) {
+      return 0;
+    }
+    d = d + 1;
+  }
+  return 0;
+}
+
+int mountain(int cx, int peak_y, int base_y, int r, int g, int b) {
+  int y;
+  int span;
+  color(r, g, b);
+  y = peak_y;
+  span = 0;
+  while (1) {
+    hline(cx - span, cx + span, y);
+    if (y == base_y) {
+      return 0;
+    }
+    y = y + 1;
+    span = span + 1;
+  }
+  return 0;
+}
+
+int pine(int x, int base_y) {
+  color(70, 40, 20);
+  fill_rect(x, base_y - 12, x + 2, base_y, 70, 40, 20);
+
+  color(10, 70, 25);
+  hline(x - 8, x + 10, base_y - 12);
+  hline(x - 7, x + 9, base_y - 15);
+  hline(x - 6, x + 8, base_y - 18);
+  hline(x - 5, x + 7, base_y - 21);
+  hline(x - 4, x + 6, base_y - 24);
+  hline(x - 3, x + 5, base_y - 27);
+  hline(x - 2, x + 4, base_y - 30);
+  hline(x - 1, x + 3, base_y - 33);
+  hline(x, x + 2, base_y - 36);
+  return 0;
+}
+
+int reflection() {
+  color(255, 210, 90);
+  hline(184, 208, 142);
+  hline(180, 212, 150);
+  hline(176, 216, 158);
+  hline(182, 210, 166);
+  hline(188, 204, 174);
+
+  color(255, 255, 220);
+  hline(192, 200, 146);
+  hline(190, 202, 154);
+  hline(194, 198, 162);
+  return 0;
+}
+
+int cloud(int x, int y, int tone) {
+  color(tone, tone, tone);
+  hline(x - 14, x + 14, y);
+  hline(x - 22, x + 10, y + 4);
+  hline(x - 10, x + 22, y + 8);
+  hline(x - 16, x + 16, y + 12);
+  return 0;
+}
+
+int ripples() {
+  color(84, 172, 220);
+  hline(20, 118, 182);
+  hline(10, 100, 188);
+  hline(140, 250, 194);
+  hline(36, 108, 200);
+  hline(150, 236, 206);
+
+  color(126, 198, 236);
+  hline(48, 128, 180);
+  hline(132, 226, 186);
+  hline(22, 90, 198);
+  hline(168, 240, 210);
+  return 0;
+}
+
+int stars() {
+  color(255, 255, 255);
+  draw(18, 14);  draw(40, 22);  draw(72, 10);  draw(104, 18);
+  draw(136, 12); draw(154, 28); draw(226, 16); draw(244, 26);
+  color(255, 220, 180);
+  draw(28, 34);  draw(94, 30);  draw(166, 20); draw(214, 36);
+  return 0;
+}
+
+int birds() {
+  color(32, 20, 24);
+  draw(78, 74);  draw(79, 73);  draw(80, 72);  draw(81, 73);  draw(82, 74);
+  draw(112, 64); draw(113, 63); draw(114, 62); draw(115, 63); draw(116, 64);
+  draw(152, 72); draw(153, 71); draw(154, 70); draw(155, 71); draw(156, 72);
+  return 0;
+}
+
+int main() {
+  clear();
+
+  fill_rect(0, 0, 255, 35, 8, 18, 70);
+  fill_rect(0, 36, 255, 78, 36, 86, 160);
+  fill_rect(0, 79, 255, 118, 255, 132, 82);
+  fill_rect(0, 119, 255, 170, 18, 86, 138);
+  fill_rect(0, 171, 255, 214, 14, 66, 110);
+  fill_rect(0, 215, 255, 255, 20, 74, 28);
+
+  stars();
+  cloud(54, 44, 220);
+  cloud(106, 34, 236);
+  cloud(236, 58, 205);
+  birds();
+
+  diamond(194, 54, 22, 255, 150, 60);
+  diamond(194, 54, 16, 255, 214, 88);
+  diamond(194, 54, 10, 255, 245, 190);
+
+  mountain(54, 92, 176, 26, 18, 50);
+  mountain(126, 62, 176, 48, 26, 76);
+  mountain(210, 102, 176, 22, 16, 44);
+
+  color(24, 110, 170);
+  hline(0, 255, 171);
+  color(32, 130, 190);
+  hline(0, 255, 172);
+  hline(0, 255, 173);
+
+  reflection();
+  ripples();
+
+  pine(18, 230);
+  pine(40, 236);
+  pine(68, 234);
+  pine(216, 232);
+  pine(236, 238);
+
+  color(90, 58, 26);
+  hline(0, 255, 255);
+  hline(0, 255, 254);
   return 0;
 }`,
   },

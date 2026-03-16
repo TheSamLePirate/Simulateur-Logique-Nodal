@@ -1,13 +1,18 @@
 import { Handle, Position } from "@xyflow/react";
 import { useEffect, useMemo, useRef } from "react";
 import { Grid3X3 } from "lucide-react";
+import { DEFAULT_PLOTTER_COLOR, type PlotterColor, type PlotterPixel } from "../../plotter";
 
 const CANVAS_SIZE = 128; // display size in CSS pixels
 const GRID_SIZE = 256; // logical pixel grid (256×256)
 
 export const PlotterNode = ({ data }: any) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pixels = useMemo(() => (data.pixels as number[]) || [], [data.pixels]);
+  const pixels = useMemo(
+    () => (data.pixels as PlotterPixel[]) || [],
+    [data.pixels],
+  );
+  const currentColor = (data.currentColor as PlotterColor) || DEFAULT_PLOTTER_COLOR;
   const pixelCount = pixels.length;
 
   useEffect(() => {
@@ -20,11 +25,9 @@ export const PlotterNode = ({ data }: any) => {
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, GRID_SIZE, GRID_SIZE);
 
-    // Draw pixels in cyan
-    ctx.fillStyle = "#22d3ee";
-    for (const encoded of pixels) {
-      const x = encoded & 0xff;
-      const y = (encoded >> 8) & 0xff;
+    for (const pixel of pixels) {
+      const { x, y, r, g, b } = pixel;
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
       ctx.fillRect(x, y, 1, 1);
     }
   }, [pixels]);
@@ -57,6 +60,17 @@ export const PlotterNode = ({ data }: any) => {
       <div className="bg-slate-900 rounded p-1 mb-2 text-center border border-slate-700">
         <div className="text-[8px] text-cyan-400 font-mono">
           {pixelCount} pixels
+        </div>
+        <div className="flex items-center justify-center gap-1 mt-1">
+          <span className="text-[8px] text-slate-500 font-mono">
+            rgb({currentColor.r},{currentColor.g},{currentColor.b})
+          </span>
+          <span
+            className="w-2.5 h-2.5 rounded-sm border border-slate-600"
+            style={{
+              backgroundColor: `rgb(${currentColor.r}, ${currentColor.g}, ${currentColor.b})`,
+            }}
+          />
         </div>
       </div>
 

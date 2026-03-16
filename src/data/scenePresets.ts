@@ -1,5 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { ScenePreset } from "../types";
+import { DEFAULT_PLOTTER_COLOR } from "../plotter";
 import { initialNodes, initialEdges } from "./initialScene";
 
 // ── Edge helpers (same as initialScene) ──────────────────────
@@ -1127,7 +1128,12 @@ const plotterNodes: Node[] = [
     id: "plotter",
     type: "plotter",
     position: { x: 650, y: 0 },
-    data: { label: "PLOTTER", pixels: [], prevDraw: 0 },
+    data: {
+      label: "PLOTTER",
+      pixels: [],
+      prevDraw: 0,
+      currentColor: DEFAULT_PLOTTER_COLOR,
+    },
   },
 ];
 

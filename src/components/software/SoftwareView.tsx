@@ -38,6 +38,13 @@ import {
   CODE_SIZE,
   DRIVE_SIZE,
 } from "../../cpu/isa";
+import {
+  DEFAULT_PLOTTER_COLOR,
+  serializePlotterPixels,
+  type PlotterColor,
+  type PlotterPixel,
+  type PlotterPixels,
+} from "../../plotter";
 
 import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
@@ -59,7 +66,8 @@ export interface HardwareSyncData {
   memory: Uint8Array;
   flags: { z: boolean; c: boolean; n: boolean };
   consoleText: string;
-  plotterPixels: number[];
+  plotterPixels: PlotterPixel[];
+  plotterColor: PlotterColor;
   driveData: Uint8Array;
   driveLastAddr: number;
   driveLastRead: number;
@@ -96,7 +104,10 @@ export function SoftwareView({
   // CPU state (snapshot for React rendering)
   const [cpuState, setCpuState] = useState<CPUState>(createInitialState());
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
-  const [plotterPixels, setPlotterPixels] = useState<Set<number>>(new Set());
+  const [plotterPixels, setPlotterPixels] = useState<PlotterPixels>(new Map());
+  const [plotterColor, setPlotterColor] = useState<PlotterColor>(
+    DEFAULT_PLOTTER_COLOR,
+  );
 
   // Source map for line highlighting (ASM line → PC mapping)
   const sourceMapRef = useRef<Map<number, number>>(new Map());
@@ -127,7 +138,8 @@ export function SoftwareView({
     (cpu: CPU) => {
       setCpuState(cpu.snapshot());
       setConsoleOutput([...cpu.consoleOutput]);
-      setPlotterPixels(new Set(cpu.plotterPixels));
+      setPlotterPixels(new Map(cpu.plotterPixels));
+      setPlotterColor({ ...cpu.plotterColor });
 
       onHardwareSync?.({
         pc: cpu.state.pc,
@@ -137,7 +149,8 @@ export function SoftwareView({
         memory: new Uint8Array(cpu.state.memory),
         flags: { ...cpu.state.flags },
         consoleText: cpu.consoleOutput.join(""),
-        plotterPixels: Array.from(cpu.plotterPixels),
+        plotterPixels: serializePlotterPixels(cpu.plotterPixels),
+        plotterColor: { ...cpu.plotterColor },
         driveData: cpu.exportDriveData(),
         driveLastAddr: cpu.driveLastAddr,
         driveLastRead: cpu.driveLastRead,
@@ -450,7 +463,7 @@ export function SoftwareView({
 
   // ─── Plotter clear ───
   const handleClearPlotter = useCallback(() => {
-    cpuRef.current.plotterPixels = new Set();
+    cpuRef.current.plotterPixels = new Map();
     syncCpuView(cpuRef.current);
   }, [syncCpuView]);
 
@@ -862,6 +875,7 @@ export function SoftwareView({
                         <div className="h-full overflow-hidden">
                           <PlotterPanel
                             pixels={plotterPixels}
+                            currentColor={plotterColor}
                             onClear={handleClearPlotter}
                           />
                         </div>
