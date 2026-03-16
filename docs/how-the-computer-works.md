@@ -123,11 +123,13 @@ The entire computer has **8192 bytes** of memory (13-bit address space, 0x0000�
   ---------------   -------------------------------------------
   0x0000-0x0FFF     CODE: Your program (instructions, 4096 bytes max)
   0x1000-0x100F     GLOBALS: Global variables (C compiler, 16 max)
-  0x1010-0x1015     SCRATCH: Temp values for multiply/divide
-  0x1017             SCRATCH: Return value save
-  0x1018-0x17FF     LOCALS: Function parameters & local vars
+  0x1010-0x1015     SCRATCH: Compiler temps / runtime helper state
+  0x1017            SCRATCH: Return value save
+  0x1018-0x17FF     FRAMES: Reusable function params, locals, arrays
   0x1800-0x1FFF     STACK: Grows downward from 0x1FFF (2048 bytes)
 ```
+
+The important compiler detail is that **locals are no longer globally unique forever**. The compiler now packs variables into reusable **function frames** and reuses block-local slots when their scopes do not overlap. Two unrelated functions can share the same RAM addresses if they can never be active at the same time.
 
 ### Important Rules
 
@@ -176,12 +178,22 @@ Instructions are **variable length**:
 | `TBA`   | 0x07   | 1     | A = B (copy B into A)     |
 | `ADDB`  | 0x08   | 1     | A = A + B                 |
 | `SUBB`  | 0x09   | 1     | A = A - B                 |
+| `ANDB`  | 0x13   | 1     | A = A AND B               |
+| `ORB`   | 0x14   | 1     | A = A OR B                |
+| `XORB`  | 0x15   | 1     | A = A XOR B               |
+| `CMPB`  | 0x16   | 1     | Set flags for A - B       |
+| `MULB`  | 0x17   | 1     | A = A * B                 |
+| `DIVB`  | 0x18   | 1     | A = A / B                 |
+| `MODB`  | 0x19   | 1     | A = A % B                 |
 
 #### Input
 
 | ASM     | Opcode | Bytes | What it does                                    |
 |---------|--------|-------|-------------------------------------------------|
 | `INA`   | 0x0A   | 1     | A = next char from input buffer (0 if empty, sets Z) |
+| `GETKEY`| 0x0B   | 1     | A = keyboard state for key index in A           |
+| `RAND`  | 0x0C   | 1     | A = pseudo-random 8-bit value                   |
+| `SLEEP` | 0x0D   | 1     | Pause execution for A cycles                    |
 
 `INA` is **non-blocking**: if the input buffer is empty, A is set to 0 and the Zero flag is set. Programs typically busy-wait:
 
@@ -253,8 +265,8 @@ This is the #1 source of bugs. Some instructions update flags, some don't:
 
 | Updates flags?  | Instructions                             |
 |-----------------|------------------------------------------|
-| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, INA, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI |
-| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, NOP, HLT |
+| **YES**         | INC, DEC, NOT, SHL, SHR, TBA, ADDB, SUBB, ANDB, ORB, XORB, CMPB, MULB, DIVB, MODB, INA, GETKEY, RAND, POP, LDA, ADD, SUB, AND, OR, XOR, CMP, LDM, LDAI |
+| **NO**          | TAB, PUSH, STA, STB, LDB, LBM, STAI, JMP, JZ, JNZ, JC, JNC, JN, CALL, RET, OUT, OUTA, OUTD, DRAW, CLR, SLEEP, NOP, HLT |
 
 **Critical rule:** Never put a flag-modifying instruction between a comparison (CMP) and a conditional jump (JZ/JNZ). Example of a **bug**:
 
@@ -427,34 +439,50 @@ Walks the AST and produces ASM instructions. This is the most complex part.
 
 #### Variable Storage
 
-Since the CPU has no stack-relative addressing, every variable gets a **fixed memory address**:
+Since the CPU has no stack-relative addressing, every variable still gets a **fixed memory address while it is active**, but the compiler now reuses those addresses aggressively:
 
 ```
   Global variables:  0x1000, 0x1001, 0x1002, ... (up to 16)
-  Arithmetic temps:  0x1010-0x1015               (for multiply, divide, etc.)
+  Arithmetic temps:  0x1010-0x1015               (compiler/runtime helper scratch)
   Return value save: 0x1017
-  Function locals:   0x1018, 0x1019, 0x101A, ... (per function, unique addresses)
+  Function frames:   0x1018, 0x1019, 0x101A, ... (reused across scopes/functions)
   Stack:             0x1800-0x1FFF               (grows downward from 0x1FFF)
 ```
+
+The code generator builds a small call graph, detects recursive functions, and packs frames so that:
+
+- different blocks in one function can reuse the same slot
+- unrelated non-recursive functions can reuse the same addresses
+- recursive functions still work by saving their current frame on the stack before the recursive call
 
 #### How Expressions Are Compiled
 
 The result of any expression always ends up in **register A**:
 
-```c
-x + y
-```
-
-Generates:
+For example, `x + 5` can compile directly to:
 
 ```asm
-  LDM 0x1018     ; A = x (load from memory)
-  PUSH          ; save x on stack
-  LDM 0x1019    ; A = y
-  TAB           ; B = y
-  POP           ; A = x
-  ADDB          ; A = x + y
+  LDM 0x1018     ; A = x
+  ADD 5          ; A = x + 5
 ```
+
+And `x + y` still uses both registers:
+
+```asm
+  LDM 0x1018     ; A = x
+  PUSH
+  LDM 0x1019     ; A = y
+  TAB            ; B = y
+  POP            ; A = x
+  ADDB           ; A = x + y
+```
+
+The compiler also performs small optimizations before emitting ASM:
+
+- constant folding: `2 + 3` becomes `LDA 5`
+- dead branch removal: `if (0) { ... }` disappears
+- immediate specialization: `x & 1`, `x + 3`, `x == 0` use immediate opcodes
+- tiny peephole cleanup: useless jumps like `JMP next_label` are removed
 
 #### How If/Else Works
 
@@ -514,7 +542,10 @@ __L1:          ; loop end
 
 #### How Function Calls Work
 
-This is the trickiest part. Since every variable has a fixed address, we need to **save and restore** them for recursion to work.
+This is the trickiest part. The compiler now uses **two calling strategies**:
+
+- **non-recursive / frame-disjoint calls:** just evaluate args, write them into the callee frame, `CALL`, and continue
+- **recursive calls:** save the current frame to the stack first, then restore it after `RET`
 
 ```c
 int fact(int n) {
@@ -523,64 +554,44 @@ int fact(int n) {
 }
 ```
 
-When calling a function, the compiler does:
+For a recursive call, the compiler does:
 
 ```
-  1. SAVE caller's variables to the stack  (so recursion doesn't break)
-  2. SAVE arithmetic temps to the stack    (so nested multiply works)
-  3. Evaluate arguments, push to stack
-  4. Pop arguments into callee's param addresses
-  5. CALL the function
-  6. RESTORE arithmetic temps from stack
-  7. RESTORE caller's variables from stack
+  1. SAVE caller's current frame to the stack
+  2. Evaluate arguments, push to stack
+  3. Pop arguments into callee frame addresses
+  4. CALL the function
+  5. RESTORE caller's frame from stack
 ```
 
-This means each function call uses stack space proportional to:
-`(number of variables) + 6 (temps) + (number of args) + 2 (16-bit return address)`
+For a non-recursive helper call, steps 1 and 5 are skipped completely. That makes ordinary helper functions much cheaper in both code size and stack usage.
 
-With 2048 bytes of stack (0x1800-0x1FFF), that's enough for many levels of recursion.
+This means stack use is now mostly:
+`recursive frame size + number of args + 2 (16-bit return address)`
 
-#### How Multiply Works (No MUL Instruction!)
+With 2048 bytes of stack (0x1800-0x1FFF), recursion is still supported, but ordinary helper-heavy programs are much lighter than before.
 
-Our CPU has no multiply instruction. The compiler generates an inline **addition loop**:
+#### How Arithmetic and Bitwise Ops Work Now
 
-```
-  a * b  =  a + a + a + ... (b times)
-```
+The ISA now has direct register-register arithmetic and logic instructions:
 
-In ASM:
+- `ANDB`, `ORB`, `XORB`, `CMPB`
+- `MULB`, `DIVB`, `MODB`
+
+So operations like `x * y`, `x % y`, and `x ^ y` no longer need large inline loops in generated assembly.
+
+Example:
 
 ```asm
-  ; t1 = left value, t2 = counter, t3 = result
-  STA 0x1010      ; t1 = left
-  STA 0x1011      ; t2 = right (counter)
-  LDA 0
-  STA 0x1012      ; t3 = 0 (result)
-
-__loop:
-  LDM 0x1011      ; A = counter
-  CMP 0
-  JZ __done       ; if counter == 0, done
-  LDM 0x1012      ; A = result
-  LBM 0x1010      ; B = left value
-  ADDB            ; A = result + left
-  STA 0x1012      ; result = A
-  LDM 0x1011      ; A = counter
-  DEC             ; counter--
-  STA 0x1011
-  JMP __loop
-
-__done:
-  LDM 0x1012      ; A = final result
+  LDM 0x1018     ; A = x
+  PUSH
+  LDM 0x1019     ; A = y
+  TAB            ; B = y
+  POP            ; A = x
+  MULB           ; A = x * y
 ```
 
-#### How Division Works
-
-Similar loop, but using **repeated subtraction**:
-
-```
-  a / b  →  count how many times b fits into a
-```
+Variable shifts still need loops, but the compiler now emits **shared runtime helpers** like `__rt_shl` and `__rt_shr` only if the program actually uses them. That avoids duplicating the same shift loop everywhere.
 
 #### How Arrays Work (Indirect Addressing)
 
@@ -615,7 +626,7 @@ Arrays are allocated as contiguous bytes in the same memory regions as scalars (
 
 **Complex index** `arr[j+1]` works because the index expression is fully evaluated into A before the LDAI/STAI instruction.
 
-Array element addresses are included in the save/restore list during function calls, so **recursion with arrays** works correctly.
+Local arrays live inside the same reusable frames as scalars. For recursive calls, the current frame is saved first, so **recursion with arrays** still works correctly.
 
 ### Supported C Features
 
@@ -926,20 +937,22 @@ npm run test:watch
 npx vitest run -t "Fibonacci"
 ```
 
-### What Is Tested (141 tests)
+### What Is Tested
 
-#### Compilation (19 tests)
+The exact count changes over time, but the suite currently covers more than 150 end-to-end compiler/CPU checks.
 
-Every C example program is compiled and assembled. This catches regressions in the lexer, parser, and code generator.
+#### Compilation
+
+Every C example program is compiled and assembled. This catches regressions in the lexer, parser, code generator, optimizer, and assembler.
 
 ```
-For each of the 19 C examples:
+For each C example:
   ✓ C compilation succeeds (no errors)
-  ✓ ASM assembly succeeds (code fits in 1024 bytes)
-  Exception: "Sinusoïdes" correctly reports code overflow (> 1024 bytes)
+  ✓ ASM assembly succeeds when code fits in the 4096-byte code area
+  ✓ Oversized programs are rejected by the assembler with a clear overflow error
 ```
 
-#### Memory Layout (19 tests)
+#### Memory Layout
 
 Validates the memory allocation for every example:
 
@@ -947,12 +960,13 @@ Validates the memory allocation for every example:
 For each example:
   ✓ globals ∈ [0, 16]
   ✓ scratch = 8 (always)
-  ✓ locals ∈ [0, 488]
-  ✓ stack = 512 (always)
-  ✓ globals + scratch + locals ≤ 512 (data area fits)
+  ✓ locals stay within the reusable frame region
+  ✓ stack = 2048 (always)
+  ✓ globals + scratch + locals fit in the 0x1000-0x17FF data area
+  ✓ frame packing keeps local RAM much smaller than the old per-function-unique layout
 ```
 
-#### Output Verification (14 tests)
+#### Output Verification
 
 Runs each program and checks exact output. Examples:
 
@@ -962,13 +976,13 @@ Runs each program and checks exact output. Examples:
   "Factorielle"     → "5! = 120"
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
-  "Test Mémoire 2K" → "PASS" with all 2048 bytes filled (1022 code, 512 data, 512 stack)
+  "Test Mémoire"    → "PASS" with globals and reusable local frames validated
   "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```
 
 Programs that require console input are tested with simulated input fed before execution.
 
-#### Compiler Edge Cases (17 tests)
+#### Compiler Edge Cases
 
 Individual feature tests:
 
@@ -983,16 +997,19 @@ Individual feature tests:
   ✓ Postfix increment/decrement
   ✓ Logical AND/OR operators
   ✓ All 6 comparison operators (==, !=, <, >, <=, >=)
-  ✓ Multiply and divide (inline loops)
+  ✓ Multiply/divide/modulo with register-register ISA ops
   ✓ #define preprocessor
   ✓ Char literals
   ✓ getchar() with simulated input
   ✓ Stack pointer restoration after function calls (SP = 0x1FFF)
+  ✓ Frame reuse across unrelated functions
+  ✓ Block-local slot reuse across branches
+  ✓ Bitwise expressions using shared lowering / direct ISA ops
   ✓ 16 globals allowed, 17th rejected
   ✓ Code size overflow detected (> 4096 bytes)
 ```
 
-#### Arrays (11 tests)
+#### Arrays
 
 Array-specific tests using the `LDAI`/`STAI` indexed addressing opcodes:
 
@@ -1010,7 +1027,7 @@ Array-specific tests using the `LDAI`/`STAI` indexed addressing opcodes:
   ✓ Array initializer rejected
 ```
 
-#### Execution Properties (18 tests)
+#### Execution Properties
 
 ```
   ✓ 14 programs halt within 50M cycles

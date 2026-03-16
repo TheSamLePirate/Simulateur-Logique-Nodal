@@ -8,7 +8,7 @@
 
 import { tokenize, type LexerError } from "./lexer";
 import { parse, type ParseError } from "./parser";
-import { generate, type CodegenError } from "./codegen";
+import { generate, type CodegenError, type MemoryLayout } from "./codegen";
 
 export interface CompileError {
   phase: "preprocess" | "lexer" | "parser" | "codegen";

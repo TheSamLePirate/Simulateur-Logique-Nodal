@@ -14,15 +14,16 @@
  *   0x1010..0x1015 = arithmetic scratch (multiply, divide, bitwise)
  *   0x1016          = scratch: unused
  *   0x1017          = scratch: return value save
- *   0x1018..0x17FF = local variables and parameters (per-function, unique)
+ *   0x1018..0x17FF = reusable function frames (locals/params, packed by call graph)
  *   0x1800..0x1FFF = stack (2048 bytes, grows downward from 0x1FFF)
  *
  * Calling convention:
- *   - Caller writes args directly to callee's param addresses
- *   - Before CALL, caller saves its own locals to the stack (recursion safety)
+ *   - Caller writes args directly to callee's frame slots
+ *   - Non-recursive callers use disjoint frames and skip saves
+ *   - Recursive callers save their current frame before CALL
  *   - CALL pushes return address
  *   - Return value in A
- *   - After RET, caller restores its locals from the stack
+ *   - After RET, recursive callers restore their saved frame
  */
 
 import type { Program, FunctionDecl, Stmt, Expr, Block } from "./parser";
@@ -45,17 +46,19 @@ interface ArrayInfo {
 }
 
 interface FuncInfo {
+  name: string;
   isMain: boolean;
+  recursive: boolean;
   paramAddrs: Map<string, number>; // param name → memory address
   localAddrs: Map<string, number>; // local name → memory address
-  allVarAddrs: number[]; // all param+local addresses (for save/restore)
+  frameAddrs: number[]; // reusable frame slots actually reserved for this function
   arrays: Map<string, ArrayInfo>; // array name → base address + size
 }
 
 // Scratch memory constants
 const TEMP_BASE = 0x1010; // 0x1010-0x1015 for arithmetic
-const TEMP_COUNT = 6; // number of temp slots to save/restore
 const TEMP_RETVAL = 0x1017; // save return value around POPs
+const LOCAL_BASE = 0x1018;
 const STACK_BASE = 0x1800; // stack occupies 0x1800-0x1FFF
 
 export function generate(program: Program): {
@@ -67,11 +70,23 @@ export function generate(program: Program): {
   const lines: string[] = [];
   let labelCounter = 0;
   let globalAddr = 0x1000;
-  let varAddr = 0x1018; // for locals and params (after scratch area)
+  let maxLocalEnd = LOCAL_BASE;
 
   const globals = new Map<string, number>(); // name → address
   const globalArrays = new Map<string, ArrayInfo>(); // array name → info
   const funcTable = new Map<string, FuncInfo>();
+  const runtimeHelpersUsed = new Set<string>();
+  const builtins = new Set([
+    "putchar",
+    "print_num",
+    "print",
+    "draw",
+    "clear",
+    "getchar",
+    "getKey",
+    "rand",
+    "sleep",
+  ]);
 
   // Loop context stack for break/continue
   const loopStack: { breakLabel: string; continueLabel: string }[] = [];
@@ -94,46 +109,199 @@ export function generate(program: Program): {
     return "0x" + (addr & 0xffff).toString(16).padStart(4, "0");
   }
 
-  function allocVar(): number {
-    if (varAddr >= STACK_BASE) {
-      errors.push({
-        line: 0,
-        message: "Trop de variables locales (mémoire pleine)",
-      });
-      return STACK_BASE - 1;
-    }
-    return varAddr++;
+  interface PlannedArrayInfo {
+    baseSlot: number;
+    size: number;
   }
 
-  // ─── Collect local variable info declared inside a block ───
-
-  interface LocalInfo {
+  interface PlannedFunc {
     name: string;
-    arraySize: number | null; // null = scalar, N = array
+    isMain: boolean;
+    recursive: boolean;
+    paramSlots: Map<string, number>;
+    localSlots: Map<string, number>;
+    arrays: Map<string, PlannedArrayInfo>;
+    frameSize: number;
+    frameBase: number;
+    directCallees: Set<string>;
   }
 
-  function collectLocals(block: Block): LocalInfo[] {
-    const infos: LocalInfo[] = [];
-    function scan(stmts: Stmt[]) {
-      for (const s of stmts) {
-        if (s.kind === "VarDecl")
-          infos.push({ name: s.name, arraySize: s.arraySize });
-        if (s.kind === "Block") scan(s.statements);
-        if (s.kind === "IfStmt") {
-          if (s.thenBranch.kind === "Block") scan(s.thenBranch.statements);
-          if (s.elseBranch?.kind === "Block") scan(s.elseBranch.statements);
+  function scanExprForCallees(expr: Expr, out: Set<string>) {
+    switch (expr.kind) {
+      case "BinaryExpr":
+        scanExprForCallees(expr.left, out);
+        scanExprForCallees(expr.right, out);
+        break;
+      case "UnaryExpr":
+      case "PostfixExpr":
+        scanExprForCallees(expr.operand, out);
+        break;
+      case "AssignExpr":
+      case "CompoundAssignExpr":
+        scanExprForCallees(expr.value, out);
+        break;
+      case "IndexExpr":
+        scanExprForCallees(expr.index, out);
+        break;
+      case "IndexAssignExpr":
+        scanExprForCallees(expr.index, out);
+        scanExprForCallees(expr.value, out);
+        break;
+      case "CallExpr":
+        if (!builtins.has(expr.name)) out.add(expr.name);
+        for (const arg of expr.args) scanExprForCallees(arg, out);
+        break;
+      default:
+        break;
+    }
+  }
+
+  function scanStmtForCallees(stmt: Stmt, out: Set<string>) {
+    switch (stmt.kind) {
+      case "VarDecl":
+        if (stmt.initializer) scanExprForCallees(stmt.initializer, out);
+        break;
+      case "ExprStmt":
+        scanExprForCallees(stmt.expression, out);
+        break;
+      case "ReturnStmt":
+        if (stmt.value) scanExprForCallees(stmt.value, out);
+        break;
+      case "IfStmt":
+        scanExprForCallees(stmt.condition, out);
+        scanStmtForCallees(stmt.thenBranch, out);
+        if (stmt.elseBranch) scanStmtForCallees(stmt.elseBranch, out);
+        break;
+      case "WhileStmt":
+        scanExprForCallees(stmt.condition, out);
+        scanStmtForCallees(stmt.body, out);
+        break;
+      case "ForStmt":
+        if (stmt.init) scanStmtForCallees(stmt.init, out);
+        if (stmt.condition) scanExprForCallees(stmt.condition, out);
+        if (stmt.update) scanExprForCallees(stmt.update, out);
+        scanStmtForCallees(stmt.body, out);
+        break;
+      case "Block":
+        for (const inner of stmt.statements) scanStmtForCallees(inner, out);
+        break;
+      default:
+        break;
+    }
+  }
+
+  function planFunction(fn: FunctionDecl): PlannedFunc {
+    const paramSlots = new Map<string, number>();
+    const localSlots = new Map<string, number>();
+    const arrays = new Map<string, PlannedArrayInfo>();
+    const directCallees = new Set<string>();
+    const occupied: boolean[] = [];
+    let maxSlots = 0;
+
+    function allocSlots(size: number): number {
+      let base = 0;
+      while (true) {
+        let ok = true;
+        for (let i = 0; i < size; i++) {
+          if (occupied[base + i]) {
+            ok = false;
+            base += i + 1;
+            break;
+          }
         }
-        if (s.kind === "WhileStmt" && s.body.kind === "Block")
-          scan(s.body.statements);
-        if (s.kind === "ForStmt") {
-          if (s.init?.kind === "VarDecl")
-            infos.push({ name: s.init.name, arraySize: s.init.arraySize });
-          if (s.body.kind === "Block") scan(s.body.statements);
+        if (ok) break;
+      }
+      for (let i = 0; i < size; i++) occupied[base + i] = true;
+      maxSlots = Math.max(maxSlots, base + size);
+      return base;
+    }
+
+    function freeSlots(base: number, size: number) {
+      for (let i = 0; i < size; i++) occupied[base + i] = false;
+    }
+
+    function allocDecl(name: string, arraySize: number | null, releases: { base: number; size: number }[]) {
+      if (paramSlots.has(name) || localSlots.has(name) || arrays.has(name)) {
+        return;
+      }
+      const size = arraySize ?? 1;
+      const base = allocSlots(size);
+      if (arraySize !== null) arrays.set(name, { baseSlot: base, size: arraySize });
+      else localSlots.set(name, base);
+      releases.push({ base, size });
+    }
+
+    function planScopedStmt(stmt: Stmt) {
+      if (stmt.kind === "Block") {
+        planBlock(stmt);
+        return;
+      }
+      if (stmt.kind === "IfStmt") {
+        planScopedStmt(stmt.thenBranch);
+        if (stmt.elseBranch) planScopedStmt(stmt.elseBranch);
+        return;
+      }
+      if (stmt.kind === "WhileStmt") {
+        planScopedStmt(stmt.body);
+        return;
+      }
+      if (stmt.kind === "ForStmt") {
+        const releases: { base: number; size: number }[] = [];
+        if (stmt.init?.kind === "VarDecl") {
+          allocDecl(stmt.init.name, stmt.init.arraySize, releases);
+        }
+        planScopedStmt(stmt.body);
+        for (let i = releases.length - 1; i >= 0; i--) {
+          freeSlots(releases[i].base, releases[i].size);
         }
       }
     }
-    scan(block.statements);
-    return infos;
+
+    function planBlock(block: Block) {
+      const releases: { base: number; size: number }[] = [];
+      for (const stmt of block.statements) {
+        if (stmt.kind === "VarDecl") {
+          allocDecl(stmt.name, stmt.arraySize, releases);
+          continue;
+        }
+        planScopedStmt(stmt);
+      }
+      for (let i = releases.length - 1; i >= 0; i--) {
+        freeSlots(releases[i].base, releases[i].size);
+      }
+    }
+
+    for (const p of fn.params) {
+      if (paramSlots.has(p.name)) continue;
+      paramSlots.set(p.name, allocSlots(1));
+    }
+
+    scanStmtForCallees(fn.body, directCallees);
+    planBlock(fn.body);
+
+    return {
+      name: fn.name,
+      isMain: fn.name === "main",
+      recursive: false,
+      paramSlots,
+      localSlots,
+      arrays,
+      frameSize: maxSlots,
+      frameBase: -1,
+      directCallees,
+    };
+  }
+
+  function reaches(start: string, target: string, graph: Map<string, Set<string>>, seen = new Set<string>()): boolean {
+    const next = graph.get(start);
+    if (!next) return false;
+    for (const callee of next) {
+      if (callee === target) return true;
+      if (seen.has(callee)) continue;
+      seen.add(callee);
+      if (reaches(callee, target, graph, seen)) return true;
+    }
+    return false;
   }
 
   // ═══════════════════════════════════════
@@ -177,49 +345,76 @@ export function generate(program: Program): {
   //  Phase 2 — Allocate function locals/params
   // ═══════════════════════════════════════
 
-  for (const fn of program.functions) {
-    const paramAddrs = new Map<string, number>();
-    for (const p of fn.params) {
-      paramAddrs.set(p.name, allocVar());
-    }
+  const plannedFuncs = program.functions.map(planFunction);
+  const callGraph = new Map(plannedFuncs.map((fn) => [fn.name, fn.directCallees]));
 
-    const localInfos = collectLocals(fn.body);
-    const localAddrs = new Map<string, number>();
-    const arrays = new Map<string, ArrayInfo>();
-    for (const info of localInfos) {
-      if (
-        paramAddrs.has(info.name) ||
-        localAddrs.has(info.name) ||
-        arrays.has(info.name)
-      )
-        continue;
-      if (info.arraySize !== null) {
-        // Array: allocate contiguous bytes
-        const baseAddr = varAddr;
-        for (let i = 0; i < info.arraySize; i++) {
-          allocVar();
+  for (const fn of plannedFuncs) {
+    fn.recursive = reaches(fn.name, fn.name, callGraph);
+  }
+
+  const sortedByFrame = [...plannedFuncs].sort((a, b) => b.frameSize - a.frameSize);
+  for (const fn of sortedByFrame) {
+    let base = LOCAL_BASE;
+    while (true) {
+      let conflict = false;
+      for (const other of plannedFuncs) {
+        if (other === fn || other.frameSize === 0 || other.frameBase < LOCAL_BASE) continue;
+        if (
+          !(
+            reaches(fn.name, other.name, callGraph) ||
+            reaches(other.name, fn.name, callGraph)
+          )
+        ) {
+          continue;
         }
-        arrays.set(info.name, { baseAddr, size: info.arraySize });
-      } else {
-        localAddrs.set(info.name, allocVar());
+        const otherStart = other.frameBase;
+        const otherEnd = other.frameBase + other.frameSize;
+        const thisEnd = base + fn.frameSize;
+        if (base < otherEnd && otherStart < thisEnd) {
+          base = otherEnd;
+          conflict = true;
+          break;
+        }
       }
+      if (!conflict) break;
+    }
+    fn.frameBase = base;
+    maxLocalEnd = Math.max(maxLocalEnd, base + fn.frameSize);
+  }
+
+  if (maxLocalEnd > STACK_BASE) {
+    errors.push({
+      line: 0,
+      message: "Trop de variables locales (mémoire pleine)",
+    });
+  }
+
+  for (const plan of plannedFuncs) {
+    const paramAddrs = new Map<string, number>();
+    for (const [name, slot] of plan.paramSlots) {
+      paramAddrs.set(name, plan.frameBase + slot);
     }
 
-    // allVarAddrs: scalars + all array element addresses (for save/restore)
-    const allScalarAddrs = [...paramAddrs.values(), ...localAddrs.values()];
-    const allArrayAddrs: number[] = [];
-    for (const arrInfo of arrays.values()) {
-      for (let i = 0; i < arrInfo.size; i++) {
-        allArrayAddrs.push(arrInfo.baseAddr + i);
-      }
+    const localAddrs = new Map<string, number>();
+    for (const [name, slot] of plan.localSlots) {
+      localAddrs.set(name, plan.frameBase + slot);
     }
-    const allVarAddrs = [...allScalarAddrs, ...allArrayAddrs];
 
-    funcTable.set(fn.name, {
-      isMain: fn.name === "main",
+    const arrays = new Map<string, ArrayInfo>();
+    for (const [name, info] of plan.arrays) {
+      arrays.set(name, {
+        baseAddr: plan.frameBase + info.baseSlot,
+        size: info.size,
+      });
+    }
+
+    funcTable.set(plan.name, {
+      name: plan.name,
+      isMain: plan.isMain,
+      recursive: plan.recursive,
       paramAddrs,
       localAddrs,
-      allVarAddrs,
+      frameAddrs: Array.from({ length: plan.frameSize }, (_, i) => plan.frameBase + i),
       arrays,
     });
   }
@@ -235,17 +430,19 @@ export function generate(program: Program): {
     emitFunction(fn);
   }
 
+  emitRuntimeHelpers();
+
   if (!program.functions.find((f) => f.name === "main")) {
     errors.push({ line: 1, message: "Fonction 'main' requise" });
   }
 
   return {
-    assembly: lines.join("\n"),
+    assembly: optimizeAssembly(lines).join("\n"),
     errors,
     memoryLayout: {
       globals: globalAddr - 0x1000,
       scratch: 8, // 0x1010-0x1017 always reserved
-      locals: varAddr - 0x1018,
+      locals: maxLocalEnd - LOCAL_BASE,
       stackSize: 2048, // 0x1800-0x1FFF always reserved
     },
   };
@@ -253,6 +450,150 @@ export function generate(program: Program): {
   // ═══════════════════════════════════════
   //  Function code generation
   // ═══════════════════════════════════════
+
+  function optimizeAssembly(rawLines: string[]): string[] {
+    const optimized: string[] = [];
+
+    function nextSignificantLine(start: number): string | null {
+      for (let i = start; i < rawLines.length; i++) {
+        const trimmed = rawLines[i].trim();
+        if (!trimmed || trimmed.startsWith(";")) continue;
+        return trimmed;
+      }
+      return null;
+    }
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const trimmed = rawLines[i].trim();
+      const jmp = trimmed.match(/^JMP\s+([A-Za-z_]\w*)$/);
+      if (jmp) {
+        const next = nextSignificantLine(i + 1);
+        if (next === `${jmp[1]}:`) {
+          continue;
+        }
+      }
+      optimized.push(rawLines[i]);
+    }
+
+    return optimized;
+  }
+
+  function tryEvalConst(expr: Expr): number | null {
+    switch (expr.kind) {
+      case "NumberLiteral":
+      case "CharLiteral":
+        return expr.value & 0xff;
+      case "UnaryExpr": {
+        const v = tryEvalConst(expr.operand);
+        if (v === null) return null;
+        switch (expr.op) {
+          case "-":
+            return (-v) & 0xff;
+          case "!":
+            return v === 0 ? 1 : 0;
+          case "~":
+            return (~v) & 0xff;
+          default:
+            return null;
+        }
+      }
+      case "BinaryExpr": {
+        const left = tryEvalConst(expr.left);
+        const right = tryEvalConst(expr.right);
+        if (left === null || right === null) return null;
+        switch (expr.op) {
+          case "+":
+            return (left + right) & 0xff;
+          case "-":
+            return (left - right) & 0xff;
+          case "*":
+            return (left * right) & 0xff;
+          case "/":
+            return right === 0 ? null : Math.floor(left / right) & 0xff;
+          case "%":
+            return right === 0 ? null : left % right;
+          case "&":
+            return left & right;
+          case "|":
+            return left | right;
+          case "^":
+            return left ^ right;
+          case "<<":
+            return (left << right) & 0xff;
+          case ">>":
+            return (left >> right) & 0xff;
+          case "==":
+            return left === right ? 1 : 0;
+          case "!=":
+            return left !== right ? 1 : 0;
+          case "<":
+            return left < right ? 1 : 0;
+          case ">":
+            return left > right ? 1 : 0;
+          case "<=":
+            return left <= right ? 1 : 0;
+          case ">=":
+            return left >= right ? 1 : 0;
+          case "&&":
+            return left !== 0 && right !== 0 ? 1 : 0;
+          case "||":
+            return left !== 0 || right !== 0 ? 1 : 0;
+          default:
+            return null;
+        }
+      }
+      default:
+        return null;
+    }
+  }
+
+  function emitRuntimeHelpers() {
+    if (runtimeHelpersUsed.has("shl")) {
+      emit("");
+      emitComment("--- runtime helper __rt_shl ---");
+      emit("__rt_shl:");
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  TBA`);
+      emit(`  STA ${fmt(TEMP_BASE + 1)}`);
+      emit(`__rt_shl_loop:`);
+      emit(`  LDM ${fmt(TEMP_BASE + 1)}`);
+      emit(`  CMP 0`);
+      emit(`  JZ __rt_shl_end`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  SHL`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  LDM ${fmt(TEMP_BASE + 1)}`);
+      emit(`  DEC`);
+      emit(`  STA ${fmt(TEMP_BASE + 1)}`);
+      emit(`  JMP __rt_shl_loop`);
+      emit(`__rt_shl_end:`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  RET`);
+    }
+
+    if (runtimeHelpersUsed.has("shr")) {
+      emit("");
+      emitComment("--- runtime helper __rt_shr ---");
+      emit("__rt_shr:");
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  TBA`);
+      emit(`  STA ${fmt(TEMP_BASE + 1)}`);
+      emit(`__rt_shr_loop:`);
+      emit(`  LDM ${fmt(TEMP_BASE + 1)}`);
+      emit(`  CMP 0`);
+      emit(`  JZ __rt_shr_end`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  SHR`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  LDM ${fmt(TEMP_BASE + 1)}`);
+      emit(`  DEC`);
+      emit(`  STA ${fmt(TEMP_BASE + 1)}`);
+      emit(`  JMP __rt_shr_loop`);
+      emit(`__rt_shr_end:`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  RET`);
+    }
+  }
 
   function emitFunction(fn: FunctionDecl) {
     const ctx = funcTable.get(fn.name)!;
@@ -348,6 +689,13 @@ export function generate(program: Program): {
   }
 
   function emitIfStmt(stmt: Stmt & { kind: "IfStmt" }, ctx: FuncInfo) {
+    const constCond = tryEvalConst(stmt.condition);
+    if (constCond !== null) {
+      if (constCond !== 0) emitStmt(stmt.thenBranch, ctx);
+      else if (stmt.elseBranch) emitStmt(stmt.elseBranch, ctx);
+      return;
+    }
+
     const elseLabel = newLabel();
     const endLabel = newLabel();
 
@@ -367,6 +715,11 @@ export function generate(program: Program): {
   }
 
   function emitWhileStmt(stmt: Stmt & { kind: "WhileStmt" }, ctx: FuncInfo) {
+    const constCond = tryEvalConst(stmt.condition);
+    if (constCond === 0) {
+      return;
+    }
+
     const loopLabel = newLabel();
     const endLabel = newLabel();
 
@@ -386,6 +739,11 @@ export function generate(program: Program): {
   function emitForStmt(stmt: Stmt & { kind: "ForStmt" }, ctx: FuncInfo) {
     if (stmt.init) {
       emitStmt(stmt.init, ctx);
+    }
+
+    const constCond = stmt.condition ? tryEvalConst(stmt.condition) : null;
+    if (constCond === 0) {
+      return;
     }
 
     const loopLabel = newLabel();
@@ -454,11 +812,19 @@ export function generate(program: Program): {
       }
 
       case "BinaryExpr":
-        emitBinaryExpr(expr, ctx);
+        {
+          const folded = tryEvalConst(expr);
+          if (folded !== null) emit(`  LDA ${folded}`);
+          else emitBinaryExpr(expr, ctx);
+        }
         break;
 
       case "UnaryExpr":
-        emitUnaryExpr(expr, ctx);
+        {
+          const folded = tryEvalConst(expr);
+          if (folded !== null) emit(`  LDA ${folded}`);
+          else emitUnaryExpr(expr, ctx);
+        }
         break;
 
       case "PostfixExpr":
@@ -503,6 +869,8 @@ export function generate(program: Program): {
 
   function emitBinaryExpr(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
     const op = expr.op;
+    const leftConst = tryEvalConst(expr.left);
+    const rightConst = tryEvalConst(expr.right);
 
     // Comparisons → 0 or 1
     if (["==", "!=", "<", ">", "<=", ">="].includes(op)) {
@@ -546,21 +914,102 @@ export function generate(program: Program): {
       return;
     }
 
-    // Multiply: inline loop
+    if (op === "+" && rightConst !== null) {
+      emitExpr(expr.left, ctx);
+      if (rightConst !== 0) emit(`  ADD ${rightConst}`);
+      return;
+    }
+    if (op === "+" && leftConst !== null) {
+      emitExpr(expr.right, ctx);
+      if (leftConst !== 0) emit(`  ADD ${leftConst}`);
+      return;
+    }
+    if (op === "-" && rightConst !== null) {
+      emitExpr(expr.left, ctx);
+      if (rightConst !== 0) emit(`  SUB ${rightConst}`);
+      return;
+    }
+    if ((op === "&" || op === "|" || op === "^") && rightConst !== null) {
+      emitExpr(expr.left, ctx);
+      if (op === "&") emit(`  AND ${rightConst}`);
+      else if (op === "|") emit(`  OR ${rightConst}`);
+      else emit(`  XOR ${rightConst}`);
+      return;
+    }
+    if ((op === "&" || op === "|" || op === "^") && leftConst !== null) {
+      emitExpr(expr.right, ctx);
+      if (op === "&") emit(`  AND ${leftConst}`);
+      else if (op === "|") emit(`  OR ${leftConst}`);
+      else emit(`  XOR ${leftConst}`);
+      return;
+    }
+
     if (op === "*") {
-      emitMultiply(expr, ctx);
-      return;
+      if (rightConst === 0 || leftConst === 0) {
+        emit(`  LDA 0`);
+        return;
+      }
+      if (rightConst === 1) {
+        emitExpr(expr.left, ctx);
+        return;
+      }
+      if (leftConst === 1) {
+        emitExpr(expr.right, ctx);
+        return;
+      }
+      if (rightConst !== null) {
+        emitExpr(expr.left, ctx);
+        emit(`  LDB ${rightConst}`);
+        emit(`  MULB`);
+        return;
+      }
+      if (leftConst !== null) {
+        emitExpr(expr.right, ctx);
+        emit(`  LDB ${leftConst}`);
+        emit(`  MULB`);
+        return;
+      }
     }
 
-    // Divide / Modulo: inline loop
     if (op === "/" || op === "%") {
-      emitDivMod(expr, op, ctx);
-      return;
+      if (op === "/" && rightConst === 1) {
+        emitExpr(expr.left, ctx);
+        return;
+      }
+      if (op === "%" && rightConst === 1) {
+        emit(`  LDA 0`);
+        return;
+      }
+      if (rightConst !== null) {
+        emitExpr(expr.left, ctx);
+        emit(`  LDB ${rightConst}`);
+        emit(op === "/" ? `  DIVB` : `  MODB`);
+        return;
+      }
     }
 
-    // Bitwise: bit-by-bit loop (ISA only has immediate AND/OR/XOR)
-    if (op === "&" || op === "|" || op === "^") {
-      emitBitwiseOp(expr, op, ctx);
+    if (op === "<<" || op === ">>") {
+      if (rightConst === 0) {
+        emitExpr(expr.left, ctx);
+        return;
+      }
+      if (rightConst !== null && rightConst <= 4) {
+        emitExpr(expr.left, ctx);
+        for (let i = 0; i < rightConst; i++) {
+          emit(op === "<<" ? `  SHL` : `  SHR`);
+        }
+        return;
+      }
+      emitExpr(expr.left, ctx);
+      if (rightConst !== null) {
+        emit(`  LDB ${rightConst}`);
+      } else {
+        emit(`  PUSH`);
+        emitExpr(expr.right, ctx);
+        emit(`  TAB`);
+        emit(`  POP`);
+      }
+      emitShiftLoop(op === "<<" ? "SHL" : "SHR");
       return;
     }
 
@@ -578,11 +1027,23 @@ export function generate(program: Program): {
       case "-":
         emit(`  SUBB`);
         break;
-      case "<<":
-        emitShiftLoop("SHL");
+      case "&":
+        emit(`  ANDB`);
         break;
-      case ">>":
-        emitShiftLoop("SHR");
+      case "|":
+        emit(`  ORB`);
+        break;
+      case "^":
+        emit(`  XORB`);
+        break;
+      case "*":
+        emit(`  MULB`);
+        break;
+      case "/":
+        emit(`  DIVB`);
+        break;
+      case "%":
+        emit(`  MODB`);
         break;
     }
   }
@@ -592,13 +1053,19 @@ export function generate(program: Program): {
   function emitComparison(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
     const trueLabel = newLabel();
     const endLabel = newLabel();
+    const rightConst = tryEvalConst(expr.right);
 
-    emitExpr(expr.left, ctx);
-    emit(`  PUSH`);
-    emitExpr(expr.right, ctx);
-    emit(`  TAB`); // B = right
-    emit(`  POP`); // A = left
-    emit(`  SUBB`); // A = left - right (sets flags)
+    if (rightConst !== null) {
+      emitExpr(expr.left, ctx);
+      emit(`  CMP ${rightConst}`);
+    } else {
+      emitExpr(expr.left, ctx);
+      emit(`  PUSH`);
+      emitExpr(expr.right, ctx);
+      emit(`  TAB`); // B = right
+      emit(`  POP`); // A = left
+      emit(`  CMPB`);
+    }
 
     switch (expr.op) {
       case "==":
@@ -646,7 +1113,7 @@ export function generate(program: Program): {
 
   // ─── Multiply: inline loop ───
 
-  function emitMultiply(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
+  function _emitMultiply(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
     // result = 0; while (right > 0) { result += left; right--; }
     const loopLabel = newLabel();
     const endLabel = newLabel();
@@ -683,7 +1150,7 @@ export function generate(program: Program): {
 
   // ─── Divide / Modulo: inline loop ───
 
-  function emitDivMod(
+  function _emitDivMod(
     expr: Expr & { kind: "BinaryExpr" },
     op: string,
     ctx: FuncInfo,
@@ -728,7 +1195,7 @@ export function generate(program: Program): {
 
   // ─── Bitwise AND/OR/XOR: bit-by-bit loop ───
 
-  function emitBitwiseOp(
+  function _emitBitwiseOp(
     expr: Expr & { kind: "BinaryExpr" },
     op: string,
     ctx: FuncInfo,
@@ -827,29 +1294,8 @@ export function generate(program: Program): {
   // ─── Shift by variable amount: loop ───
 
   function emitShiftLoop(shiftOp: string) {
-    // At this point A = value, B = shift amount
-    const loopLabel = newLabel();
-    const endLabel = newLabel();
-    const tVal = TEMP_BASE;
-    const tCount = TEMP_BASE + 1;
-
-    emit(`  STA ${fmt(tVal)}`); // save value
-    emit(`  TBA`); // A = shift amount
-    emit(`  STA ${fmt(tCount)}`);
-
-    emit(`${loopLabel}:`);
-    emit(`  LDM ${fmt(tCount)}`);
-    emit(`  CMP 0`);
-    emit(`  JZ ${endLabel}`);
-    emit(`  LDM ${fmt(tVal)}`);
-    emit(`  ${shiftOp}`);
-    emit(`  STA ${fmt(tVal)}`);
-    emit(`  LDM ${fmt(tCount)}`);
-    emit(`  DEC`);
-    emit(`  STA ${fmt(tCount)}`);
-    emit(`  JMP ${loopLabel}`);
-    emit(`${endLabel}:`);
-    emit(`  LDM ${fmt(tVal)}`);
+    runtimeHelpersUsed.add(shiftOp === "SHL" ? "shl" : "shr");
+    emit(`  CALL ${shiftOp === "SHL" ? "__rt_shl" : "__rt_shr"}`);
   }
 
   // ─── Unary expressions ───
@@ -1003,31 +1449,24 @@ export function generate(program: Program): {
       return;
     }
 
-    // 1. Save current function's locals/params to stack (recursion safety)
-    if (ctx.allVarAddrs.length > 0) {
-      emitComment(`save ${ctx.allVarAddrs.length} var(s) before call`);
-      for (const addr of ctx.allVarAddrs) {
+    const saveCallerFrame = ctx.recursive && ctx.frameAddrs.length > 0;
+
+    // 1. Save current function's frame only for recursive callers
+    if (saveCallerFrame) {
+      emitComment(`save ${ctx.frameAddrs.length} frame slot(s) before recursive call`);
+      for (const addr of ctx.frameAddrs) {
         emit(`  LDM ${fmt(addr)}`);
         emit(`  PUSH`);
       }
     }
 
-    // 2. Save arithmetic scratch temps to stack (recursion safety)
-    //    This prevents inner calls' multiply/divide/bitwise from clobbering
-    //    temps used by the caller's in-progress arithmetic operations.
-    emitComment(`save ${TEMP_COUNT} temp(s) before call`);
-    for (let i = 0; i < TEMP_COUNT; i++) {
-      emit(`  LDM ${fmt(TEMP_BASE + i)}`);
-      emit(`  PUSH`);
-    }
-
-    // 3. Evaluate each arg and push to stack (so we don't clobber vars during eval)
+    // 2. Evaluate each arg and push to stack
     for (let i = 0; i < expr.args.length; i++) {
       emitExpr(expr.args[i], ctx);
       emit(`  PUSH`);
     }
 
-    // 4. Pop args into callee's param addresses
+    // 3. Pop args into callee's param addresses
     const calleeParamAddrs = [...calleeInfo.paramAddrs.values()];
     // Args were pushed left-to-right, so last arg is on top
     for (let i = expr.args.length - 1; i >= 0; i--) {
@@ -1037,25 +1476,18 @@ export function generate(program: Program): {
       }
     }
 
-    // 5. CALL
+    // 4. CALL
     emit(`  CALL __${expr.name}`);
 
-    // 6. Restore arithmetic scratch temps from stack
-    emit(`  STA ${fmt(TEMP_RETVAL)}`); // save return value
-    for (let i = TEMP_COUNT - 1; i >= 0; i--) {
-      emit(`  POP`);
-      emit(`  STA ${fmt(TEMP_BASE + i)}`);
-    }
-
-    // 7. Restore current function's locals/params from stack
-    if (ctx.allVarAddrs.length > 0) {
-      // Restore in reverse order (stack is LIFO)
-      for (let i = ctx.allVarAddrs.length - 1; i >= 0; i--) {
+    // 5. Restore current function's frame
+    if (saveCallerFrame) {
+      emit(`  STA ${fmt(TEMP_RETVAL)}`); // save return value
+      for (let i = ctx.frameAddrs.length - 1; i >= 0; i--) {
         emit(`  POP`);
-        emit(`  STA ${fmt(ctx.allVarAddrs[i])}`);
+        emit(`  STA ${fmt(ctx.frameAddrs[i])}`);
       }
+      emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
     }
-    emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
   }
 
   // ─── Array access helpers ───

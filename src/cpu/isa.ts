@@ -37,6 +37,13 @@ export const Opcode = {
   GETKEY: 0x0b, // A ← key state (key index in A: 0=left,1=right,2=up,3=down,4=enter)
   RAND: 0x0c, // A ← pseudo-random 8-bit value (LFSR)
   SLEEP: 0x0d, // sleep for A cycles (busy wait)
+  ANDB: 0x13, // A ← A & B
+  ORB: 0x14, // A ← A | B
+  XORB: 0x15, // A ← A ^ B
+  CMPB: 0x16, // flags ← A - B (no store)
+  MULB: 0x17, // A ← A * B
+  DIVB: 0x18, // A ← A / B
+  MODB: 0x19, // A ← A % B
 
   // Stack (1-byte)
   RET: 0x10,
@@ -126,6 +133,17 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     size: 1,
     description: "Sleep for A cycles",
   },
+  [Opcode.ANDB]: { mnemonic: "ANDB", size: 1, description: "A ← A & B" },
+  [Opcode.ORB]: { mnemonic: "ORB", size: 1, description: "A ← A | B" },
+  [Opcode.XORB]: { mnemonic: "XORB", size: 1, description: "A ← A ^ B" },
+  [Opcode.CMPB]: {
+    mnemonic: "CMPB",
+    size: 1,
+    description: "flags ← A - B (no store)",
+  },
+  [Opcode.MULB]: { mnemonic: "MULB", size: 1, description: "A ← A * B" },
+  [Opcode.DIVB]: { mnemonic: "DIVB", size: 1, description: "A ← A / B" },
+  [Opcode.MODB]: { mnemonic: "MODB", size: 1, description: "A ← A % B" },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },
   [Opcode.PUSH]: { mnemonic: "PUSH", size: 1, description: "push A" },

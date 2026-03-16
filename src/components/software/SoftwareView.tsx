@@ -267,6 +267,7 @@ export function SoftwareView({
         sp: cpu.state.sp,
         memory: new Uint8Array(cpu.state.memory),
         flags: { ...cpu.state.flags },
+        halted: cpu.state.halted,
         consoleText: cpu.consoleOutput.join(""),
         plotterPixels: Array.from(cpu.plotterPixels),
       });

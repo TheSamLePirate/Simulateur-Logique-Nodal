@@ -420,7 +420,7 @@ describe("C Examples — Output Verification", () => {
     // Verify memory layout
     const ml = r.memoryLayout;
     expect(ml.globals).toBe(16); // all 16 global slots
-    expect(ml.locals).toBe(488); // 488 local slots (19×25 + 2 + 11)
+    expect(ml.locals).toBeLessThan(100); // frames + scoped locals are now heavily reused
     expect(ml.scratch).toBe(8); // scratch always 8
     expect(ml.stackSize).toBe(2048); // stack is 2048 in 8K layout
 
@@ -769,6 +769,59 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
     // SP should be back to 0x1FFF (empty stack)
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
+  it("reuses frame memory across unrelated functions", () => {
+    const cr = compile(`
+      int f() {
+        int a;
+        a = 1;
+        return a;
+      }
+      int g() {
+        int b;
+        b = 2;
+        return b;
+      }
+      int main() {
+        print_num(f() + g());
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(cr.memoryLayout!.locals).toBeLessThanOrEqual(2);
+  });
+
+  it("reuses block-local slots across branches", () => {
+    const cr = compile(`
+      int main() {
+        if (1) {
+          int a;
+          a = 7;
+          print_num(a);
+        } else {
+          int b;
+          b = 9;
+          print_num(b);
+        }
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(cr.memoryLayout!.locals).toBe(1);
+  });
+
+  it("bitwise expressions still work with shared lowering", () => {
+    const r = compileAndRun(`
+      int main() {
+        print_num((13 & 10) | 1);
+        putchar(32);
+        print_num(13 ^ 10);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("9 7");
+    expect(r.halted).toBe(true);
   });
 
   it("16 globals are allowed", () => {

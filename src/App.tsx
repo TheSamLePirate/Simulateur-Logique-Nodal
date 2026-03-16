@@ -1105,7 +1105,9 @@ export default function App() {
       Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
 
     // ── Derive control signals from last executed opcode ──
-    const aLoad = [
+    const opIn = (list: readonly number[]) => list.includes(op);
+
+    const aLoad = opIn([
       Opcode.LDA,
       Opcode.ADD,
       Opcode.SUB,
@@ -1120,29 +1122,31 @@ export default function App() {
       Opcode.TBA,
       Opcode.ADDB,
       Opcode.SUBB,
+      Opcode.ANDB,
+      Opcode.ORB,
+      Opcode.XORB,
+      Opcode.MULB,
+      Opcode.DIVB,
+      Opcode.MODB,
       Opcode.POP,
       Opcode.LDM,
       Opcode.INA,
       Opcode.GETKEY,
-    ].includes(op)
+    ])
       ? 1
       : 0;
 
     const keyRd = op === Opcode.GETKEY ? 1 : 0;
-    const bLoad = [Opcode.LDB, Opcode.TAB, Opcode.LBM].includes(op) ? 1 : 0;
-    const spLoad = [Opcode.PUSH, Opcode.POP, Opcode.CALL, Opcode.RET].includes(
-      op,
-    )
+    const bLoad = opIn([Opcode.LDB, Opcode.TAB, Opcode.LBM]) ? 1 : 0;
+    const spLoad = opIn([Opcode.PUSH, Opcode.POP, Opcode.CALL, Opcode.RET])
       ? 1
       : 0;
-    const memWE = [Opcode.STA, Opcode.STB].includes(op) ? 1 : 0;
-    const addrSel = [Opcode.STA, Opcode.STB, Opcode.LDM, Opcode.LBM].includes(
-      op,
-    )
+    const memWE = opIn([Opcode.STA, Opcode.STB]) ? 1 : 0;
+    const addrSel = opIn([Opcode.STA, Opcode.STB, Opcode.LDM, Opcode.LBM])
       ? 1
       : 0;
-    const dataSel = [Opcode.LDM, Opcode.LBM].includes(op) ? 1 : 0;
-    const conWr = [Opcode.OUTA, Opcode.OUTD, Opcode.OUT].includes(op) ? 1 : 0;
+    const dataSel = opIn([Opcode.LDM, Opcode.LBM]) ? 1 : 0;
+    const conWr = opIn([Opcode.OUTA, Opcode.OUTD, Opcode.OUT]) ? 1 : 0;
     const conMode = op === Opcode.OUTD ? 1 : 0;
     const plotDraw = op === Opcode.DRAW ? 1 : 0;
     const plotClr = op === Opcode.CLR ? 1 : 0;
@@ -1159,34 +1163,29 @@ export default function App() {
     else if (op === Opcode.RET) pcJmpSig = 1;
 
     // ALU immediate select (sel=1 routes operand to ALU B instead of B register)
-    const aluImmSig = [
+    const aluImmSig = opIn([
       Opcode.ADD,
       Opcode.SUB,
       Opcode.AND,
       Opcode.OR,
       Opcode.XOR,
       Opcode.CMP,
-    ].includes(op)
+    ])
       ? 1
       : 0;
 
     // SP/Operand address select (sel=1 routes SP to address bus B)
-    const spSelSig = [
-      Opcode.PUSH,
-      Opcode.POP,
-      Opcode.CALL,
-      Opcode.RET,
-    ].includes(op)
+    const spSelSig = opIn([Opcode.PUSH, Opcode.POP, Opcode.CALL, Opcode.RET])
       ? 1
       : 0;
 
     // ALU op bits (3-bit encoding matching ALU8 simulation)
     let aluOp = 0b000; // ADD
-    if ([Opcode.SUB, Opcode.SUBB, Opcode.CMP, Opcode.DEC].includes(op))
+    if (opIn([Opcode.SUB, Opcode.SUBB, Opcode.CMP, Opcode.CMPB, Opcode.DEC]))
       aluOp = 0b001;
-    else if (op === Opcode.AND) aluOp = 0b010;
-    else if (op === Opcode.OR) aluOp = 0b011;
-    else if (op === Opcode.XOR) aluOp = 0b100;
+    else if (op === Opcode.AND || op === Opcode.ANDB) aluOp = 0b010;
+    else if (op === Opcode.OR || op === Opcode.ORB) aluOp = 0b011;
+    else if (op === Opcode.XOR || op === Opcode.XORB) aluOp = 0b100;
     else if (op === Opcode.NOT) aluOp = 0b101;
     else if (op === Opcode.SHL) aluOp = 0b110;
     else if (op === Opcode.SHR) aluOp = 0b111;

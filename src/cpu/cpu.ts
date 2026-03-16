@@ -231,6 +231,53 @@ export class CPU {
         this.updateFlags(this.state.a, r);
         break;
       }
+      case Opcode.ANDB:
+        this.state.a = this.state.a & this.state.b;
+        this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.ORB:
+        this.state.a = this.state.a | this.state.b;
+        this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.XORB:
+        this.state.a = this.state.a ^ this.state.b;
+        this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.CMPB: {
+        const r = this.state.a - this.state.b;
+        this.updateFlags(r & 0xff, r);
+        break;
+      }
+
+      case Opcode.MULB: {
+        const r = this.state.a * this.state.b;
+        this.state.a = r & 0xff;
+        this.updateFlags(this.state.a, r);
+        break;
+      }
+
+      case Opcode.DIVB:
+        if (this.state.b === 0) {
+          this.state.a = 0;
+          this.updateFlags(this.state.a);
+        } else {
+          this.state.a = Math.floor(this.state.a / this.state.b) & 0xff;
+          this.updateFlags(this.state.a);
+        }
+        break;
+
+      case Opcode.MODB:
+        if (this.state.b === 0) {
+          this.state.a = 0;
+          this.updateFlags(this.state.a);
+        } else {
+          this.state.a = this.state.a % this.state.b;
+          this.updateFlags(this.state.a);
+        }
+        break;
 
       // ─── Stack (1-byte) ───
       case Opcode.RET:
