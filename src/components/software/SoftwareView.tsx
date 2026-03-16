@@ -1,5 +1,21 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Play, Square, SkipForward, RotateCcw, Zap, Gauge } from "lucide-react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  type ChangeEvent,
+} from "react";
+import {
+  Play,
+  Square,
+  SkipForward,
+  RotateCcw,
+  Zap,
+  Gauge,
+  Download,
+  Upload,
+  HardDrive,
+} from "lucide-react";
 
 import { CPU } from "../../cpu/cpu";
 import { assemble, type AssemblerError } from "../../cpu/assembler";
@@ -11,7 +27,12 @@ import {
 import { EXAMPLES } from "../../cpu/examples";
 import { C_EXAMPLES } from "../../cpu/cexamples";
 import type { CPUState } from "../../cpu/isa";
-import { createInitialState, MEMORY_SIZE, CODE_SIZE } from "../../cpu/isa";
+import {
+  createInitialState,
+  MEMORY_SIZE,
+  CODE_SIZE,
+  DRIVE_SIZE,
+} from "../../cpu/isa";
 
 import { ASMEditor, type EditorLanguage } from "./ASMEditor";
 import { CPUStatePanel } from "./CPUState";
@@ -34,6 +55,10 @@ export interface HardwareSyncData {
   flags: { z: boolean; c: boolean; n: boolean };
   consoleText: string;
   plotterPixels: number[];
+  driveData: Uint8Array;
+  driveLastAddr: number;
+  driveLastRead: number;
+  driveLastWrite: number;
   halted: boolean;
 }
 
@@ -74,6 +99,7 @@ export function SoftwareView({
   const [isRunning, setIsRunning] = useState(false);
   const [runSpeed, setRunSpeed] = useState(10);
   const runIntervalRef = useRef<number | null>(null);
+  const diskInputRef = useRef<HTMLInputElement | null>(null);
 
   // Memory write highlights
   const [memHighlights, setMemHighlights] = useState<Set<number>>(new Set());
@@ -87,6 +113,31 @@ export function SoftwareView({
     assembled && language === "asm"
       ? sourceMapRef.current.get(cpuState.pc) || undefined
       : undefined;
+
+  const syncCpuView = useCallback(
+    (cpu: CPU) => {
+      setCpuState(cpu.snapshot());
+      setConsoleOutput([...cpu.consoleOutput]);
+      setPlotterPixels(new Set(cpu.plotterPixels));
+
+      onHardwareSync?.({
+        pc: cpu.state.pc,
+        a: cpu.state.a,
+        b: cpu.state.b,
+        sp: cpu.state.sp,
+        memory: new Uint8Array(cpu.state.memory),
+        flags: { ...cpu.state.flags },
+        consoleText: cpu.consoleOutput.join(""),
+        plotterPixels: Array.from(cpu.plotterPixels),
+        driveData: cpu.exportDriveData(),
+        driveLastAddr: cpu.driveLastAddr,
+        driveLastRead: cpu.driveLastRead,
+        driveLastWrite: cpu.driveLastWrite,
+        halted: cpu.state.halted,
+      });
+    },
+    [onHardwareSync],
+  );
 
   // ─── Language toggle ───
   const handleLanguageChange = useCallback(
@@ -143,8 +194,7 @@ export function SoftwareView({
       cpu.reset();
       cpu.loadProgram(asmResult.bytes);
       sourceMapRef.current = asmResult.sourceMap;
-      setCpuState(cpu.snapshot());
-      setConsoleOutput([]);
+      syncCpuView(cpu);
       setAssembled(true);
       setIsRunning(false);
       setErrors([]);
@@ -167,8 +217,7 @@ export function SoftwareView({
         cpu.reset();
         cpu.loadProgram(result.bytes);
         sourceMapRef.current = result.sourceMap;
-        setCpuState(cpu.snapshot());
-        setConsoleOutput([]);
+        syncCpuView(cpu);
         setAssembled(true);
         setIsRunning(false);
         setCodeSize(result.bytes.length);
@@ -181,7 +230,7 @@ export function SoftwareView({
         setMemLayout(null);
       }
     }
-  }, [cCode, asmCode, language, onProgramLoaded]);
+  }, [cCode, asmCode, language, onProgramLoaded, syncCpuView]);
 
   // ─── Step ───
   const handleStep = useCallback(() => {
@@ -207,26 +256,12 @@ export function SoftwareView({
       }, 1000);
     }
 
-    setCpuState(cpu.snapshot());
-    setConsoleOutput([...cpu.consoleOutput]);
-    setPlotterPixels(new Set(cpu.plotterPixels));
-
-    onHardwareSync?.({
-      pc: cpu.state.pc,
-      a: cpu.state.a,
-      b: cpu.state.b,
-      sp: cpu.state.sp,
-      memory: new Uint8Array(cpu.state.memory),
-      flags: { ...cpu.state.flags },
-      consoleText: cpu.consoleOutput.join(""),
-      plotterPixels: Array.from(cpu.plotterPixels),
-      halted: cpu.state.halted,
-    });
+    syncCpuView(cpu);
 
     if (cpu.state.halted) {
       setIsRunning(false);
     }
-  }, [assembled, onHardwareSync]);
+  }, [assembled, syncCpuView]);
 
   // ─── Run / Stop ───
   const handleRun = useCallback(() => {
@@ -256,21 +291,7 @@ export function SoftwareView({
           break;
         }
       }
-      setCpuState(cpu.snapshot());
-      setConsoleOutput([...cpu.consoleOutput]);
-      setPlotterPixels(new Set(cpu.plotterPixels));
-
-      onHardwareSync?.({
-        pc: cpu.state.pc,
-        a: cpu.state.a,
-        b: cpu.state.b,
-        sp: cpu.state.sp,
-        memory: new Uint8Array(cpu.state.memory),
-        flags: { ...cpu.state.flags },
-        halted: cpu.state.halted,
-        consoleText: cpu.consoleOutput.join(""),
-        plotterPixels: Array.from(cpu.plotterPixels),
-      });
+      syncCpuView(cpu);
     }, 50);
 
     return () => {
@@ -279,22 +300,20 @@ export function SoftwareView({
         runIntervalRef.current = null;
       }
     };
-  }, [isRunning, runSpeed, onHardwareSync]);
+  }, [isRunning, runSpeed, syncCpuView]);
 
   // ─── Reset ───
   const handleReset = useCallback(() => {
     const cpu = cpuRef.current;
     cpu.reset();
-    setCpuState(cpu.snapshot());
-    setConsoleOutput([]);
-    setPlotterPixels(new Set());
+    syncCpuView(cpu);
     setAssembled(false);
     setIsRunning(false);
     setErrors([]);
     setCodeSize(0);
     setMemLayout(null);
     setMemHighlights(new Set());
-  }, []);
+  }, [syncCpuView]);
 
   // ─── Console clear ───
   const handleClearConsole = useCallback(() => {
@@ -352,8 +371,8 @@ export function SoftwareView({
   // ─── Plotter clear ───
   const handleClearPlotter = useCallback(() => {
     cpuRef.current.plotterPixels = new Set();
-    setPlotterPixels(new Set());
-  }, []);
+    syncCpuView(cpuRef.current);
+  }, [syncCpuView]);
 
   // ─── Example select ───
   const handleSelectExample = useCallback(
@@ -364,12 +383,42 @@ export function SoftwareView({
       setIsRunning(false);
       const cpu = cpuRef.current;
       cpu.reset();
-      setCpuState(cpu.snapshot());
-      setConsoleOutput([]);
-      setPlotterPixels(new Set());
+      syncCpuView(cpu);
       setMemHighlights(new Set());
     },
-    [setCode],
+    [setCode, syncCpuView],
+  );
+
+  const handleExportDisk = useCallback(() => {
+    const blob = new Blob([cpuRef.current.exportDriveData()], {
+      type: "application/octet-stream",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "external-drive.bin";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleImportDiskClick = useCallback(() => {
+    diskInputRef.current?.click();
+  }, []);
+
+  const handleImportDisk = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const cpu = cpuRef.current;
+      cpu.loadDriveData(bytes);
+      syncCpuView(cpu);
+    },
+    [syncCpuView],
   );
 
   // Memory layout metrics
@@ -380,6 +429,10 @@ export function SoftwareView({
     : 0;
   const dataMax = 2048; // 0x1000-0x17FF
   const dataFree = memLayout ? dataMax - dataUsed : 0;
+  let driveUsed = 0;
+  for (const byte of cpuRef.current.driveData) {
+    if (byte !== 0) driveUsed++;
+  }
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
@@ -458,6 +511,25 @@ export function SoftwareView({
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
 
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded border text-cyan-300 bg-cyan-500/10 border-cyan-500/30">
+            <HardDrive size={12} />
+            Disk {driveUsed}/{DRIVE_SIZE}
+          </span>
+          <button
+            onClick={handleImportDiskClick}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700"
+          >
+            <Upload size={13} /> Import
+          </button>
+          <button
+            onClick={handleExportDisk}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700"
+          >
+            <Download size={13} /> Export
+          </button>
+        </div>
+
         {/* Speed control */}
         <div className="flex items-center gap-2">
           <Gauge size={14} className="text-slate-500" />
@@ -484,6 +556,13 @@ export function SoftwareView({
             instr/tick
           </span>
         </div>
+        <input
+          ref={diskInputRef}
+          type="file"
+          accept=".bin,.img,.disk,application/octet-stream"
+          onChange={handleImportDisk}
+          className="hidden"
+        />
 
         {/* Status indicator */}
         <div className="ml-auto flex items-center gap-2">

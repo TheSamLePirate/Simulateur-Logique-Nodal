@@ -15,6 +15,9 @@
 export const MEMORY_SIZE = 8192;
 export const CODE_SIZE = 4096; // 0x0000..0x0FFF — code area (bytes)
 export const ADDR_MASK = 0x1fff; // 13-bit address mask
+export const DRIVE_SIZE = 8192;
+export const DRIVE_PAGE_SIZE = 256;
+export const DRIVE_PAGE_COUNT = DRIVE_SIZE / DRIVE_PAGE_SIZE;
 
 // ─── Opcode constants ───
 
@@ -55,6 +58,10 @@ export const Opcode = {
   OUTD: 0x21, // console ← A as decimal string
   DRAW: 0x22, // plotter ← pixel at (A, B)
   CLR: 0x23, // plotter ← clear all pixels
+  DRVRD: 0x24, // A ← drive[(page<<8)|A]
+  DRVWR: 0x25, // drive[(page<<8)|A] ← B
+  DRVCLR: 0x26, // external drive ← clear all bytes
+  DRVPG: 0x27, // drive page ← A low bits
 
   // Arithmetic/Logic with immediate (3-byte, 16-bit operand, CPU uses low byte)
   LDA: 0x80,
@@ -168,6 +175,26 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "CLR",
     size: 1,
     description: "Clear plotter",
+  },
+  [Opcode.DRVRD]: {
+    mnemonic: "DRVRD",
+    size: 1,
+    description: "A ← external drive[(page<<8)|A]",
+  },
+  [Opcode.DRVWR]: {
+    mnemonic: "DRVWR",
+    size: 1,
+    description: "external drive[(page<<8)|A] ← B",
+  },
+  [Opcode.DRVCLR]: {
+    mnemonic: "DRVCLR",
+    size: 1,
+    description: "Clear external drive",
+  },
+  [Opcode.DRVPG]: {
+    mnemonic: "DRVPG",
+    size: 1,
+    description: "drive page ← A & 0x1F",
   },
 
   [Opcode.LDA]: { mnemonic: "LDA", size: 3, description: "A ← imm" },

@@ -493,6 +493,41 @@ export const initialNodes: Node[] = [
     data: { label: "KEY_RD", value: 0 },
   },
 
+  // External drive — 8K byte-addressed peripheral
+  {
+    id: "drive",
+    type: "drive",
+    position: { x: 2100, y: 1060 },
+    data: {
+      label: "EXT DRIVE",
+      bytes: Array(8192).fill(0),
+      q: Array(8).fill(0),
+      currentAddress: 0,
+      lastRead: 0,
+      lastWrite: 0,
+      prevRd: 0,
+      prevWr: 0,
+    },
+  },
+  {
+    id: "driveRd",
+    type: "input",
+    position: { x: 2350, y: 1210 },
+    data: { label: "DRV_RD", value: 0 },
+  },
+  {
+    id: "driveWr",
+    type: "input",
+    position: { x: 2000, y: 1210 },
+    data: { label: "DRV_WR", value: 0 },
+  },
+  {
+    id: "driveClear",
+    type: "input",
+    position: { x: 2000, y: 1280 },
+    data: { label: "DRV_CLR", value: 0 },
+  },
+
   // ═════════════════════════════════
   //  GLOBAL CONTROLS
   // ═════════════════════════════════
@@ -711,4 +746,14 @@ export const initialEdges: Edge[] = [
 
   // Keyboard read strobe
   wire("e-key-rd", "keyRd", "keyboard", "out", "rd"),
+
+  // ══════════════════════════════════════
+  //  EXTERNAL DRIVE: A → address, B → data, control wires
+  // ══════════════════════════════════════
+
+  ...bus8("e-a-drive-a", "aReg", "drive", "q", "a"),
+  ...bus8("e-b-drive-d", "bReg", "drive", "q", "d"),
+  wire("e-drive-rd", "driveRd", "drive", "out", "rd"),
+  wire("e-drive-wr", "driveWr", "drive", "out", "wr"),
+  wire("e-drive-clr", "driveClear", "drive", "out", "clr"),
 ];

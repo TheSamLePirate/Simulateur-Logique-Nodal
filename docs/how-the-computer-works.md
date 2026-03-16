@@ -222,7 +222,32 @@ wait:
 | `OUTD`    | 0x21   | 1     | Print A as a decimal number      |
 | `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) on plotter  |
 | `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
+| `DRVRD`   | 0x24   | 1     | A = external_drive[A]            |
+| `DRVWR`   | 0x25   | 1     | external_drive[A] = B            |
+| `DRVCLR`  | 0x26   | 1     | Clear the external drive         |
 | `OUT imm` | 0xC0   | 3     | Print immediate as ASCII char    |
+
+#### External Drive I/O
+
+The CPU has a built-in **256-byte external drive** that acts like a tiny persistent storage device.
+
+- `DRVRD` uses the current value of `A` as the drive address and replaces `A` with the byte stored there
+- `DRVWR` uses `A` as the drive address and writes the current value of `B`
+- `DRVCLR` fills all 256 drive bytes with `0`
+
+Unlike normal RAM, the external drive contents are **not erased by CPU reset**. This makes it useful for tiny file systems and saved state between runs.
+
+Example:
+
+```asm
+  LDA 10        ; address 10
+  LDB 65        ; ASCII 'A'
+  DRVWR         ; drive[10] = 65
+
+  LDA 10
+  DRVRD         ; A = drive[10]
+  OUTA          ; prints A
+```
 
 #### Arithmetic / Logic with Immediate
 
@@ -646,8 +671,9 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Unary | `! ~ ++ --` | Prefix and postfix |
 | Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
-| Input | `getchar()` | Reads one character (blocking) |
+| Input | `getchar()`, `getKey(0)` | Console and keyboard built-ins |
 | Plotter | `draw(x, y)`, `clear()` | Drawing built-ins |
+| External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()` | 256-byte persistent storage |
 | Constants | `#define MAX 100` | Preprocessor |
 
 ### Console Input in C
@@ -674,6 +700,27 @@ __wait:
   JZ __wait     ; yes → keep waiting
   ; A now contains the character
 ```
+
+### External Drive in C
+
+The compiler exposes the external drive with three built-ins:
+
+- `drive_read(addr)` returns the byte stored at drive address `addr`
+- `drive_write(addr, value)` writes one byte and evaluates to `value`
+- `drive_clear()` fills the whole drive with `0`
+
+The drive is **256 bytes total** and survives `reset()`, so it can be used as a tiny persistent disk.
+
+```c
+int main() {
+  drive_clear();
+  drive_write(10, 65);
+  putchar(drive_read(10));
+  return 0;
+}
+```
+
+One of the bundled C examples, `FS Disque Externe`, builds a tiny file system on top of these three operations.
 
 ### NOT Supported
 
@@ -706,6 +753,9 @@ src/components/software/
   CPUState.tsx        Register and flag display
   MemoryView.tsx      2048-byte memory hex viewer
   ConsolePanel.tsx    Text output console with keyboard input field
+
+src/components/nodes/
+  DriveNode.tsx       External 256-byte drive with read/write/clear controls
 ```
 
 ### The Full Pipeline

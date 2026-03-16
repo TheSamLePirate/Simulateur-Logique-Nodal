@@ -12,6 +12,8 @@ import {
   createInitialState,
   MEMORY_SIZE,
   ADDR_MASK,
+  DRIVE_SIZE,
+  DRIVE_PAGE_COUNT,
   type CPUState,
 } from "./isa";
 
@@ -27,6 +29,11 @@ export class CPU {
   plotterPixels: Set<number>;
   consoleInputBuffer: number[];
   keyState: number[]; // [left, right, up, down, enter] — 0 or 1
+  driveData: Uint8Array;
+  drivePage: number;
+  driveLastAddr: number;
+  driveLastRead: number;
+  driveLastWrite: number;
   onConsoleOutput?: (text: string) => void;
 
   /** Last executed opcode (for hardware visualization) */
@@ -48,6 +55,11 @@ export class CPU {
     this.plotterPixels = new Set();
     this.consoleInputBuffer = [];
     this.keyState = [0, 0, 0, 0, 0];
+    this.driveData = new Uint8Array(DRIVE_SIZE);
+    this.drivePage = 0;
+    this.driveLastAddr = 0;
+    this.driveLastRead = 0;
+    this.driveLastWrite = 0;
   }
 
   /** Reset CPU to initial state, clearing memory */
@@ -57,6 +69,10 @@ export class CPU {
     this.plotterPixels = new Set();
     this.consoleInputBuffer = [];
     this.keyState = [0, 0, 0, 0, 0];
+    this.drivePage = 0;
+    this.driveLastAddr = 0;
+    this.driveLastRead = 0;
+    this.driveLastWrite = 0;
     this.lastOpcode = -1;
     this.lastOperand = 0;
     this.clockBit = 0;
@@ -132,6 +148,35 @@ export class CPU {
   /** Push a character into the console input buffer */
   pushInput(char: number): void {
     this.consoleInputBuffer.push(char & 0xff);
+  }
+
+  private getDriveAddress(): number {
+    return (((this.drivePage & (DRIVE_PAGE_COUNT - 1)) << 8) |
+      (this.state.a & 0xff)) &
+      (DRIVE_SIZE - 1);
+  }
+
+  clearDrive(): void {
+    this.driveData.fill(0);
+    this.driveLastAddr = 0;
+    this.driveLastRead = 0;
+    this.driveLastWrite = 0;
+  }
+
+  loadDriveData(bytes: ArrayLike<number>): void {
+    this.driveData.fill(0);
+    const len = Math.min(this.driveData.length, bytes.length ?? 0);
+    for (let i = 0; i < len; i++) {
+      this.driveData[i] = bytes[i] & 0xff;
+    }
+    this.drivePage = 0;
+    this.driveLastAddr = 0;
+    this.driveLastRead = 0;
+    this.driveLastWrite = 0;
+  }
+
+  exportDriveData(): Uint8Array {
+    return new Uint8Array(this.driveData);
   }
 
   // ─── Execution ───
@@ -308,6 +353,27 @@ export class CPU {
 
       case Opcode.CLR:
         this.plotterPixels = new Set();
+        break;
+
+      case Opcode.DRVRD:
+        this.driveLastAddr = this.getDriveAddress();
+        this.driveLastRead = this.driveData[this.driveLastAddr];
+        this.state.a = this.driveLastRead;
+        this.updateFlags(this.state.a);
+        break;
+
+      case Opcode.DRVWR:
+        this.driveLastAddr = this.getDriveAddress();
+        this.driveLastWrite = this.state.b & 0xff;
+        this.driveData[this.driveLastAddr] = this.driveLastWrite;
+        break;
+
+      case Opcode.DRVCLR:
+        this.clearDrive();
+        break;
+
+      case Opcode.DRVPG:
+        this.drivePage = this.state.a & (DRIVE_PAGE_COUNT - 1);
         break;
 
       case Opcode.INA:

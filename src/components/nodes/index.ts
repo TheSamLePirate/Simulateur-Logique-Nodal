@@ -14,6 +14,7 @@ import { Mux8Node } from "./Mux8Node";
 import { ConsoleNode } from "./ConsoleNode";
 import { PlotterNode } from "./PlotterNode";
 import { KeyboardNode } from "./KeyboardNode";
+import { DriveNode } from "./DriveNode";
 
 export {
   InputNode,
@@ -32,6 +33,7 @@ export {
   ConsoleNode,
   PlotterNode,
   KeyboardNode,
+  DriveNode,
 };
 
 export const nodeTypes = {
@@ -51,4 +53,5 @@ export const nodeTypes = {
   console: ConsoleNode,
   plotter: PlotterNode,
   keyboard: KeyboardNode,
+  drive: DriveNode,
 };

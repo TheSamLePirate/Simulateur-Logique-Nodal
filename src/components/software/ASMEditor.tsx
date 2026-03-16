@@ -138,7 +138,23 @@ const C_KEYWORDS = new Set([
   "for",
   "return",
 ]);
-const C_BUILTINS = new Set(["putchar", "print_num", "print"]);
+const C_BUILTINS = new Set([
+  "putchar",
+  "print_num",
+  "print",
+  "draw",
+  "clear",
+  "getchar",
+  "getKey",
+  "rand",
+  "sleep",
+  "drive_read",
+  "drive_write",
+  "drive_clear",
+  "drive_set_page",
+  "drive_read_at",
+  "drive_write_at",
+]);
 
 function highlightCLine(line: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];

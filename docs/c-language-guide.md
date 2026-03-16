@@ -568,6 +568,40 @@ Clears the plotter.
 clear();
 ```
 
+### External drive
+
+#### `drive_read(addr)`
+
+Reads one byte from the external drive.
+
+`addr` is an 8-bit drive address from `0` to `255`.
+
+```c
+int value;
+value = drive_read(10);
+```
+
+#### `drive_write(addr, value)`
+
+Writes one byte to the external drive.
+
+This expression evaluates to the written value, so it can be used inside a larger expression if needed.
+
+```c
+drive_write(10, 65);
+putchar(drive_read(10));
+```
+
+#### `drive_clear()`
+
+Clears the whole external drive to `0`.
+
+```c
+drive_clear();
+```
+
+The external drive has `256` bytes and persists across CPU reset, which makes it useful for tiny file systems or saving state between runs.
+
 ### Misc
 
 #### `rand()`

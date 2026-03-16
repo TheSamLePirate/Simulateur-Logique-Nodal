@@ -86,6 +86,12 @@ export function generate(program: Program): {
     "getKey",
     "rand",
     "sleep",
+    "drive_read",
+    "drive_write",
+    "drive_clear",
+    "drive_set_page",
+    "drive_read_at",
+    "drive_write_at",
   ]);
 
   // Loop context stack for break/continue
@@ -1435,6 +1441,71 @@ export function generate(program: Program): {
       if (expr.args.length >= 1) {
         emitExpr(expr.args[0], ctx); // cycle count → A
         emit(`  SLEEP`);
+      }
+      return;
+    }
+
+    // ── Built-in: drive_read(addr) — A ← external_drive[addr] ──
+    if (expr.name === "drive_read") {
+      if (expr.args.length >= 1) {
+        emitExpr(expr.args[0], ctx); // addr → A
+        emit(`  DRVRD`);
+      }
+      return;
+    }
+
+    // ── Built-in: drive_write(addr, value) — external_drive[addr] ← value ──
+    if (expr.name === "drive_write") {
+      if (expr.args.length >= 2) {
+        emitExpr(expr.args[0], ctx); // addr → A
+        emit(`  PUSH`);
+        emitExpr(expr.args[1], ctx); // value → A
+        emit(`  TAB`); // value → B
+        emit(`  POP`); // addr → A
+        emit(`  DRVWR`);
+        emit(`  TBA`); // expression result = written value
+      }
+      return;
+    }
+
+    // ── Built-in: drive_clear() — clear external drive ──
+    if (expr.name === "drive_clear") {
+      emit(`  DRVCLR`);
+      return;
+    }
+
+    // ── Built-in: drive_set_page(page) — select one of 32 external drive pages ──
+    if (expr.name === "drive_set_page") {
+      if (expr.args.length >= 1) {
+        emitExpr(expr.args[0], ctx); // page → A
+        emit(`  DRVPG`);
+      }
+      return;
+    }
+
+    // ── Built-in: drive_read_at(page, offset) — A ← external_drive[(page<<8)|offset] ──
+    if (expr.name === "drive_read_at") {
+      if (expr.args.length >= 2) {
+        emitExpr(expr.args[0], ctx); // page → A
+        emit(`  DRVPG`);
+        emitExpr(expr.args[1], ctx); // offset → A
+        emit(`  DRVRD`);
+      }
+      return;
+    }
+
+    // ── Built-in: drive_write_at(page, offset, value) — write one byte to any drive page ──
+    if (expr.name === "drive_write_at") {
+      if (expr.args.length >= 3) {
+        emitExpr(expr.args[0], ctx); // page → A
+        emit(`  DRVPG`);
+        emitExpr(expr.args[1], ctx); // offset → A
+        emit(`  PUSH`);
+        emitExpr(expr.args[2], ctx); // value → A
+        emit(`  TAB`); // value → B
+        emit(`  POP`); // offset → A
+        emit(`  DRVWR`);
+        emit(`  TBA`); // expression result = written value
       }
       return;
     }

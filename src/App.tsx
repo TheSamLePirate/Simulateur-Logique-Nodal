@@ -34,6 +34,7 @@ import {
   Gauge,
   ChevronDown,
   Keyboard,
+  HardDrive,
 } from "lucide-react";
 
 import type {
@@ -54,7 +55,7 @@ import {
   type HardwareSyncData,
 } from "./components/software/SoftwareView";
 import { CPU } from "./cpu/cpu";
-import { Opcode } from "./cpu/isa";
+import { Opcode, DRIVE_SIZE } from "./cpu/isa";
 import { BUILTIN_PRESETS } from "./data/scenePresets";
 
 export default function App() {
@@ -962,6 +963,23 @@ export default function App() {
           },
         };
         break;
+      case "drive":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: "EXT DRIVE",
+            bytes: Array(DRIVE_SIZE).fill(0),
+            q: Array(8).fill(0),
+            currentAddress: 0,
+            lastRead: 0,
+            lastWrite: 0,
+            prevRd: 0 as Bit,
+            prevWr: 0 as Bit,
+          },
+        };
+        break;
       default:
         return;
     }
@@ -1019,6 +1037,12 @@ export default function App() {
     (data: HardwareSyncData) => {
       const toBits = (val: number, bits = 8) =>
         Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
+      const hwCpu = hwCpuRef.current;
+
+      hwCpu.loadDriveData(data.driveData);
+      hwCpu.driveLastAddr = data.driveLastAddr;
+      hwCpu.driveLastRead = data.driveLastRead & 0xff;
+      hwCpu.driveLastWrite = data.driveLastWrite & 0xff;
 
       setNodes((nds) =>
         nds.map((node) => {
@@ -1085,6 +1109,20 @@ export default function App() {
                 ...node,
                 data: { ...node.data, pixels: data.plotterPixels },
               };
+            case "drive":
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  bytes: Array.from(data.driveData),
+                  q: toBits(data.driveLastRead || 0),
+                  currentAddress: data.driveLastAddr || 0,
+                  lastRead: data.driveLastRead || 0,
+                  lastWrite: data.driveLastWrite || 0,
+                  prevRd: 0,
+                  prevWr: 0,
+                },
+              };
             default:
               return node;
           }
@@ -1132,6 +1170,7 @@ export default function App() {
       Opcode.LDM,
       Opcode.INA,
       Opcode.GETKEY,
+      Opcode.DRVRD,
     ])
       ? 1
       : 0;
@@ -1151,6 +1190,9 @@ export default function App() {
     const plotDraw = op === Opcode.DRAW ? 1 : 0;
     const plotClr = op === Opcode.CLR ? 1 : 0;
     const conRd = op === Opcode.INA ? 1 : 0;
+    const driveRd = op === Opcode.DRVRD ? 1 : 0;
+    const driveWr = op === Opcode.DRVWR ? 1 : 0;
+    const driveClr = op === Opcode.DRVCLR ? 1 : 0;
 
     // PC jump control (sel=1 routes jump target to PC via pcSrcMux)
     let pcJmpSig = 0;
@@ -1268,6 +1310,20 @@ export default function App() {
                 prevDraw: plotDraw,
               },
             };
+          case "drive":
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                bytes: Array.from(cpu.driveData),
+                q: toBits(cpu.driveLastRead || 0),
+                currentAddress: cpu.driveLastAddr || 0,
+                lastRead: cpu.driveLastRead || 0,
+                lastWrite: cpu.driveLastWrite || 0,
+                prevRd: driveRd,
+                prevWr: driveWr,
+              },
+            };
 
           // ── Clock (toggles each CPU step) ──
           case "clk":
@@ -1316,6 +1372,14 @@ export default function App() {
             return { ...node, data: { ...node.data, value: plotDraw } };
           case "plotClear":
             return { ...node, data: { ...node.data, value: plotClr } };
+
+          // ── External drive control ──
+          case "driveRd":
+            return { ...node, data: { ...node.data, value: driveRd } };
+          case "driveWr":
+            return { ...node, data: { ...node.data, value: driveWr } };
+          case "driveClear":
+            return { ...node, data: { ...node.data, value: driveClr } };
 
           // ── Console read control ──
           case "consoleRd":
@@ -1913,6 +1977,13 @@ export default function App() {
                 >
                   <Keyboard size={18} className="text-violet-400" />
                   <span className="font-bold">Keyboard</span>
+                </button>
+                <button
+                  onClick={() => addNode("drive")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-amber-900/50 rounded p-3 text-sm flex items-center gap-3 transition-colors"
+                >
+                  <HardDrive size={18} className="text-amber-400" />
+                  <span className="font-bold">External Drive</span>
                 </button>
               </div>
             </div>

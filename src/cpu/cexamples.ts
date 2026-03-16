@@ -1984,4 +1984,239 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "FS Disque Externe",
+    description: "Petit systeme de fichiers sur le lecteur externe IO",
+    code: `// Petit systeme de fichiers sur lecteur externe
+// Commandes: fmt, touch f, ls, cat f, txt>f
+
+int line[16];
+
+int read_line() {
+  int ch;
+  int n;
+  n = 0;
+  ch = getchar();
+  while (ch != 10) {
+    if (n < 15) {
+      line[n] = ch;
+      n = n + 1;
+    }
+    putchar(ch);
+    ch = getchar();
+  }
+  line[n] = 0;
+  putchar(10);
+  return n;
+}
+
+int format_drive() {
+  int i;
+  drive_clear();
+  drive_write(0, 68);
+  i = 0;
+  while (i < 4) {
+    drive_write(1 + i + i, 0);
+    drive_write(2 + i + i, 0);
+    i = i + 1;
+  }
+  return 0;
+}
+
+int ensure_drive() {
+  if (drive_read(0) != 68) {
+    format_drive();
+  }
+  return 0;
+}
+
+int file_name(int slot) {
+  return drive_read(1 + slot + slot);
+}
+
+int file_len(int slot) {
+  return drive_read(2 + slot + slot);
+}
+
+int set_meta(int slot, int name, int len) {
+  drive_write(1 + slot + slot, name);
+  drive_write(2 + slot + slot, len);
+  return 0;
+}
+
+int find_file(int name) {
+  int i;
+  i = 0;
+  while (i < 4) {
+    if (file_name(i) == name) { return i; }
+    i = i + 1;
+  }
+  return 255;
+}
+
+int find_free() {
+  int i;
+  i = 0;
+  while (i < 4) {
+    if (file_name(i) == 0) { return i; }
+    i = i + 1;
+  }
+  return 255;
+}
+
+int block_addr(int slot) {
+  return 16 + (slot * 16);
+}
+
+int main() {
+  int n;
+  int slot;
+  int name;
+  int i;
+  int base;
+  int len;
+  int found;
+
+  ensure_drive();
+  print("=== FS DISQUE EXTERNE ===");
+  putchar(10);
+  print("fmt | touch f | ls | cat f | txt>f");
+  putchar(10);
+
+  while (1) {
+    print("# ");
+    n = read_line();
+    if (n == 0) { continue; }
+
+    if (line[0] == 'f') {
+      if (line[1] == 'm') {
+        if (line[2] == 't') {
+          format_drive();
+          print("formatted");
+          putchar(10);
+          continue;
+        }
+      }
+    }
+
+    if (line[0] == 'l') {
+      if (line[1] == 's') {
+        found = 0;
+        i = 0;
+        while (i < 4) {
+          name = file_name(i);
+          if (name != 0) {
+            putchar(name);
+            putchar(' ');
+            putchar('(');
+            print_num(file_len(i));
+            putchar(')');
+            putchar(10);
+            found = 1;
+          }
+          i = i + 1;
+        }
+        if (found == 0) {
+          print("(empty)");
+          putchar(10);
+        }
+        continue;
+      }
+    }
+
+    if (line[0] == 't') {
+      if (line[1] == 'o') {
+        if (line[2] == 'u') {
+          if (line[3] == 'c') {
+            if (line[4] == 'h') {
+              if (line[5] == ' ') {
+                name = line[6];
+                slot = find_file(name);
+                if (slot == 255) {
+                  slot = find_free();
+                }
+                if (slot == 255) {
+                  print("disk full");
+                  putchar(10);
+                  continue;
+                }
+                set_meta(slot, name, 0);
+                print("created ");
+                putchar(name);
+                putchar(10);
+                continue;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (line[0] == 'c') {
+      if (line[1] == 'a') {
+        if (line[2] == 't') {
+          if (line[3] == ' ') {
+            name = line[4];
+            slot = find_file(name);
+            if (slot == 255) {
+              print("no file ");
+              putchar(name);
+              putchar(10);
+              continue;
+            }
+            base = block_addr(slot);
+            len = file_len(slot);
+            i = 0;
+            while (i < len) {
+              putchar(drive_read(base + i));
+              i = i + 1;
+            }
+            putchar(10);
+            continue;
+          }
+        }
+      }
+    }
+
+    i = 0;
+    slot = 255;
+    while (i < n) {
+      if (line[i] == '>') {
+        slot = i;
+        break;
+      }
+      i = i + 1;
+    }
+
+    if (slot != 255) {
+      if (slot + 1 >= n) {
+        print("?");
+        putchar(10);
+        continue;
+      }
+      name = line[slot + 1];
+      i = find_file(name);
+      if (i == 255) {
+        print("no file ");
+        putchar(name);
+        putchar(10);
+        continue;
+      }
+      if (slot > 15) { slot = 15; }
+      base = block_addr(i);
+      len = 0;
+      while (len < slot) {
+        drive_write(base + len, line[len]);
+        len = len + 1;
+      }
+      set_meta(i, name, len);
+      continue;
+    }
+
+    print("?");
+    putchar(10);
+  }
+  return 0;
+}`,
+  },
 ];

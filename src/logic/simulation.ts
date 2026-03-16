@@ -94,6 +94,12 @@ export const getInputValue = (
       return ((sourceNode.data.keys as number[])?.[idx] || 0) as Bit;
     }
   }
+  if (sourceNode.type === "drive") {
+    if (edge.sourceHandle?.startsWith("q")) {
+      const idx = parseInt(edge.sourceHandle.replace("q", ""));
+      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
+    }
+  }
   return 0;
 };
 
@@ -501,6 +507,79 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
         newNodes[index] = {
           ...node,
           data: { ...node.data, pixels, prevDraw: draw },
+        };
+        changed = true;
+      }
+    } else if (node.type === "drive") {
+      const driveSize = (node.data.bytes as number[])?.length || 256;
+      const addrBits = driveSize <= 256 ? 8 : 13;
+      let addr = 0;
+      for (let i = 0; i < addrBits; i++) {
+        if (getVal(node.id, `a${i}`)) addr |= 1 << i;
+      }
+      if (addr >= driveSize) addr = addr % driveSize;
+      let dataIn = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getVal(node.id, `d${i}`)) dataIn |= 1 << i;
+      }
+      const rd = getVal(node.id, "rd");
+      const wr = getVal(node.id, "wr");
+      const clr = getVal(node.id, "clr");
+      const prevRd = (node.data.prevRd as Bit) || 0;
+      const prevWr = (node.data.prevWr as Bit) || 0;
+
+      let bytes = node.data.bytes
+        ? [...(node.data.bytes as number[])]
+        : Array(driveSize).fill(0);
+      let q = (node.data.q as Bit[]) || Array(8).fill(0);
+      let lastRead = (node.data.lastRead as number) || 0;
+      let lastWrite = (node.data.lastWrite as number) || 0;
+      let changedDrive = false;
+
+      if (clr === 1) {
+        if (bytes.some((v) => v !== 0)) {
+          bytes = Array(driveSize).fill(0);
+          q = Array(8).fill(0);
+          lastRead = 0;
+          lastWrite = 0;
+          changedDrive = true;
+        }
+      } else {
+        if (prevWr === 0 && wr === 1) {
+          if (bytes[addr] !== dataIn) {
+            bytes[addr] = dataIn;
+            changedDrive = true;
+          }
+          lastWrite = dataIn;
+        }
+        if (prevRd === 0 && rd === 1) {
+          lastRead = bytes[addr] || 0;
+          q = Array.from(
+            { length: 8 },
+            (_, i) => ((lastRead & (1 << i)) ? 1 : 0) as Bit,
+          );
+          changedDrive = true;
+        }
+      }
+
+      if (
+        changedDrive ||
+        node.data.prevRd !== rd ||
+        node.data.prevWr !== wr ||
+        node.data.currentAddress !== addr
+      ) {
+        newNodes[index] = {
+          ...node,
+          data: {
+            ...node.data,
+            bytes,
+            q,
+            prevRd: rd,
+            prevWr: wr,
+            currentAddress: addr,
+            lastRead,
+            lastWrite,
+          },
         };
         changed = true;
       }

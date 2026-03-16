@@ -510,6 +510,24 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("created s");
     expect(r.output).toContain("19.33");
   });
+
+  it('"FS Disque Externe" formats, writes and reads files on the drive', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "FS Disque Externe");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      input: "fmt\ntouch a\nhello>a\ncat a\nls\n",
+      maxCycles: 4_000_000,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("=== FS DISQUE EXTERNE ===");
+    expect(r.output).toContain("formatted");
+    expect(r.output).toContain("created a");
+    expect(r.output).toContain("hello");
+    expect(r.output).toContain("a (5)");
+    expect(r.cpu.driveData[0]).toBe(68);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1092,6 +1110,49 @@ describe("Compiler — Edge Cases", () => {
     expect(r2.halted).toBe(true);
   });
 
+  it("external drive builtins read, write and clear bytes", () => {
+    const r = compileAndRun(`
+      int main() {
+        drive_clear();
+        drive_write(10, 65);
+        drive_write(11, 66);
+        putchar(drive_read(10));
+        putchar(drive_read(11));
+        drive_clear();
+        print_num(drive_read(10));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("AB0");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.driveData[10]).toBe(0);
+    expect(r.cpu.driveData[11]).toBe(0);
+  });
+
+  it("external drive page builtins can access the full 8K disk", () => {
+    const r = compileAndRun(`
+      int main() {
+        drive_clear();
+        drive_write(10, 65);
+        drive_set_page(1);
+        drive_write(10, 66);
+        putchar(drive_read(10));
+        drive_set_page(0);
+        putchar(drive_read(10));
+        putchar(drive_read_at(1, 10));
+        drive_write_at(31, 255, 90);
+        drive_set_page(31);
+        putchar(drive_read(255));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("BABZ");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.driveData[10]).toBe(65);
+    expect(r.cpu.driveData[256 + 10]).toBe(66);
+    expect(r.cpu.driveData[8191]).toBe(90);
+  });
+
   it("code size overflow is detected", () => {
     // Generate a program that's way too big (lots of print statements)
     // Each print("AAAAAAAAAA") = 10 × OUT (3 bytes) = 30 bytes
@@ -1358,6 +1419,7 @@ describe("C Examples — Execution Properties", () => {
     "Démo Ultime",
     "Calculatrice Graphique",
     "Mini Shell",
+    "FS Disque Externe",
   ];
 
   for (const name of inputExamples) {

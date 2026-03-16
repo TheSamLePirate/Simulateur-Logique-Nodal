@@ -753,6 +753,10 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **plotter** | Plotter | 256×256 pixel display |
 | **plotDraw** | Input | Plotter draw strobe |
 | **plotClear** | Input | Clear plotter display |
+| **drive** | Drive | 256-byte external storage peripheral |
+| **driveRd** | Input | Drive read strobe |
+| **driveWr** | Input | Drive write strobe |
+| **driveClear** | Input | Clear the external drive |
 
 ### Console Node Details
 
@@ -770,6 +774,30 @@ The console node is a **bidirectional** peripheral with both input and output ca
 - **RD**: Read strobe — on rising edge, pops next character from buffer
 
 The console also has a **keyboard input field** at the bottom. Text typed there and submitted with Enter is queued in the input buffer. The CPU reads from this buffer using the INA instruction.
+
+### External Drive Node Details
+
+The external drive node is a **persistent 256-byte storage device**. It is connected to the CPU's `A` register for addressing and `B` register for write data.
+
+**Left side (inputs):**
+- **A0-A7**: 8-bit address bus
+- **D0-D7**: 8-bit data input bus for writes
+- **RD**: Read strobe — on rising edge, loads the selected byte onto Q0-Q7
+- **WR**: Write strobe — on rising edge, stores D0-D7 into the selected drive address
+- **CLR**: Clear strobe — zeroes the whole 256-byte drive
+
+**Right side (outputs):**
+- **Q0-Q7**: 8-bit data output bus containing the last byte read
+
+The node also shows a small hex preview of the first bytes of the drive plus the last read and write values, which makes it easy to debug a file system or saved state visually.
+
+In the software CPU, the matching instructions are:
+
+- `DRVRD` to read `drive[A]` into `A`
+- `DRVWR` to write `B` into `drive[A]`
+- `DRVCLR` to erase the drive
+
+The external drive is intentionally **not cleared by CPU reset**, so it behaves more like removable storage than normal RAM.
 
 ### How to Use It
 
