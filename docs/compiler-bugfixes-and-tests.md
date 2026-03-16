@@ -517,13 +517,13 @@ Tests for array support using `LDAI`/`STAI` indexed addressing:
 | **No index error** | `x = a` (array without `[]`) → compile error with "tableau" |
 | **Initializer error** | `int a[3] = {1,2,3}` → compile error with "Initialisation" |
 
-#### 6.6 — Execution Properties (19 programs)
+#### 6.6 — Execution Properties (22 programs + interactive halt coverage)
 
 Verifies runtime behavior:
 
 - **14 halting programs**: Finish within 50M cycles (Hello World, Compteur, Fibonacci, Factorielle, Calcul, Plotter, Courbe, Cercle, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire, Tableau (Tri))
-- **4 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite)
-- **1 keyboard-interactive program**: Clavier — `while(1)` loop, never halts, draws triangle + laser
+- **8 input-waiting programs**: Do NOT halt without input within 10K cycles (Echo, Compteur de lettres, Calculatrice, Traceur de droite, Démo Ultime, Calculatrice Graphique, Mini Shell, FS Disque Externe)
+- **Interactive halt coverage**: `@` cleanly stops 10 interactive examples, including console apps and real-time plotter or keyboard loops
 
 ---
 

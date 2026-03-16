@@ -523,6 +523,25 @@ c = getchar();
 putchar(c);
 ```
 
+#### `getchar_nb()`
+
+Reads one character from the console input buffer without waiting.
+
+It returns:
+
+- the ASCII value of the next character, if one is available
+- `0` if the input buffer is empty
+
+This is useful for interactive graphics or keyboard-driven loops that still want to react to console commands like `@` without blocking the frame loop.
+
+```c
+int ch;
+ch = getchar_nb();
+if (ch == '@') {
+  return 0;
+}
+```
+
 ### Keyboard state
 
 #### `getKey(index)`

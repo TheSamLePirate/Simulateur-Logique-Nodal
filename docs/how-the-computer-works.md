@@ -735,11 +735,15 @@ One of the bundled C examples, `FS Disque Externe`, builds a shared disk file sy
 
 The software view now has an optional **bootloader mode**.
 
-- **Use bootloader** loads a small Unix-like shell into high memory instead of running the current program directly
-- **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format
+- **Use bootloader** switches the software CPU to a shell-based boot flow
+- **Compile** still compiles the current ASM or C source, but in bootloader mode it prepares the program artifact without interrupting a shell that is already running
+- **Run** and **Step** automatically load the boot shell into high memory if needed
+- **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format without stopping the live shell
 - the boot shell can then `ls`, `run x`, `cat x`, `free`, and `help`
 
 The bootloader lives in upper RAM and copies a selected disk program down to address `0x0000` before jumping to it. That means disk-loaded programs can use the normal code budget instead of a reduced boot-only limit.
+
+When a disk-loaded C or ASM program executes `HLT` while bootloader mode is active, the software CPU does **not** stay dead. The software view reloads the shell and returns to the `unix$ ` prompt automatically, with a newline inserted before the resumed prompt.
 
 ### Shared Disk Format
 
@@ -796,7 +800,7 @@ src/components/software/
                      and "Compile to Disk"
 
 src/components/nodes/
-  DriveNode.tsx       External 256-byte drive with read/write/clear controls
+  DriveNode.tsx       External 8 KB drive with read/write/clear controls
 ```
 
 ### The Full Pipeline
@@ -807,15 +811,16 @@ src/components/nodes/
   3. If C: Compiler produces ASM text → shown in ASM tab
   4. Assembler converts ASM text → machine bytes
   5. If bootloader mode is OFF: bytes are loaded at address 0x000
-  6. If bootloader mode is ON: the boot shell is loaded in high memory instead
-  7. "Compile to Disk" can store the compiled program on the external drive
+  6. If bootloader mode is ON: compile updates the generated program artifact, and the boot shell is loaded on demand by Run/Step if it is not already active
+  7. "Compile to Disk" can store the compiled program on the external drive without interrupting the running shell
   8. The boot shell can then run that program from disk
-  9. Click "Step" to execute one instruction at a time
+  9. If a disk program halts, the software view returns automatically to the boot shell prompt
+  10. Click "Step" to execute one instruction at a time
      or "Run" to execute continuously
-  10. CPU state (registers, memory, flags) updates in real time
-  11. Output appears in the console panel
-  12. Input is typed in the console input field and submitted with Enter
-  13. CPU halts when it executes HLT
+  11. CPU state (registers, memory, flags) updates in real time
+  12. Output appears in the console panel
+  13. Input is typed in the console input field and submitted with Enter
+  14. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
 ```
 
 ---
@@ -1124,7 +1129,8 @@ Array-specific tests using the `LDAI`/`STAI` indexed addressing opcodes:
 
 ```
   ✓ 14 programs halt within 50M cycles
-  ✓ 4 input-dependent programs do NOT halt without input
+  ✓ 8 input-dependent programs do NOT halt without input
+  ✓ 10 interactive programs halt cleanly when `@` is entered
 ```
 
 ### Adding a New Test

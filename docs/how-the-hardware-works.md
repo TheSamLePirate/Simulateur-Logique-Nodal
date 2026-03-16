@@ -175,6 +175,12 @@ The function `simulateNodes(nodes, edges)` visits every node in the circuit and 
 
 **Note:** When a program is loaded from the Software tab onto the hardware CPU (`hwCpuLoaded=true`), `simulateNodes` is **skipped** — instead, a dedicated `syncHwCpuToNodes` function derives all node data directly from the CPU state and the last executed opcode. Only `updateEdgeStyles` still runs to color/animate the wires.
 
+This is also how the hardware page mirrors the software bootloader flow:
+
+- the hardware CPU receives the bootloader image when the software view boots it
+- console text, plotter pixels, registers, flags, RAM state, and external drive contents are mirrored live from the software CPU
+- if a disk program halts and the software view returns to `unix$ `, the hardware page follows that resumed bootloader state too
+
 ### Step 2: Update Wire Colors
 
 The function `updateEdgeStyles(nodes, edges)` colors each wire based on the signal it carries:
@@ -812,7 +818,9 @@ The external drive is intentionally **not cleared by CPU reset**, so it behaves 
 
 5. **Read from memory:** Set memAddr, memWE to 0. memOut shows the stored value.
 
-6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. In direct mode the program is loaded normally. In bootloader mode the Unix-like shell is loaded instead and compiled programs can be stored on the external drive, listed, and launched from there.
+6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. In direct mode the program is loaded normally. In bootloader mode, compile prepares the current program artifact, `Run` or `Step` loads the Unix-like shell if needed, and compiled programs can be stored on the external drive, listed, and launched from there without interrupting a live shell.
+
+7. **Bootloader lifecycle on Hardware page:** If a disk program halts, the software view automatically returns to the bootloader prompt and the Hardware page mirrors that change as well. The external drive node keeps its contents because the disk is persistent across reset.
 
 ---
 
