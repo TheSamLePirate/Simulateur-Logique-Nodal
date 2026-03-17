@@ -50,6 +50,14 @@ function countPixelsInRect(
   return count;
 }
 
+function runUntil(cpu: CPU, predicate: () => boolean, limit = 2_000_000) {
+  for (let i = 0; i < limit && !cpu.state.halted; i++) {
+    if (predicate()) return;
+    cpu.step();
+  }
+  expect(predicate()).toBe(true);
+}
+
 describe("ASM examples", () => {
   it('"Éditeur FS ASM" assembles and fits in code memory', () => {
     const example = EXAMPLES.find((e) => e.name === "Éditeur FS ASM");
@@ -156,6 +164,50 @@ describe("ASM examples", () => {
     expect(cpu.consoleOutput.join("")).toBe("");
     expect(cpu.state.memory[0x1002]).toBe(3);
     expect(after).toBeGreaterThan(before);
+  });
+
+  it('"Super Unix Shell Plotter" finds late files in a long directory and switches between help/preview', () => {
+    const example = EXAMPLES.find((e) => e.name === "Super Unix Shell Plotter");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    let disk = formatBootDisk();
+    disk = writeFileToBootDisk(disk, "LETTERS", new Uint8Array(130).fill(7));
+    disk = writeFileToBootDisk(disk, "DIGITS", new Uint8Array(50).fill(7));
+    for (let i = 0; i < 12; i++) {
+      disk = writeFileToBootDisk(
+        disk,
+        `f${i.toString().padStart(2, "0")}`,
+        new Uint8Array([65 + i]),
+      );
+    }
+
+    const cpu = new CPU();
+    cpu.driveData.set(disk);
+    cpu.loadProgram(ar.bytes);
+    cpu.run(50_000);
+
+    expect(cpu.state.memory[0x1003]).toBeGreaterThanOrEqual(14);
+    const before = countPixelsInRect(cpu, 120, 40, 255, 220);
+
+    for (const ch of "cat f11\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+    cpu.run(500_000);
+
+    const after = countPixelsInRect(cpu, 120, 40, 255, 220);
+    expect(cpu.state.memory[0x1002]).toBeGreaterThanOrEqual(13);
+    expect(cpu.state.memory[0x1007]).not.toBe(0);
+    expect(cpu.state.memory[0x100C]).toBe(1);
+    expect(after).toBeGreaterThan(before);
+
+    for (const ch of "help\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+    cpu.run(200_000);
+    expect(cpu.state.memory[0x1016]).toBe(1);
   });
 
   it('"Éditeur FS ASM" opens /o filename on the real FS and edits that file with arrow movement', () => {
@@ -278,6 +330,44 @@ describe("ASM examples", () => {
       "l".charCodeAt(0),
       "o".charCodeAt(0),
     ]);
+  }, 15_000);
+
+  it('"Éditeur FS ASM" switches between several files and preserves each one', () => {
+    const example = EXAMPLES.find((e) => e.name === "Éditeur FS ASM");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    const cpu = new CPU();
+    cpu.driveData.set(formatBootDisk());
+    cpu.loadProgram(ar.bytes);
+
+    const pushText = (text: string) => {
+      for (const ch of text) {
+        cpu.pushInput(ch.charCodeAt(0));
+      }
+    };
+
+    pushText("/o one\nA\n/s\n/o two\nBC\n/s\n/o one\nD\n/s\n@\n");
+    runUntil(cpu, () => cpu.state.halted);
+
+    const entries = readBootDiskEntries(cpu.driveData);
+    const one = entries.find((entry) => entry.name === "one");
+    const two = entries.find((entry) => entry.name === "two");
+
+    expect(one).toBeDefined();
+    expect(two).toBeDefined();
+    expect(Array.from(one?.bytes.slice(0, 2) ?? [])).toEqual([
+      "A".charCodeAt(0),
+      "D".charCodeAt(0),
+    ]);
+    expect(one?.sizeBytes).toBe(2);
+    expect(Array.from(two?.bytes.slice(0, 2) ?? [])).toEqual([
+      "B".charCodeAt(0),
+      "C".charCodeAt(0),
+    ]);
+    expect(two?.sizeBytes).toBe(2);
   }, 15_000);
 
   it('"Boot Args - Cat" reads the file chosen by the bootloader', () => {

@@ -10,7 +10,12 @@ import { compile } from "../compiler";
 import { assemble } from "../assembler";
 import { CPU, type HttpFetchHandler } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
-import { getBootloaderImage, writeFileToBootDisk, writeProgramToBootDisk } from "../bootloader";
+import {
+  getBootloaderImage,
+  readBootDiskEntries,
+  writeFileToBootDisk,
+  writeProgramToBootDisk,
+} from "../bootloader";
 import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
 import { encodePlotterCoord, packPlotterColor } from "../../plotter";
 
@@ -590,6 +595,31 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("19.33");
   });
 
+  it('"Mini Shell" reports missing files and capacity limits', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Mini Shell");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      input:
+        "cat z\nx>z\ntouch a\ntouch b\ntouch c\ntouch d\ntouch e\ntouch a\nset a=1\nset b=2\nset c=3\nset d=4\nset e=5\nvars\n",
+      maxCycles: 3_000_000,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("no file z");
+    expect(r.output).toContain("created a");
+    expect(r.output).toContain("created b");
+    expect(r.output).toContain("created c");
+    expect(r.output).toContain("created d");
+    expect(r.output).toContain("file full");
+    expect(r.output).toContain("exists a");
+    expect(r.output).toContain("var full");
+    expect(r.output).toContain("a=1");
+    expect(r.output).toContain("b=2");
+    expect(r.output).toContain("c=3");
+    expect(r.output).toContain("d=4");
+  });
+
   it('"FS Disque Externe" formats, writes and reads files on the drive', () => {
     const example = C_EXAMPLES.find((e) => e.name === "FS Disque Externe");
     expect(example).toBeDefined();
@@ -617,6 +647,36 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("f notes 5b");
     expect(r.output).toContain("253p");
     expect(r.cpu.driveData[0]).toBe(66);
+  }, 10_000);
+
+  it('"FS Disque Externe" preserves program entries and handles busy/not-file/disk-full cases', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "FS Disque Externe");
+    expect(example).toBeDefined();
+
+    const prog = assemble(`
+      OUT 'O'
+      OUT 'K'
+      HLT
+    `);
+    expect(prog.success).toBe(true);
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "program", prog.bytes);
+
+    const r = compileAndRun(example!.code, {
+      input:
+        "touch program\ncat program\nx>program\ntouch a\ntouch b\ntouch c\ntouch d\ntouch e\ntouch f\ntouch g\ntouch h\nls\nfree\n",
+      maxCycles: 6_000_000,
+      driveData: disk,
+    });
+
+    expect(r.halted).toBe(false);
+    expect(r.output).toContain("busy");
+    expect(r.output).toContain("not file");
+    expect(r.output).toContain("created a");
+    expect(r.output).toContain("created g");
+    expect(r.output).toContain("disk full");
+    expect(r.output).toContain("p program 1p");
+    expect(r.output).toContain("f g 0b");
+    expect(r.output).toContain("247p");
   }, 10_000);
 
   it('"Éditeur Texte FS" creates, edits, saves and reloads a disk file', () => {
@@ -650,6 +710,38 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.driveData[0]).toBe(66);
   }, 10_000);
 
+  it('"Éditeur Texte FS" reloads existing content, clears it, then saves new text', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Texte FS");
+    expect(example).toBeDefined();
+
+    const disk = writeFileToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "notes",
+      new Uint8Array(Array.from("old\n").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const r = compileAndRun(example!.code, {
+      input: "/show\n/clear\n\n/show\nnew\n\n/show\n@\n",
+      maxCycles: 5_000_000,
+      driveData: disk,
+    });
+
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("old");
+    expect(r.output).toContain("buffer cleared");
+    expect(r.output).toContain("(empty)");
+    expect(r.output).toContain("new");
+
+    const notes = readBootDiskEntries(r.cpu.driveData).find((entry) => entry.name === "notes");
+    expect(notes?.sizeBytes).toBe(4);
+    expect(Array.from(notes?.bytes.slice(0, 4) ?? [])).toEqual([
+      "n".charCodeAt(0),
+      "e".charCodeAt(0),
+      "w".charCodeAt(0),
+      10,
+    ]);
+  }, 10_000);
+
   it('"Éditeur Multi-fichier FS" opens, creates and saves different files', () => {
     const example = C_EXAMPLES.find((e) => e.name === "Éditeur Multi-fichier FS");
     expect(example).toBeDefined();
@@ -681,6 +773,61 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("f todo 9b");
     expect(r.output).toContain("hello");
     expect(r.cpu.driveData[0]).toBe(66);
+  }, 10_000);
+
+  it('"Éditeur Multi-fichier FS" clears one file without touching another', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Multi-fichier FS");
+    expect(example).toBeDefined();
+
+    const r = compileAndRun(example!.code, {
+      input: "o alpha\nAB\ns\no beta\nCD\ns\no alpha\nc\ns\no beta\nv\n@\n",
+      maxCycles: 6_000_000,
+      driveData: new Uint8Array(DRIVE_SIZE),
+    });
+
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("created alpha");
+    expect(r.output).toContain("created beta");
+    expect(r.output).toContain("cleared alpha");
+    expect(r.output).toContain("saved alpha");
+    expect(r.output).toContain("[beta]");
+    expect(r.output).toContain("CD");
+
+    const entries = readBootDiskEntries(r.cpu.driveData);
+    const alpha = entries.find((entry) => entry.name === "alpha");
+    const beta = entries.find((entry) => entry.name === "beta");
+    expect(alpha?.sizeBytes).toBe(0);
+    expect(beta?.sizeBytes).toBe(3);
+    expect(Array.from(beta?.bytes.slice(0, 3) ?? [])).toEqual([
+      "C".charCodeAt(0),
+      "D".charCodeAt(0),
+      10,
+    ]);
+  }, 10_000);
+
+  it('"Éditeur Multi-fichier FS" reports disk full but still reopens existing files', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Éditeur Multi-fichier FS");
+    expect(example).toBeDefined();
+
+    let disk = new Uint8Array(DRIVE_SIZE);
+    for (let i = 0; i < 8; i++) {
+      disk = writeFileToBootDisk(
+        disk,
+        `f${i}`,
+        new Uint8Array([65 + i]),
+      );
+    }
+
+    const r = compileAndRun(example!.code, {
+      input: "o extra\no f3\nv\n@\n",
+      maxCycles: 5_000_000,
+      driveData: disk,
+    });
+
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("disk full");
+    expect(r.output).toContain("opened f3");
+    expect(r.output).toContain("[f3]");
   }, 10_000);
 
   it('"Éditeur Multi-fichier FS" moves the cursor with arrow keys before deleting', () => {

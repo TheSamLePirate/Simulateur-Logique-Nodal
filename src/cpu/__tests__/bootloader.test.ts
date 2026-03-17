@@ -36,6 +36,38 @@ function runBootCommand(disk: Uint8Array, command: string) {
   };
 }
 
+function runCpuUntil(
+  cpu: CPU,
+  predicate: () => boolean,
+  maxSteps = 200000,
+): boolean {
+  for (let i = 0; i < maxSteps && !cpu.state.halted; i++) {
+    if (predicate()) return true;
+    cpu.step();
+  }
+  return predicate();
+}
+
+function bootToPrompt(disk: Uint8Array) {
+  const boot = getBootloaderImage();
+  const cpu = new CPU();
+  cpu.loadDriveData(disk);
+  cpu.loadProgram(boot.bytes, boot.startAddr);
+  expect(
+    runCpuUntil(cpu, () => cpu.consoleOutput.join("").endsWith("unix$ ")),
+  ).toBe(true);
+  return cpu;
+}
+
+function sendShellCommand(cpu: CPU, command: string) {
+  const before = cpu.consoleOutput.join("");
+  for (const ch of command) {
+    cpu.pushInput(ch.charCodeAt(0));
+  }
+  cpu.pushInput(10);
+  return before;
+}
+
 describe("bootloader shell", () => {
   const asm = assemble(`
     OUT 'O'
@@ -218,6 +250,123 @@ describe("bootloader shell", () => {
     expect(result.output).toContain("abc");
     expect(args.file?.sizeBytes).toBe(3);
     expect(args.file?.startPage).toBeGreaterThan(0);
+  });
+
+  it("accepts extra spaces around bootloader command arguments", () => {
+    const spacedAsm = assemble(`
+      LDM 0x1018
+      ADD 48
+      OUTA
+      OUT ':'
+      LDM 0x101e
+      OUTD
+      HLT
+    `);
+    expect(spacedAsm.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "spaced",
+      spacedAsm.bytes,
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const result = runBootCommand(disk, "run   spaced   notes");
+    expect(result.output).toContain("1:5");
+  });
+
+  it("clears boot arguments before a later run without file arguments", () => {
+    const bootArgAsm = assemble(`
+      LDM 0x1018
+      ADD 48
+      OUTA
+      OUT ':'
+      LDM 0x101e
+      OUTD
+      HLT
+    `);
+    expect(bootArgAsm.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "bootarg",
+      bootArgAsm.bytes,
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = bootToPrompt(disk);
+
+    sendShellCommand(cpu, "run bootarg notes");
+    expect(runCpuUntil(cpu, () => cpu.state.halted)).toBe(true);
+    expect(cpu.consoleOutput.join("")).toContain("1:5");
+
+    const resumed = bootCpuToShell(cpu, { preserveConsole: true });
+    expect(resumed).toBe(true);
+
+    sendShellCommand(cpu, "run bootarg");
+    expect(runCpuUntil(cpu, () => cpu.state.halted)).toBe(true);
+
+    const output = cpu.consoleOutput.join("");
+    expect(output).toContain("1:5");
+    expect(output).toContain("0:0");
+  });
+
+  it("keeps the shell usable after error paths in cat and run", () => {
+    const disk0 = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "calc", asm.bytes);
+    const disk1 = writeFileToBootDisk(
+      disk0,
+      "notes",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = bootToPrompt(disk1);
+
+    const beforeMissing = sendShellCommand(cpu, "cat missing");
+    expect(
+      runCpuUntil(
+        cpu,
+        () =>
+          cpu.consoleOutput.join("").length > beforeMissing.length &&
+          cpu.consoleOutput.join("").endsWith("unix$ "),
+      ),
+    ).toBe(true);
+    expect(cpu.consoleOutput.join("").slice(beforeMissing.length)).toContain("not found");
+
+    const beforeNotRunnable = sendShellCommand(cpu, "run notes");
+    expect(
+      runCpuUntil(
+        cpu,
+        () =>
+          cpu.consoleOutput.join("").length > beforeNotRunnable.length &&
+          cpu.consoleOutput.join("").endsWith("unix$ "),
+      ),
+    ).toBe(true);
+    expect(cpu.consoleOutput.join("").slice(beforeNotRunnable.length)).toContain(
+      "not runnable",
+    );
+
+    const beforeNotFile = sendShellCommand(cpu, "cat calc");
+    expect(
+      runCpuUntil(
+        cpu,
+        () =>
+          cpu.consoleOutput.join("").length > beforeNotFile.length &&
+          cpu.consoleOutput.join("").endsWith("unix$ "),
+      ),
+    ).toBe(true);
+    expect(cpu.consoleOutput.join("").slice(beforeNotFile.length)).toContain("not file");
+
+    const beforeRun = sendShellCommand(cpu, "run calc");
+    expect(runCpuUntil(cpu, () => cpu.state.halted)).toBe(true);
+    expect(cpu.consoleOutput.join("").slice(beforeRun.length)).toContain("OK");
   });
 
   it("can return to the shell prompt after a program halts", () => {
