@@ -70,6 +70,28 @@ describe("bootloader shell", () => {
     expect(result.output).toContain("f notes 5b");
   });
 
+  it("clr clears both the shell console and the plotter", () => {
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+
+    cpu.plotterPixels.set(encodePlotterCoord(12, 34), 0x123456);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+    for (const ch of "clr") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+    cpu.pushInput(10);
+
+    for (let i = 0; i < 200000 && !cpu.state.halted; i++) {
+      cpu.step();
+      if (cpu.consoleOutput.join("") === "unix$ ") {
+        break;
+      }
+    }
+
+    expect(cpu.consoleOutput.join("")).toBe("unix$ ");
+    expect(cpu.plotterPixels.size).toBe(0);
+  });
+
   it("supports 64 directory entries across multiple directory pages", () => {
     let disk = new Uint8Array(DRIVE_SIZE);
 

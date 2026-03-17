@@ -480,6 +480,10 @@ export class CPU {
         this.plotterPixels = new Map();
         break;
 
+      case Opcode.CLCON:
+        this.consoleOutput = [];
+        break;
+
       case Opcode.DRVRD:
         this.driveLastAddr = this.getDriveAddress();
         this.driveLastRead = this.driveData[this.driveLastAddr];

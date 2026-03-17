@@ -51,6 +51,7 @@ export const Opcode = {
   COLG: 0x1b, // plotter color green channel ← A
   COLB: 0x1c, // plotter color blue channel ← A
   HTTPIN: 0x1d, // A ← next HTTP response byte, C=1 while request still pending
+  CLCON: 0x1e, // console output ← empty
 
   // Stack (1-byte)
   RET: 0x10,
@@ -176,6 +177,11 @@ export const INSTRUCTION_INFO: Record<number, InstructionInfo> = {
     mnemonic: "HTTPIN",
     size: 1,
     description: "A ← next HTTP response byte, C=1 while waiting",
+  },
+  [Opcode.CLCON]: {
+    mnemonic: "CLCON",
+    size: 1,
+    description: "Clear console output",
   },
 
   [Opcode.RET]: { mnemonic: "RET", size: 1, description: "PC ← pop" },

@@ -273,11 +273,11 @@ check_cat:
   LDA 0
   LDAI 0x1000
   CMP 'c'
-  JNZ check_free
+  JNZ check_clr
   LDA 1
   LDAI 0x1000
   CMP 'a'
-  JNZ cmd_unknown
+  JNZ check_clr
   LDA 2
   LDAI 0x1000
   CMP 't'
@@ -291,6 +291,25 @@ check_cat:
   CMP 1
   JNZ cmd_not_file
   CALL cat_entry
+  JMP main_loop
+check_clr:
+  LDA 0
+  LDAI 0x1000
+  CMP 'c'
+  JNZ check_free
+  LDA 1
+  LDAI 0x1000
+  CMP 'l'
+  JNZ cmd_unknown
+  LDA 2
+  LDAI 0x1000
+  CMP 'r'
+  JNZ cmd_unknown
+  LDA 3
+  LDAI 0x1000
+  CMP 0
+  JNZ cmd_unknown
+  CALL cmd_clr
   JMP main_loop
 check_free:
   LDA 0
@@ -342,6 +361,12 @@ cmd_help:
   OUT ' '
   OUT '|'
   OUT ' '
+  OUT 'c'
+  OUT 'l'
+  OUT 'r'
+  OUT ' '
+  OUT '|'
+  OUT ' '
   OUT 'f'
   OUT 'r'
   OUT 'e'
@@ -370,6 +395,10 @@ cmd_free:
   OUT 'e'
   OUT 'e'
   OUT 10
+  RET
+cmd_clr:
+  CLCON
+  CLR
   RET
 cmd_not_found:
   OUT 'n'

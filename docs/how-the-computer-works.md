@@ -781,7 +781,7 @@ The software view now has an optional **bootloader mode**.
 - **Compile** still compiles the current ASM or C source, but in bootloader mode it prepares the program artifact without interrupting a shell that is already running
 - **Run** and **Step** automatically load the boot shell into high memory if needed
 - **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format without stopping the live shell
-- the boot shell can then `ls`, `run x`, `cat x`, `free`, and `help`
+- the boot shell can then `ls`, `run x`, `cat x`, `clr`, `free`, and `help`
 
 The bootloader lives in upper RAM and copies a selected disk program down to address `0x0000` before jumping to it. That means disk-loaded programs can use the normal code budget instead of a reduced boot-only limit.
 
