@@ -14,7 +14,8 @@
  *   0x1010..0x1015 = arithmetic scratch (multiply, divide, bitwise)
  *   0x1016          = scratch: unused
  *   0x1017          = scratch: return value save
- *   0x1018..0x17FF = reusable function frames (locals/params, packed by call graph)
+ *   0x1018..0x101F = bootloader argument block
+ *   0x1020..0x17FF = reusable function frames (locals/params, packed by call graph)
  *   0x1800..0x1FFF = stack (2048 bytes, grows downward from 0x1FFF)
  *
  * Calling convention:
@@ -27,6 +28,16 @@
  */
 
 import type { Program, FunctionDecl, Stmt, Expr, Block } from "./parser";
+import {
+  BOOT_ARG_COUNT_ADDR,
+  BOOT_ARG0_DIR_OFFSET_ADDR,
+  BOOT_ARG0_DIR_PAGE_ADDR,
+  BOOT_ARG0_INDEX_ADDR,
+  BOOT_ARG0_PAGE_COUNT_ADDR,
+  BOOT_ARG0_SIZE_ADDR,
+  BOOT_ARG0_START_PAGE_ADDR,
+  BOOT_ARG0_TYPE_ADDR,
+} from "../bootArgs";
 
 export interface CodegenError {
   line: number;
@@ -58,7 +69,7 @@ interface FuncInfo {
 // Scratch memory constants
 const TEMP_BASE = 0x1010; // 0x1010-0x1015 for arithmetic
 const TEMP_RETVAL = 0x1017; // save return value around POPs
-const LOCAL_BASE = 0x1018;
+const LOCAL_BASE = 0x1020;
 const STACK_BASE = 0x1800; // stack occupies 0x1800-0x1FFF
 
 export function generate(program: Program): {
@@ -99,6 +110,15 @@ export function generate(program: Program): {
     "drive_set_page",
     "drive_read_at",
     "drive_write_at",
+    "boot_argc",
+    "boot_arg_page",
+    "boot_arg_offset",
+    "boot_arg_type",
+    "boot_arg_start_page",
+    "boot_arg_page_count",
+    "boot_arg_size",
+    "boot_arg_index",
+    "boot_file_read",
     "get",
     "post",
     "gethttpchar",
@@ -1590,6 +1610,57 @@ export function generate(program: Program): {
         emit(`  POP`); // offset → A
         emit(`  DRVWR`);
         emit(`  TBA`); // expression result = written value
+      }
+      return;
+    }
+
+    // ── Built-ins: bootloader argument block ──
+    if (expr.name === "boot_argc") {
+      emit(`  LDM ${fmt(BOOT_ARG_COUNT_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_page") {
+      emit(`  LDM ${fmt(BOOT_ARG0_DIR_PAGE_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_offset") {
+      emit(`  LDM ${fmt(BOOT_ARG0_DIR_OFFSET_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_type") {
+      emit(`  LDM ${fmt(BOOT_ARG0_TYPE_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_start_page") {
+      emit(`  LDM ${fmt(BOOT_ARG0_START_PAGE_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_page_count") {
+      emit(`  LDM ${fmt(BOOT_ARG0_PAGE_COUNT_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_size") {
+      emit(`  LDM ${fmt(BOOT_ARG0_SIZE_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_arg_index") {
+      emit(`  LDM ${fmt(BOOT_ARG0_INDEX_ADDR)}`);
+      return;
+    }
+
+    if (expr.name === "boot_file_read") {
+      if (expr.args.length >= 1) {
+        emit(`  LDM ${fmt(BOOT_ARG0_START_PAGE_ADDR)}`);
+        emit(`  DRVPG`);
+        emitExpr(expr.args[0], ctx);
+        emit(`  DRVRD`);
       }
       return;
     }

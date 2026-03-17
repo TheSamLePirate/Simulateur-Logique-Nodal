@@ -4350,4 +4350,27 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Boot Args - Cat",
+    description: "Lit le fichier passe a 'run bootcat nom' via le bloc d'arguments du bootloader",
+    code: `// Utilisation:
+//   run bootcat notes
+// Le bootloader remplit 0x1018..0x101F et ces built-ins lisent ce bloc.
+
+int main() {
+  int i;
+
+  if (boot_argc() == 0) {
+    print("NO ARG");
+    putchar(10);
+    return 0;
+  }
+
+  for (i = 0; i < boot_arg_size(); i++) {
+    putchar(boot_file_read(i));
+  }
+
+  return 0;
+}`,
+  },
 ];

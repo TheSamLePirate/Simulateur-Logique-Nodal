@@ -10,7 +10,7 @@ import { compile } from "../compiler";
 import { assemble } from "../assembler";
 import { CPU, type HttpFetchHandler } from "../cpu";
 import { C_EXAMPLES } from "../cexamples";
-import { writeProgramToBootDisk } from "../bootloader";
+import { getBootloaderImage, writeFileToBootDisk, writeProgramToBootDisk } from "../bootloader";
 import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
 import { encodePlotterCoord, packPlotterColor } from "../../plotter";
 
@@ -1790,4 +1790,42 @@ describe("C Examples — Interactive Halt", () => {
       expect(r.halted).toBe(true);
     });
   }
+});
+
+describe("C Examples — Bootloader Args", () => {
+  it('"Boot Args - Cat" reads the file passed by the bootloader', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Boot Args - Cat");
+    expect(example).toBeDefined();
+
+    const compiled = compile(example!.code);
+    expect(compiled.success).toBe(true);
+
+    const program = assemble(compiled.assembly);
+    expect(program.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "bootcat",
+      program.bytes,
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      new Uint8Array(Array.from("hello").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+
+    for (const ch of "run bootcat notes\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+
+    cpu.run(500_000);
+
+    expect(cpu.consoleOutput.join("")).toContain("hello");
+    expect(cpu.state.halted).toBe(true);
+  });
 });

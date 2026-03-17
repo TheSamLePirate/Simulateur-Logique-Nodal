@@ -885,6 +885,8 @@ The external drive is intentionally **not cleared by CPU reset**, so it behaves 
 
 7. **Bootloader lifecycle on Hardware page:** If a disk program halts, the software view automatically returns to the bootloader prompt and the Hardware page mirrors that change as well. The external drive node keeps its contents because the disk is persistent across reset.
 
+8. **Bootloader file arguments:** The shell now supports `run program file`. When you launch a program that way, the bootloader resolves the file entry first and writes its metadata to RAM at `0x1018..0x101F` before jumping to the program. That same RAM state is mirrored on the Hardware page, so you can watch a bootloader-launched ASM or C tool consume the already-resolved file pointer without doing its own directory scan.
+
 ---
 
 ## 12. How Signals Propagate

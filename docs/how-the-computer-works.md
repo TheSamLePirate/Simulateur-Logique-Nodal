@@ -125,11 +125,25 @@ The entire computer has **8192 bytes** of memory (13-bit address space, 0x0000�
   0x1000-0x100F     GLOBALS: Global variables (C compiler, 16 max)
   0x1010-0x1015     SCRATCH: Compiler temps / runtime helper state
   0x1017            SCRATCH: Return value save
-  0x1018-0x17FF     FRAMES: Reusable function params, locals, arrays
+  0x1018-0x101F     BOOT ARGS: Bootloader-passed file descriptor block
+  0x1020-0x17FF     FRAMES: Reusable function params, locals, arrays
   0x1800-0x1FFF     STACK: Grows downward from 0x1FFF (2048 bytes)
 ```
 
 The important compiler detail is that **locals are no longer globally unique forever**. The compiler now packs variables into reusable **function frames** and reuses block-local slots when their scopes do not overlap. Two unrelated functions can share the same RAM addresses if they can never be active at the same time.
+
+When a disk program is launched from the bootloader with `run program file`, the bootloader resolves `file` for you and stores one argument block in RAM:
+
+- `0x1018` = argument count (`0` or `1`)
+- `0x1019` = directory page of the resolved entry
+- `0x101A` = directory offset of the resolved entry
+- `0x101B` = entry type
+- `0x101C` = data start page
+- `0x101D` = page count
+- `0x101E` = size in bytes
+- `0x101F` = directory entry index
+
+ASM programs can read those bytes directly. C programs can use the `boot_arg*()` built-ins described in the C guide.
 
 ### Important Rules
 
@@ -494,7 +508,8 @@ Since the CPU has no stack-relative addressing, every variable still gets a **fi
   Global variables:  0x1000, 0x1001, 0x1002, ... (up to 16)
   Arithmetic temps:  0x1010-0x1015               (compiler/runtime helper scratch)
   Return value save: 0x1017
-  Function frames:   0x1018, 0x1019, 0x101A, ... (reused across scopes/functions)
+  Boot args:         0x1018-0x101F               (only when bootloader launches with an argument)
+  Function frames:   0x1020, 0x1021, 0x1022, ... (reused across scopes/functions)
   Stack:             0x1800-0x1FFF               (grows downward from 0x1FFF)
 ```
 
@@ -511,16 +526,16 @@ The result of any expression always ends up in **register A**:
 For example, `x + 5` can compile directly to:
 
 ```asm
-  LDM 0x1018     ; A = x
+  LDM 0x1020     ; A = x
   ADD 5          ; A = x + 5
 ```
 
 And `x + y` still uses both registers:
 
 ```asm
-  LDM 0x1018     ; A = x
+  LDM 0x1020     ; A = x
   PUSH
-  LDM 0x1019     ; A = y
+  LDM 0x1021     ; A = y
   TAB            ; B = y
   POP            ; A = x
   ADDB           ; A = x + y
@@ -547,7 +562,7 @@ Generates:
 
 ```asm
   ; evaluate condition (result in A: 0 or 1)
-  LDM 0x1018     ; A = x
+  LDM 0x1020     ; A = x
   ...           ; comparison → A = 0 or 1
   CMP 0
   JZ __L1       ; if false, jump to else
@@ -575,15 +590,15 @@ Generates:
 ```asm
 __L0:          ; loop start
   ; evaluate condition
-  LDM 0x1018
+  LDM 0x1020
   ...          ; comparison
   CMP 0
   JZ __L1      ; if false, exit loop
 
   ; loop body
-  LDM 0x1018
+  LDM 0x1020
   DEC
-  STA 0x1018
+  STA 0x1020
 
   JMP __L0     ; back to loop start
 __L1:          ; loop end
@@ -632,9 +647,9 @@ So operations like `x * y`, `x % y`, and `x ^ y` no longer need large inline loo
 Example:
 
 ```asm
-  LDM 0x1018     ; A = x
+  LDM 0x1020     ; A = x
   PUSH
-  LDM 0x1019     ; A = y
+  LDM 0x1021     ; A = y
   TAB            ; B = y
   POP            ; A = x
   MULB           ; A = x * y
@@ -649,28 +664,28 @@ Arrays use two special opcodes for **indexed memory access**:
 - `LDAI base` — Indexed load: `A ← MEM[base + A]` (index in A)
 - `STAI base` — Indexed store: `MEM[base + B] ← A` (index in B, value in A)
 
-Arrays are allocated as contiguous bytes in the same memory regions as scalars (globals at 0x1000+, locals at 0x1018+).
+Arrays are allocated as contiguous bytes in the same memory regions as scalars (globals at 0x1000+, locals at 0x1020+).
 
 **Reading** `x = arr[i]`:
 
 ```asm
   ; compute index → A
-  LDM 0x101A      ; A = i
-  LDAI 0x1018     ; A = MEM[0x1018 + A]  (arr[i])
-  STA 0x101B      ; x = result
+  LDM 0x1022      ; A = i
+  LDAI 0x1020     ; A = MEM[0x1020 + A]  (arr[i])
+  STA 0x1023      ; x = result
 ```
 
 **Writing** `arr[i] = expr`:
 
 ```asm
   ; compute value → A
-  LDM 0x101B      ; A = value
+  LDM 0x1023      ; A = value
   PUSH            ; save value on stack
   ; compute index → A
-  LDM 0x101A      ; A = i
+  LDM 0x1022      ; A = i
   TAB             ; B = index
   POP             ; A = value (restored)
-  STAI 0x1018     ; MEM[0x1018 + B] = A  (arr[i] = value)
+  STAI 0x1020     ; MEM[0x1020 + B] = A  (arr[i] = value)
 ```
 
 **Complex index** `arr[j+1]` works because the index expression is fully evaluated into A before the LDAI/STAI instruction.
@@ -782,9 +797,11 @@ The software view now has an optional **bootloader mode**.
 - **Compile** still compiles the current ASM or C source, but in bootloader mode it prepares the program artifact without interrupting a shell that is already running
 - **Run** and **Step** automatically load the boot shell into high memory if needed
 - **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format without stopping the live shell
-- the boot shell can then `ls`, `run x`, `cat x`, `clr`, `free`, and `help`
+- the boot shell can then `ls`, `run program [file]`, `cat x`, `clr`, `free`, and `help`
 
 The bootloader lives in upper RAM and copies a selected disk program down to address `0x0000` before jumping to it. That means disk-loaded programs can use the normal code budget instead of a reduced boot-only limit.
+
+If you launch a program as `run viewer notes`, the bootloader also resolves `notes` first and stores its directory/page metadata in `0x1018..0x101F`. That lets the launched program read the file immediately instead of rescanning the filesystem by name.
 
 When a disk-loaded C or ASM program executes `HLT` while bootloader mode is active, the software CPU does **not** stay dead. The software view reloads the shell and returns to the `unix$ ` prompt automatically, with a newline inserted before the resumed prompt.
 
@@ -967,10 +984,10 @@ int main() {
 
 What happens under the hood:
 
-1. Compiler allocates address 0x1018 for `fact`'s parameter `n`
-2. `fact(5)` → saves main's vars to stack, writes 5 to 0x1018, calls `__fact`
+1. Compiler allocates address 0x1020 for `fact`'s parameter `n`
+2. `fact(5)` → saves main's vars to stack, writes 5 to 0x1020, calls `__fact`
 3. Inside `fact`: checks `n <= 1`? No. Computes `n - 1 = 4`.
-4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x1018, calls `__fact` again
+4. Calls `fact(4)` → saves current `n` (5) to stack, writes 4 to 0x1020, calls `__fact` again
 5. This repeats until `n = 1`, which returns 1
 6. Unwinding: `fact(2)` computes `2 * 1 = 2`, `fact(3)` computes `3 * 2 = 6`, etc.
 7. Final result: `fact(5) = 120`
@@ -1039,10 +1056,10 @@ int main() {
 
 What happens under the hood:
 
-1. `int t[8]` allocates 8 contiguous bytes starting at address 0x1018
-2. `t[0] = 64` compiles to: `LDA 64; STAI 0x1018` (with B=0, from index expression)
-3. `t[j]` compiles to: load `j` into A → `LDAI 0x1018` (A = MEM[0x1018 + j])
-4. `t[j+1] = tmp` compiles to: load `tmp` → PUSH → load `j+1` → TAB → POP → `STAI 0x1018`
+1. `int t[8]` allocates 8 contiguous bytes starting at address `0x1020`
+2. `t[0] = 64` compiles to: `LDA 64; STAI 0x1020` (with `B=0`, from the index expression)
+3. `t[j]` compiles to: load `j` into `A` → `LDAI 0x1020` (`A = MEM[0x1020 + j]`)
+4. `t[j+1] = tmp` compiles to: load `tmp` → `PUSH` → load `j+1` → `TAB` → `POP` → `STAI 0x1020`
 5. The comparison `t[j] > t[j+1]` evaluates both indexed reads, compares, and branches
 
 The LDAI/STAI opcodes make array access efficient — each read or write is a single 3-byte instruction, with the index register doing the address arithmetic in hardware.

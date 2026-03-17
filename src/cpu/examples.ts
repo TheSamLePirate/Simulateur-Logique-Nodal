@@ -5,6 +5,11 @@
 import { BOOTLOADER_SOURCE } from "./bootloader";
 import { ASM_FS_EDITOR_SOURCE } from "./asmFsEditor";
 import { ASM_PLOTTER_SHELL_SOURCE } from "./asmPlotterShell";
+import {
+  BOOT_ARG_COUNT_ADDR,
+  BOOT_ARG0_SIZE_ADDR,
+  BOOT_ARG0_START_PAGE_ADDR,
+} from "./bootArgs";
 
 export interface Example {
   name: string;
@@ -772,6 +777,48 @@ tree2_d:
   JMP tree2_d
 
 done_rgb_scene:
+  HLT`,
+  },
+  {
+    name: "Boot Args - Cat",
+    description: "Affiche le fichier passe a 'run bootcat nom' sans rescanner le FS",
+    code: `; Utilisation:
+;   run bootcat notes
+; Le bootloader remplit 0x1018..0x101F avant le saut au programme.
+
+  LDM ${BOOT_ARG_COUNT_ADDR}
+  CMP 0
+  JNZ have_file
+  OUT 'N'
+  OUT 'O'
+  OUT ' '
+  OUT 'A'
+  OUT 'R'
+  OUT 'G'
+  OUT 10
+  HLT
+
+have_file:
+  LDM ${BOOT_ARG0_START_PAGE_ADDR}
+  DRVPG
+  LDA 0
+  STA 0x1100
+
+read_loop:
+  LDM 0x1100
+  TAB
+  LDM ${BOOT_ARG0_SIZE_ADDR}
+  CMPB
+  JZ done
+  TBA
+  DRVRD
+  OUTA
+  LDM 0x1100
+  INC
+  STA 0x1100
+  JMP read_loop
+
+done:
   HLT`,
   },
 ];

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { assemble } from "../assembler";
+import { readBootArgumentBlock } from "../bootArgs";
+import { compile } from "../compiler";
 import { CPU } from "../cpu";
 import { DRIVE_SIZE } from "../isa";
 import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
@@ -120,6 +122,102 @@ describe("bootloader shell", () => {
     const result = runBootCommand(disk, "run calc");
     expect(result.output).toContain("OK");
     expect(result.cpu.state.halted).toBe(true);
+  });
+
+  it("passes a resolved file entry to ASM programs", () => {
+    const bootArgAsm = assemble(`
+      LDM 0x1018
+      CMP 1
+      JZ have_file
+      OUT '?'
+      HLT
+
+    have_file:
+      LDM 0x101c
+      DRVPG
+      LDA 0
+      STA 0x1100
+
+    loop:
+      LDM 0x1100
+      TAB
+      LDM 0x101e
+      CMPB
+      JZ done
+      TBA
+      DRVRD
+      OUTA
+      LDM 0x1100
+      INC
+      STA 0x1100
+      JMP loop
+
+    done:
+      HLT
+    `);
+    expect(bootArgAsm.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "bootcat",
+      bootArgAsm.bytes,
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const result = runBootCommand(disk, "run bootcat notes");
+    const args = readBootArgumentBlock(result.cpu.state.memory);
+
+    expect(result.output).toContain("hello");
+    expect(args.count).toBe(1);
+    expect(args.file).toMatchObject({
+      type: 1,
+      sizeBytes: 5,
+    });
+  });
+
+  it("passes a resolved file entry to C programs", () => {
+    const compiled = compile(`
+      int main() {
+        int i;
+
+        if (boot_argc() == 0) {
+          print("NO ARG");
+          return 0;
+        }
+
+        for (i = 0; i < boot_arg_size(); i++) {
+          putchar(boot_file_read(i));
+        }
+
+        return 0;
+      }
+    `);
+    expect(compiled.success).toBe(true);
+
+    const program = assemble(compiled.assembly);
+    expect(program.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "bootcat",
+      program.bytes,
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "story",
+      Uint8Array.from("abc".split("").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const result = runBootCommand(disk, "run bootcat story");
+    const args = readBootArgumentBlock(result.cpu.state.memory);
+
+    expect(result.output).toContain("abc");
+    expect(args.file?.sizeBytes).toBe(3);
+    expect(args.file?.startPage).toBeGreaterThan(0);
   });
 
   it("can return to the shell prompt after a program halts", () => {

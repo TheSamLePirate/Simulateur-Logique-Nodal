@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { assemble } from "../assembler";
 import {
   formatBootDisk,
+  getBootloaderImage,
   readBootDiskEntries,
   writeFileToBootDisk,
+  writeProgramToBootDisk,
 } from "../bootloader";
 import { CPU } from "../cpu";
 import { EXAMPLES } from "../examples";
@@ -277,4 +279,33 @@ describe("ASM examples", () => {
       "o".charCodeAt(0),
     ]);
   }, 15_000);
+
+  it('"Boot Args - Cat" reads the file chosen by the bootloader', () => {
+    const example = EXAMPLES.find((e) => e.name === "Boot Args - Cat");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    let disk = writeProgramToBootDisk(new Uint8Array(8192), "bootcat", ar.bytes);
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      new Uint8Array(Array.from("hello").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+
+    for (const ch of "run bootcat notes\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+
+    cpu.run(500_000);
+
+    expect(cpu.consoleOutput.join("")).toContain("hello");
+    expect(cpu.state.halted).toBe(true);
+  });
 });

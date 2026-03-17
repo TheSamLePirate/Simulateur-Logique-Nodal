@@ -756,6 +756,81 @@ The external drive has `8192` bytes and persists across CPU reset, which makes i
 
 The `FS Disque Externe` example and the bootloader shell both use the same disk format, so files and compiled programs can coexist on the same disk image.
 
+### Bootloader launch arguments
+
+If a program is launched from the shell as:
+
+```text
+run myprog notes
+```
+
+the bootloader resolves `notes` first and writes one boot-argument block into RAM before jumping to `myprog`.
+
+Layout:
+
+- `0x1018` = argument count (`0` or `1`)
+- `0x1019` = directory page
+- `0x101A` = directory offset
+- `0x101B` = entry type
+- `0x101C` = data start page
+- `0x101D` = page count
+- `0x101E` = size in bytes
+- `0x101F` = directory entry index
+
+You can access that block from C with these built-ins:
+
+#### `boot_argc()`
+
+Returns how many bootloader arguments were passed.
+
+```c
+if (boot_argc() == 0) {
+  print("No file");
+}
+```
+
+#### `boot_arg_page()`
+
+Returns the directory page of the resolved entry.
+
+#### `boot_arg_offset()`
+
+Returns the directory offset of the resolved entry.
+
+#### `boot_arg_type()`
+
+Returns the entry type (`1` = file, `2` = program).
+
+#### `boot_arg_start_page()`
+
+Returns the first drive page containing the entry data.
+
+#### `boot_arg_page_count()`
+
+Returns how many drive pages the entry occupies.
+
+#### `boot_arg_size()`
+
+Returns the byte size stored in the directory entry.
+
+#### `boot_arg_index()`
+
+Returns the directory index (`0..63`) of the resolved entry.
+
+#### `boot_file_read(offset)`
+
+Reads one byte from the bootloader-passed file data using the already-resolved start page.
+
+```c
+int i;
+
+for (i = 0; i < boot_arg_size(); i++) {
+  putchar(boot_file_read(i));
+}
+```
+
+This is the easiest way to write a bootloader-launched viewer or tool without rescanning the filesystem by name.
+
 ### Shared FS usage
 
 If you want your C program to share the disk correctly with the bootloader, `FS Disque Externe`, `Éditeur Texte FS`, `Éditeur Multi-fichier FS`, and `Éditeur FS ASM`, use the same filesystem conventions.
@@ -821,6 +896,7 @@ Programs stored by **Compile to Disk** use the same directory format.
 
 - programs use entry type `2`
 - the bootloader can `run` them
+- the bootloader can also launch them as `run program file`, in which case the resolved file metadata is exposed through the `boot_arg*()` built-ins above
 - text-oriented FS tools should not overwrite or edit type `2` entries as if they were normal text files
 
 #### Practical compatibility rules

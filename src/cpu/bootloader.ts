@@ -1,4 +1,14 @@
 import { assemble } from "./assembler";
+import {
+  BOOT_ARG_COUNT_ADDR,
+  BOOT_ARG0_DIR_OFFSET_ADDR,
+  BOOT_ARG0_DIR_PAGE_ADDR,
+  BOOT_ARG0_INDEX_ADDR,
+  BOOT_ARG0_PAGE_COUNT_ADDR,
+  BOOT_ARG0_SIZE_ADDR,
+  BOOT_ARG0_START_PAGE_ADDR,
+  BOOT_ARG0_TYPE_ADDR,
+} from "./bootArgs";
 import { CPU } from "./cpu";
 import { CODE_SIZE, DRIVE_PAGE_SIZE, DRIVE_SIZE } from "./isa";
 
@@ -262,12 +272,28 @@ check_run:
   JNZ cmd_unknown
   LDA 4
   STA 0x1023
+  CALL skip_spaces
   CALL find_entry
   CMP 0
   JZ cmd_not_found
   LDM 0x1026
   CMP 2
   JNZ cmd_not_program
+  LDM 0x1024
+  STA 0x1034
+  LDM 0x1025
+  STA 0x1035
+  CALL clear_boot_args
+  CALL advance_to_next_token
+  LDM 0x1023
+  TAB
+  LDAI 0x1000
+  CMP 0
+  JZ copy_program
+  CALL find_entry
+  CMP 0
+  JZ cmd_not_found
+  CALL store_boot_arg0
   JMP copy_program
 check_cat:
   LDA 0
@@ -284,6 +310,7 @@ check_cat:
   JNZ cmd_unknown
   LDA 4
   STA 0x1023
+  CALL skip_spaces
   CALL find_entry
   CMP 0
   JZ cmd_not_found
@@ -347,6 +374,13 @@ cmd_help:
   OUT 'a'
   OUT 'm'
   OUT 'e'
+  OUT ' '
+  OUT '['
+  OUT 'f'
+  OUT 'i'
+  OUT 'l'
+  OUT 'e'
+  OUT ']'
   OUT ' '
   OUT '|'
   OUT ' '
@@ -474,8 +508,74 @@ read_done:
   STAI 0x1000
   RET
 
-dir_read_field:
-  STA 0x1033
+skip_spaces:
+skip_spaces_loop:
+  LDM 0x1023
+  TAB
+  LDAI 0x1000
+  CMP ' '
+  JNZ skip_spaces_done
+  LDM 0x1023
+  INC
+  STA 0x1023
+  JMP skip_spaces_loop
+skip_spaces_done:
+  RET
+
+advance_to_next_token:
+  CALL skip_spaces
+advance_token_loop:
+  LDM 0x1023
+  TAB
+  LDAI 0x1000
+  CMP 0
+  JZ advance_token_done
+  CMP ' '
+  JZ advance_after_space
+  LDM 0x1023
+  INC
+  STA 0x1023
+  JMP advance_token_loop
+advance_after_space:
+  LDM 0x1023
+  INC
+  STA 0x1023
+  CALL skip_spaces
+advance_token_done:
+  RET
+
+clear_boot_args:
+  LDA 0
+  STA ${BOOT_ARG_COUNT_ADDR}
+  STA ${BOOT_ARG0_DIR_PAGE_ADDR}
+  STA ${BOOT_ARG0_DIR_OFFSET_ADDR}
+  STA ${BOOT_ARG0_TYPE_ADDR}
+  STA ${BOOT_ARG0_START_PAGE_ADDR}
+  STA ${BOOT_ARG0_PAGE_COUNT_ADDR}
+  STA ${BOOT_ARG0_SIZE_ADDR}
+  STA ${BOOT_ARG0_INDEX_ADDR}
+  RET
+
+store_boot_arg0:
+  LDA 1
+  STA ${BOOT_ARG_COUNT_ADDR}
+  LDM 0x1036
+  STA ${BOOT_ARG0_DIR_PAGE_ADDR}
+  LDM 0x1037
+  STA ${BOOT_ARG0_DIR_OFFSET_ADDR}
+  LDM 0x1026
+  STA ${BOOT_ARG0_TYPE_ADDR}
+  LDM 0x1024
+  STA ${BOOT_ARG0_START_PAGE_ADDR}
+  LDM 0x1025
+  STA ${BOOT_ARG0_PAGE_COUNT_ADDR}
+  LDM 0x1027
+  STA ${BOOT_ARG0_SIZE_ADDR}
+  LDM 0x1022
+  STA ${BOOT_ARG0_INDEX_ADDR}
+  RET
+
+dir_seek_entry_base:
   LDA 0
   STA 0x1030
   LDA 16
@@ -501,6 +601,11 @@ dir_seek_next:
   STA 0x1032
   JMP dir_seek_loop
 dir_seek_done:
+  RET
+
+dir_read_field:
+  STA 0x1033
+  CALL dir_seek_entry_base
   LDM 0x1031
   TAB
   LDM 0x1033
@@ -616,6 +721,8 @@ find_cmp_loop:
   TAB
   LDAI 0x1000
   STA 0x102c
+  CMP ' '
+  JZ find_cmp_end
   LDM 0x102b
   CALL dir_read_field
   STA 0x102e
@@ -623,6 +730,12 @@ find_cmp_loop:
   CMP 0
   JNZ find_cmp_value
   LDM 0x102e
+  CMP 0
+  JZ find_found
+  JMP find_next
+find_cmp_end:
+  LDM 0x102b
+  CALL dir_read_field
   CMP 0
   JZ find_found
   JMP find_next
@@ -644,6 +757,11 @@ find_next:
   LDA 0
   RET
 find_found:
+  CALL dir_seek_entry_base
+  LDM 0x1030
+  STA 0x1036
+  LDM 0x1031
+  STA 0x1037
   LDA ${BOOT_DISK_TYPE_OFFSET}
   CALL dir_read_field
   STA 0x1026
@@ -712,12 +830,12 @@ copy_program:
 copy_page_loop:
   LDM 0x102a
   TAB
-  LDM 0x1025
+  LDM 0x1035
   CMPB
   JZ launch_program
   LDM 0x102a
   TAB
-  LDM 0x1024
+  LDM 0x1034
   ADDB
   DRVPG
   LDA 0
