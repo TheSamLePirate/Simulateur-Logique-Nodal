@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { assemble } from "../assembler";
 import { CPU } from "../cpu";
 import { DRIVE_SIZE } from "../isa";
+import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
 import {
   BOOT_DISK_MAX_ENTRIES,
   bootCpuToShell,
@@ -109,6 +110,40 @@ describe("bootloader shell", () => {
     expect(result.cpu.state.halted).toBe(false);
     expect(output).toContain("OK\nUNIX BOOT");
     expect(output).toContain("unix$ ");
+  });
+
+  it("can return to the shell prompt without clearing the plotter", () => {
+    const drawAsm = assemble(`
+      LDA 120
+      COLR
+      LDA 34
+      COLG
+      LDA 200
+      COLB
+      LDA 45
+      TAB
+      LDA 23
+      DRAW
+      HLT
+    `);
+    expect(drawAsm.success).toBe(true);
+
+    const disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "draw", drawAsm.bytes);
+    const result = runBootCommand(disk, "run draw");
+
+    const beforePixels = new Map(result.cpu.plotterPixels);
+    const beforeColor = { ...result.cpu.plotterColor };
+    expect(beforePixels.has(encodePlotterCoord(23, 45))).toBe(true);
+    expect(beforeColor).not.toEqual(DEFAULT_PLOTTER_COLOR);
+
+    const resumed = bootCpuToShell(result.cpu, {
+      preserveConsole: true,
+      preservePlotter: true,
+    });
+
+    expect(resumed).toBe(true);
+    expect(result.cpu.plotterPixels).toEqual(beforePixels);
+    expect(result.cpu.plotterColor).toEqual(beforeColor);
   });
 
   it("cats a text file from disk", () => {

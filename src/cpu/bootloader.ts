@@ -740,10 +740,20 @@ export function getBootloaderImage(): BootloaderImage {
 
 export function bootCpuToShell(
   cpu: CPU,
-  options: { preserveConsole?: boolean; maxSteps?: number } = {},
+  options: {
+    preserveConsole?: boolean;
+    preservePlotter?: boolean;
+    maxSteps?: number;
+  } = {},
 ): boolean {
-  const { preserveConsole = true, maxSteps = 200000 } = options;
+  const {
+    preserveConsole = true,
+    preservePlotter = false,
+    maxSteps = 200000,
+  } = options;
   const previousConsole = preserveConsole ? [...cpu.consoleOutput] : [];
+  const previousPlotterPixels = preservePlotter ? new Map(cpu.plotterPixels) : null;
+  const previousPlotterColor = preservePlotter ? { ...cpu.plotterColor } : null;
   if (
     preserveConsole &&
     previousConsole.length > 0 &&
@@ -756,6 +766,10 @@ export function bootCpuToShell(
   cpu.reset();
   if (preserveConsole) {
     cpu.consoleOutput = previousConsole;
+  }
+  if (preservePlotter && previousPlotterPixels && previousPlotterColor) {
+    cpu.plotterPixels = previousPlotterPixels;
+    cpu.plotterColor = previousPlotterColor;
   }
   cpu.loadProgram(image.bytes, image.startAddr);
 

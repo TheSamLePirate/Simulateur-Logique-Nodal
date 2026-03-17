@@ -331,7 +331,7 @@ export function SoftwareView({
     cpu.step();
 
     if (cpu.state.halted && useBootloader) {
-      bootCpuToShell(cpu, { preserveConsole: true });
+      bootCpuToShell(cpu, { preserveConsole: true, preservePlotter: true });
       syncCpuView(cpu);
       return;
     }
@@ -365,7 +365,14 @@ export function SoftwareView({
     if (useBootloader && !ensureBootloaderReady()) return;
     if (cpuRef.current.state.halted) {
       if (!useBootloader) return;
-      if (!bootCpuToShell(cpuRef.current, { preserveConsole: true })) return;
+      if (
+        !bootCpuToShell(cpuRef.current, {
+          preserveConsole: true,
+          preservePlotter: true,
+        })
+      ) {
+        return;
+      }
       syncCpuView(cpuRef.current);
     }
     setIsRunning(true);
@@ -389,7 +396,10 @@ export function SoftwareView({
       const cpu = cpuRef.current;
       for (let i = 0; i < runSpeed; i++) {
         if (!cpu.step()) {
-          if (useBootloader && bootCpuToShell(cpu, { preserveConsole: true })) {
+          if (
+            useBootloader &&
+            bootCpuToShell(cpu, { preserveConsole: true, preservePlotter: true })
+          ) {
             break;
           }
           setIsRunning(false);
