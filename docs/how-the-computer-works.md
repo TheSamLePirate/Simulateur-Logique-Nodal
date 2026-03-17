@@ -794,6 +794,8 @@ The bootloader shell and the `FS Disque Externe` example now use the **same disk
 - Disk byte `0` = magic marker
 - Disk byte `1` = filesystem version
 - The directory begins at byte `0x10`
+- The bootloader/core filesystem directory reserves space for `64` entries
+- File/program data starts at drive page `4`, after the expanded directory region
 - Each directory entry stores:
   name, type, start page, page count, size
 - Type `1` = normal text file
@@ -804,6 +806,8 @@ That means:
 - programs compiled with **Compile to Disk** appear in `FS Disque Externe`
 - text files created by `FS Disque Externe` appear in the boot shell `ls`
 - the boot shell refuses to `run` text files, and `FS Disque Externe` refuses to overwrite program entries
+
+One practical caveat: the bootloader and TypeScript-side disk helpers support the full `64`-entry directory, but the bundled C filesystem examples still keep their own directory scans small so they fit inside the simulator's `4096`-byte code limit.
 
 ### NOT Supported
 

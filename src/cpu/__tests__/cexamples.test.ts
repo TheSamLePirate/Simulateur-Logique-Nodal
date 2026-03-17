@@ -740,7 +740,7 @@ describe("C Examples — Output Verification", () => {
     runUntil(() => cpu.state.halted);
 
     let notesBase = -1;
-    for (let base = 16; base < 16 + 8 * 12; base += 12) {
+    for (let base = 16; base < 16 + 64 * 12; base += 12) {
       if (
         cpu.driveData[base + 0] === "n".charCodeAt(0) &&
         cpu.driveData[base + 1] === "o".charCodeAt(0) &&

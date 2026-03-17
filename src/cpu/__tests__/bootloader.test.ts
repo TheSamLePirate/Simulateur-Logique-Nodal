@@ -4,6 +4,7 @@ import { assemble } from "../assembler";
 import { CPU } from "../cpu";
 import { DRIVE_SIZE } from "../isa";
 import {
+  BOOT_DISK_MAX_ENTRIES,
   bootCpuToShell,
   getBootloaderImage,
   readBootDiskEntries,
@@ -66,6 +67,29 @@ describe("bootloader shell", () => {
     expect(result.output).toContain("UNIX BOOT");
     expect(result.output).toContain("p calc 1p");
     expect(result.output).toContain("f notes 5b");
+  });
+
+  it("supports 64 directory entries across multiple directory pages", () => {
+    let disk = new Uint8Array(DRIVE_SIZE);
+
+    for (let i = 0; i < BOOT_DISK_MAX_ENTRIES; i++) {
+      disk = writeFileToBootDisk(
+        disk,
+        `f${i.toString(16).padStart(2, "0")}`,
+        Uint8Array.from([65 + (i & 0x0f)]),
+      );
+    }
+    disk = writeFileToBootDisk(disk, "f3f", Uint8Array.from([90]));
+
+    const entries = readBootDiskEntries(disk);
+    expect(entries).toHaveLength(BOOT_DISK_MAX_ENTRIES);
+    expect(entries.at(-1)?.name).toBe("f3f");
+
+    const result = runBootCommand(disk, "cat f3f");
+    expect(result.output).toContain("Z");
+    expect(() =>
+      writeFileToBootDisk(disk, "extra", Uint8Array.from([88])),
+    ).toThrow(`Disk directory full (max ${BOOT_DISK_MAX_ENTRIES} entries).`);
   });
 
   it("runs a program from disk", () => {

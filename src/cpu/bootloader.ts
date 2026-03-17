@@ -6,12 +6,15 @@ export const BOOTLOADER_START = 0x1100;
 export const BOOTLOADER_LIMIT = 0x1800;
 export const BOOT_DISK_MAGIC = 0x42;
 export const BOOT_DISK_VERSION = 0x03;
-export const BOOT_DISK_MAX_ENTRIES = 8;
+export const BOOT_DISK_MAX_ENTRIES = 64;
 export const BOOT_DISK_NAME_LENGTH = 8;
 export const BOOT_DISK_ENTRY_SIZE = 12;
 export const BOOT_DISK_DIR_OFFSET = 0x10;
-export const BOOT_DISK_DATA_START_PAGE = 1;
 export const BOOT_DISK_PAGE_COUNT = DRIVE_SIZE / DRIVE_PAGE_SIZE;
+export const BOOT_DISK_DATA_START_PAGE = Math.ceil(
+  (BOOT_DISK_DIR_OFFSET + BOOT_DISK_MAX_ENTRIES * BOOT_DISK_ENTRY_SIZE) /
+    DRIVE_PAGE_SIZE,
+);
 export const BOOT_PROGRAM_MAX_PAGES = CODE_SIZE / DRIVE_PAGE_SIZE;
 export const BOOT_ENTRY_TYPE_FILE = 1;
 export const BOOT_ENTRY_TYPE_PROGRAM = 2;
@@ -357,7 +360,7 @@ cmd_free:
   STA 0x1028
   LDM 0x1028
   TAB
-  LDA 255
+  LDA ${BOOT_DISK_PAGE_COUNT - BOOT_DISK_DATA_START_PAGE}
   SUBB
   OUTD
   OUT 'p'
@@ -442,6 +445,49 @@ read_done:
   STAI 0x1000
   RET
 
+dir_read_field:
+  STA 0x1033
+  LDA 0
+  STA 0x1030
+  LDA 16
+  STA 0x1031
+  LDA 0
+  STA 0x1032
+dir_seek_loop:
+  LDM 0x1032
+  TAB
+  LDM 0x1022
+  CMPB
+  JZ dir_seek_done
+  LDM 0x1031
+  ADD 12
+  STA 0x1031
+  JNC dir_seek_next
+  LDM 0x1030
+  INC
+  STA 0x1030
+dir_seek_next:
+  LDM 0x1032
+  INC
+  STA 0x1032
+  JMP dir_seek_loop
+dir_seek_done:
+  LDM 0x1031
+  TAB
+  LDM 0x1033
+  ADDB
+  STA 0x1031
+  JNC dir_field_page_ok
+  LDM 0x1030
+  INC
+  STA 0x1030
+dir_field_page_ok:
+  LDM 0x1030
+  DRVPG
+  LDM 0x1031
+  DRVRD
+  RET
+
 list_entries:
   LDA 0
   STA 0x1029
@@ -449,19 +495,13 @@ list_entries:
   STA 0x1022
 list_loop:
   LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 16
-  DRVRD
+  CALL dir_read_field
   CMP 0
   JZ list_next
   LDA 1
   STA 0x1029
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 24
-  DRVRD
+  LDA ${BOOT_DISK_TYPE_OFFSET}
+  CALL dir_read_field
   CMP 1
   JZ list_file
   OUT 'p'
@@ -472,36 +512,27 @@ list_name:
   OUT ' '
   CALL print_entry_name
   OUT ' '
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 24
-  DRVRD
+  LDA ${BOOT_DISK_TYPE_OFFSET}
+  CALL dir_read_field
   CMP 1
   JZ list_file_size
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 26
-  DRVRD
+  LDA ${BOOT_DISK_PAGE_COUNT_OFFSET}
+  CALL dir_read_field
   OUTD
   OUT 'p'
   OUT 10
   JMP list_next
 list_file_size:
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 27
-  DRVRD
+  LDA ${BOOT_DISK_SIZE_OFFSET}
+  CALL dir_read_field
   OUTD
   OUT 'b'
   OUT 10
 list_next:
   LDM 0x1022
-  ADD 12
+  INC
   STA 0x1022
-  CMP 96
+  CMP ${BOOT_DISK_MAX_ENTRIES}
   JNZ list_loop
   LDM 0x1029
   CMP 0
@@ -524,17 +555,8 @@ print_name_loop:
   LDM 0x102b
   CMP 8
   JZ print_name_done
-  TAB
-  LDA 16
-  ADDB
-  TAB
-  LDM 0x1022
-  ADDB
-  STA 0x102c
-  LDA 0
-  DRVPG
-  LDM 0x102c
-  DRVRD
+  LDM 0x102b
+  CALL dir_read_field
   CMP 0
   JZ print_name_done
   OUTA
@@ -550,10 +572,7 @@ find_entry:
   STA 0x1022
 find_loop:
   LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 16
-  DRVRD
+  CALL dir_read_field
   CMP 0
   JZ find_next
   LDA 0
@@ -569,17 +588,7 @@ find_cmp_loop:
   LDAI 0x1000
   STA 0x102c
   LDM 0x102b
-  TAB
-  LDA 16
-  ADDB
-  TAB
-  LDM 0x1022
-  ADDB
-  STA 0x102d
-  LDA 0
-  DRVPG
-  LDM 0x102d
-  DRVRD
+  CALL dir_read_field
   STA 0x102e
   LDM 0x102c
   CMP 0
@@ -599,36 +608,24 @@ find_cmp_value:
   JMP find_cmp_loop
 find_next:
   LDM 0x1022
-  ADD 12
+  INC
   STA 0x1022
-  CMP 96
+  CMP ${BOOT_DISK_MAX_ENTRIES}
   JNZ find_loop
   LDA 0
   RET
 find_found:
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 24
-  DRVRD
+  LDA ${BOOT_DISK_TYPE_OFFSET}
+  CALL dir_read_field
   STA 0x1026
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 25
-  DRVRD
+  LDA ${BOOT_DISK_START_PAGE_OFFSET}
+  CALL dir_read_field
   STA 0x1024
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 26
-  DRVRD
+  LDA ${BOOT_DISK_PAGE_COUNT_OFFSET}
+  CALL dir_read_field
   STA 0x1025
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 27
-  DRVRD
+  LDA ${BOOT_DISK_SIZE_OFFSET}
+  CALL dir_read_field
   STA 0x1027
   LDA 1
   RET
@@ -662,26 +659,20 @@ count_used_pages:
   STA 0x1022
 count_loop:
   LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 16
-  DRVRD
+  CALL dir_read_field
   CMP 0
   JZ count_next
   LDM 0x1028
   TAB
-  LDA 0
-  DRVPG
-  LDM 0x1022
-  ADD 26
-  DRVRD
+  LDA ${BOOT_DISK_PAGE_COUNT_OFFSET}
+  CALL dir_read_field
   ADDB
   STA 0x1028
 count_next:
   LDM 0x1022
-  ADD 12
+  INC
   STA 0x1022
-  CMP 96
+  CMP ${BOOT_DISK_MAX_ENTRIES}
   JNZ count_loop
   LDM 0x1028
   RET
