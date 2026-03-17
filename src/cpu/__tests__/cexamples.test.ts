@@ -1438,6 +1438,19 @@ describe("Compiler — Edge Cases", () => {
     expect(r.cpu.driveData[11]).toBe(0);
   });
 
+  it("console_clear() clears prior console output", () => {
+    const r = compileAndRun(`
+      int main() {
+        print("abc");
+        console_clear();
+        print("Z");
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("Z");
+    expect(r.halted).toBe(true);
+  });
+
   it("external drive page builtins can access the full 64K disk", () => {
     const r = compileAndRun(`
       int main() {

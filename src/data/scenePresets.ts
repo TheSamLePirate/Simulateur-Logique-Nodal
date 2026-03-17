@@ -258,6 +258,382 @@ const binaireEdges: Edge[] = Array.from({ length: 8 }, (_, i) =>
   wire(`e-num-led${i}`, "numIn", `led${i}`, `out${i}`, "in"),
 );
 
+// ═══════════════════════════════════════════════════════════════
+//  4 bis. Transistors -> portes logiques
+//
+//  Un transistor est ici un simple interrupteur commandé :
+//  si GATE = 1, le signal IN traverse ; sinon la sortie vaut 0.
+//
+//  - 1 transistor + VCC = buffer commandé
+//  - 2 transistors en série = AND
+//  - 2 transistors en parallèle = OR
+// ═══════════════════════════════════════════════════════════════
+
+const transistorGatesNodes: Node[] = [
+  {
+    id: "vcc",
+    type: "input",
+    position: { x: 0, y: 260 },
+    data: { label: "VCC = 1", value: 1 },
+  },
+
+  {
+    id: "bufA",
+    type: "input",
+    position: { x: 0, y: 0 },
+    data: { label: "A (buffer)", value: 0 },
+  },
+  {
+    id: "tBuf",
+    type: "transistor",
+    position: { x: 260, y: 20 },
+    data: {
+      label: "T1",
+      mode: "nmos",
+      value: 0,
+      inputValue: 0,
+      conducting: 0,
+    },
+  },
+  {
+    id: "bufOut",
+    type: "output",
+    position: { x: 520, y: 35 },
+    data: { label: "Sortie = A", value: 0 },
+  },
+
+  {
+    id: "andA",
+    type: "input",
+    position: { x: 0, y: 420 },
+    data: { label: "A (AND)", value: 0 },
+  },
+  {
+    id: "andB",
+    type: "input",
+    position: { x: 0, y: 560 },
+    data: { label: "B (AND)", value: 0 },
+  },
+  {
+    id: "tAnd1",
+    type: "transistor",
+    position: { x: 260, y: 390 },
+    data: {
+      label: "T2",
+      mode: "nmos",
+      value: 0,
+      inputValue: 0,
+      conducting: 0,
+    },
+  },
+  {
+    id: "tAnd2",
+    type: "transistor",
+    position: { x: 520, y: 390 },
+    data: {
+      label: "T3",
+      mode: "nmos",
+      value: 0,
+      inputValue: 0,
+      conducting: 0,
+    },
+  },
+  {
+    id: "andOut",
+    type: "output",
+    position: { x: 780, y: 405 },
+    data: { label: "A AND B", value: 0 },
+  },
+
+  {
+    id: "orA",
+    type: "input",
+    position: { x: 980, y: 420 },
+    data: { label: "A (OR)", value: 0 },
+  },
+  {
+    id: "orB",
+    type: "input",
+    position: { x: 980, y: 560 },
+    data: { label: "B (OR)", value: 0 },
+  },
+  {
+    id: "tOr1",
+    type: "transistor",
+    position: { x: 1240, y: 390 },
+    data: {
+      label: "T4",
+      mode: "nmos",
+      value: 0,
+      inputValue: 0,
+      conducting: 0,
+    },
+  },
+  {
+    id: "tOr2",
+    type: "transistor",
+    position: { x: 1240, y: 550 },
+    data: {
+      label: "T5",
+      mode: "nmos",
+      value: 0,
+      inputValue: 0,
+      conducting: 0,
+    },
+  },
+  {
+    id: "orOut",
+    type: "output",
+    position: { x: 1500, y: 470 },
+    data: { label: "A OR B", value: 0 },
+  },
+];
+
+const transistorGatesEdges: Edge[] = [
+  wire("e-vcc-buf", "vcc", "tBuf", "out", "in"),
+  wire("e-bufa-tbuf", "bufA", "tBuf", "out", "gate"),
+  wire("e-tbuf-out", "tBuf", "bufOut", "out", "in"),
+
+  wire("e-vcc-and1", "vcc", "tAnd1", "out", "in"),
+  wire("e-anda-t1", "andA", "tAnd1", "out", "gate"),
+  wire("e-tand1-tand2", "tAnd1", "tAnd2", "out", "in"),
+  wire("e-andb-t2", "andB", "tAnd2", "out", "gate"),
+  wire("e-tand2-out", "tAnd2", "andOut", "out", "in"),
+
+  wire("e-vcc-or1", "vcc", "tOr1", "out", "in"),
+  wire("e-vcc-or2", "vcc", "tOr2", "out", "in"),
+  wire("e-ora-t1", "orA", "tOr1", "out", "gate"),
+  wire("e-orb-t2", "orB", "tOr2", "out", "gate"),
+  wire("e-tor1-out", "tOr1", "orOut", "out", "in"),
+  wire("e-tor2-out", "tOr2", "orOut", "out", "in"),
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  4 ter. NAND et XOR en transistors
+//
+//  Ici on utilise des NMOS (actifs à 1) et PMOS (actifs à 0)
+//  pour créer des réseaux pull-up / pull-down complémentaires.
+//  Toute la logique est faite uniquement avec des transistors.
+// ═══════════════════════════════════════════════════════════════
+
+const transistorAdvancedNodes: Node[] = [
+  {
+    id: "vcc",
+    type: "input",
+    position: { x: 0, y: 260 },
+    data: { label: "VCC = 1", value: 1 },
+  },
+  {
+    id: "gnd",
+    type: "input",
+    position: { x: 0, y: 360 },
+    data: { label: "GND = 0", value: 0 },
+  },
+
+  {
+    id: "nandA",
+    type: "input",
+    position: { x: 0, y: 0 },
+    data: { label: "A (NAND)", value: 0 },
+  },
+  {
+    id: "nandB",
+    type: "input",
+    position: { x: 0, y: 120 },
+    data: { label: "B (NAND)", value: 0 },
+  },
+  {
+    id: "nandP1",
+    type: "transistor",
+    position: { x: 250, y: -30 },
+    data: { label: "P1", mode: "pmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "nandP2",
+    type: "transistor",
+    position: { x: 250, y: 110 },
+    data: { label: "P2", mode: "pmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "nandN1",
+    type: "transistor",
+    position: { x: 520, y: -30 },
+    data: { label: "N1", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "nandN2",
+    type: "transistor",
+    position: { x: 760, y: -30 },
+    data: { label: "N2", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "nandOut",
+    type: "output",
+    position: { x: 1020, y: 40 },
+    data: { label: "NAND", value: 0 },
+  },
+
+  {
+    id: "xorA",
+    type: "input",
+    position: { x: 0, y: 640 },
+    data: { label: "A (XOR)", value: 0 },
+  },
+  {
+    id: "xorB",
+    type: "input",
+    position: { x: 0, y: 760 },
+    data: { label: "B (XOR)", value: 0 },
+  },
+  {
+    id: "invAP",
+    type: "transistor",
+    position: { x: 250, y: 560 },
+    data: { label: "P3", mode: "pmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "invAN",
+    type: "transistor",
+    position: { x: 250, y: 700 },
+    data: { label: "N3", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "notAProbe",
+    type: "output",
+    position: { x: 500, y: 615 },
+    data: { label: "NOT A", value: 0 },
+  },
+  {
+    id: "invBP",
+    type: "transistor",
+    position: { x: 250, y: 900 },
+    data: { label: "P4", mode: "pmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "invBN",
+    type: "transistor",
+    position: { x: 250, y: 1040 },
+    data: { label: "N4", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "notBProbe",
+    type: "output",
+    position: { x: 500, y: 955 },
+    data: { label: "NOT B", value: 0 },
+  },
+
+  {
+    id: "xorUp1a",
+    type: "transistor",
+    position: { x: 760, y: 560 },
+    data: { label: "N5", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorUp1b",
+    type: "transistor",
+    position: { x: 1000, y: 560 },
+    data: { label: "N6", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorUp2a",
+    type: "transistor",
+    position: { x: 760, y: 740 },
+    data: { label: "N7", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorUp2b",
+    type: "transistor",
+    position: { x: 1000, y: 740 },
+    data: { label: "N8", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorDown1a",
+    type: "transistor",
+    position: { x: 760, y: 940 },
+    data: { label: "N9", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorDown1b",
+    type: "transistor",
+    position: { x: 1000, y: 940 },
+    data: { label: "N10", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorDown2a",
+    type: "transistor",
+    position: { x: 760, y: 1120 },
+    data: { label: "N11", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorDown2b",
+    type: "transistor",
+    position: { x: 1000, y: 1120 },
+    data: { label: "N12", mode: "nmos", value: 0, inputValue: 0, conducting: 0 },
+  },
+  {
+    id: "xorOut",
+    type: "output",
+    position: { x: 1300, y: 820 },
+    data: { label: "XOR", value: 0 },
+  },
+];
+
+const transistorAdvancedEdges: Edge[] = [
+  wire("e-vcc-nand-p1", "vcc", "nandP1", "out", "in"),
+  wire("e-vcc-nand-p2", "vcc", "nandP2", "out", "in"),
+  wire("e-nanda-p1", "nandA", "nandP1", "out", "gate"),
+  wire("e-nandb-p2", "nandB", "nandP2", "out", "gate"),
+  wire("e-nandp1-out", "nandP1", "nandOut", "out", "in"),
+  wire("e-nandp2-out", "nandP2", "nandOut", "out", "in"),
+  wire("e-gnd-nand-n1", "gnd", "nandN1", "out", "in"),
+  wire("e-nanda-n1", "nandA", "nandN1", "out", "gate"),
+  wire("e-nandn1-n2", "nandN1", "nandN2", "out", "in"),
+  wire("e-nandb-n2", "nandB", "nandN2", "out", "gate"),
+  wire("e-nandn2-out", "nandN2", "nandOut", "out", "in"),
+
+  wire("e-vcc-invap", "vcc", "invAP", "out", "in"),
+  wire("e-gnd-invan", "gnd", "invAN", "out", "in"),
+  wire("e-xora-invap", "xorA", "invAP", "out", "gate"),
+  wire("e-xora-invan", "xorA", "invAN", "out", "gate"),
+  wire("e-invap-nota", "invAP", "notAProbe", "out", "in"),
+  wire("e-invan-nota", "invAN", "notAProbe", "out", "in"),
+
+  wire("e-vcc-invbp", "vcc", "invBP", "out", "in"),
+  wire("e-gnd-invbn", "gnd", "invBN", "out", "in"),
+  wire("e-xorb-invbp", "xorB", "invBP", "out", "gate"),
+  wire("e-xorb-invbn", "xorB", "invBN", "out", "gate"),
+  wire("e-invbp-notb", "invBP", "notBProbe", "out", "in"),
+  wire("e-invbn-notb", "invBN", "notBProbe", "out", "in"),
+
+  wire("e-vcc-xup1a", "vcc", "xorUp1a", "out", "in"),
+  wire("e-xora-xup1a", "xorA", "xorUp1a", "out", "gate"),
+  wire("e-xup1a-xup1b", "xorUp1a", "xorUp1b", "out", "in"),
+  wire("e-invbp-xup1b", "invBP", "xorUp1b", "out", "gate"),
+  wire("e-invbn-xup1b", "invBN", "xorUp1b", "out", "gate"),
+  wire("e-xup1b-xorout", "xorUp1b", "xorOut", "out", "in"),
+
+  wire("e-vcc-xup2a", "vcc", "xorUp2a", "out", "in"),
+  wire("e-invap-xup2a", "invAP", "xorUp2a", "out", "gate"),
+  wire("e-invan-xup2a", "invAN", "xorUp2a", "out", "gate"),
+  wire("e-xup2a-xup2b", "xorUp2a", "xorUp2b", "out", "in"),
+  wire("e-xorb-xup2b", "xorB", "xorUp2b", "out", "gate"),
+  wire("e-xup2b-xorout", "xorUp2b", "xorOut", "out", "in"),
+
+  wire("e-gnd-xdown1a", "gnd", "xorDown1a", "out", "in"),
+  wire("e-xora-xdown1a", "xorA", "xorDown1a", "out", "gate"),
+  wire("e-xdown1a-xdown1b", "xorDown1a", "xorDown1b", "out", "in"),
+  wire("e-xorb-xdown1b", "xorB", "xorDown1b", "out", "gate"),
+  wire("e-xdown1b-xorout", "xorDown1b", "xorOut", "out", "in"),
+
+  wire("e-gnd-xdown2a", "gnd", "xorDown2a", "out", "in"),
+  wire("e-invap-xdown2a", "invAP", "xorDown2a", "out", "gate"),
+  wire("e-invan-xdown2a", "invAN", "xorDown2a", "out", "gate"),
+  wire("e-xdown2a-xdown2b", "xorDown2a", "xorDown2b", "out", "in"),
+  wire("e-invbp-xdown2b", "invBP", "xorDown2b", "out", "gate"),
+  wire("e-invbn-xdown2b", "invBN", "xorDown2b", "out", "gate"),
+  wire("e-xdown2b-xorout", "xorDown2b", "xorOut", "out", "in"),
+];
+
 // ╔═══════════════════════════════════════════════════════════════╗
 // ║                                                               ║
 // ║   NIVEAU 2 — COMPOSANTS                                       ║
@@ -1377,6 +1753,20 @@ export const BUILTIN_PRESETS: ScenePreset[] = [
     name: "4. Binaire visuel",
     nodes: binaireNodes,
     edges: binaireEdges,
+    builtIn: true,
+  },
+  {
+    id: "__builtin_transistors",
+    name: "4 bis. Transistors -> portes",
+    nodes: transistorGatesNodes,
+    edges: transistorGatesEdges,
+    builtIn: true,
+  },
+  {
+    id: "__builtin_transistors_advanced",
+    name: "4 ter. NAND et XOR (transistors)",
+    nodes: transistorAdvancedNodes,
+    edges: transistorAdvancedEdges,
     builtIn: true,
   },
 

@@ -183,6 +183,21 @@ int main() {
 }
 ```
 
+Declare one variable per statement.
+
+This is not valid:
+
+```c
+int a, b;
+```
+
+Write it like this instead:
+
+```c
+int a;
+int b;
+```
+
 ### Global variables
 
 ```c
@@ -194,6 +209,13 @@ int main() {
   return 0;
 }
 ```
+
+Global variables share a total storage area of `16` bytes.
+
+That means:
+
+- up to `16` normal global variables if each one uses one byte
+- fewer globals if you use global arrays, because arrays also use that same `16`-byte area
 
 ### Literals
 
@@ -371,6 +393,20 @@ int add(int a, int b) {
 }
 ```
 
+Function parameters must be plain `int` values.
+
+Array parameters are not supported.
+
+This is not valid:
+
+```c
+int sum(int values[4]) {
+  return values[0];
+}
+```
+
+Use globals or local arrays inside the function body instead.
+
 ### Calling functions
 
 ```c
@@ -509,6 +545,16 @@ print("Hello");
 
 Use it only with a string literal.
 
+#### `console_clear()`
+
+Clears the console output buffer.
+
+```c
+print("Loading...");
+console_clear();
+print("Ready");
+```
+
 ### Console input
 
 #### `getchar()`
@@ -644,6 +690,8 @@ Clears the plotter.
 clear();
 ```
 
+`clear()` only affects the plotter. Use `console_clear()` to erase console text.
+
 ### External drive
 
 #### `drive_read(addr)`
@@ -708,6 +756,85 @@ The external drive has `8192` bytes and persists across CPU reset, which makes i
 
 The `FS Disque Externe` example and the bootloader shell both use the same disk format, so files and compiled programs can coexist on the same disk image.
 
+### Shared FS usage
+
+If you want your C program to share the disk correctly with the bootloader, `FS Disque Externe`, `Éditeur Texte FS`, `Éditeur Multi-fichier FS`, and `Éditeur FS ASM`, use the same filesystem conventions.
+
+#### Disk header
+
+On a formatted shared disk:
+
+- byte `0` = magic value `66` (`'B'`)
+- byte `1` = filesystem version `3`
+
+If these bytes do not match, your program should treat the disk as unformatted and initialize it before using the shared FS.
+
+#### Directory layout
+
+- the directory starts at byte `0x10`
+- each directory entry uses `12` bytes
+- the bootloader reserves room for `64` entries total
+
+Each entry is:
+
+- bytes `+0..+7`: file name as ASCII, zero-padded, max `8` characters
+- byte `+8`: entry type
+- byte `+9`: start page
+- byte `+10`: page count
+- byte `+11`: size in bytes
+
+Entry types:
+
+- `1` = text file
+- `2` = runnable program
+
+#### Naming rules
+
+To stay compatible with the bootloader:
+
+- file names should be at most `8` characters
+- file names should not contain spaces
+- names are stored directly as ASCII bytes in the entry
+
+#### Data pages
+
+The shared bootloader format reserves the early drive space for metadata.
+
+- page `0` contains the header and directory
+- pages `1` to `3` are reserved by the shared layout
+- file and program data should start at page `4` or later
+
+The bootloader's own disk helpers allocate from page `4` upward. Small C examples may use a simpler allocation strategy, but they should still keep the same entry structure and avoid corrupting the reserved metadata area.
+
+#### Text-file conventions
+
+For bootloader-compatible text files:
+
+- use entry type `1`
+- keep the byte length in entry byte `+11`
+- keep text files to `255` bytes max
+- most examples store text in `1` page, so they write page count `1`
+
+#### Program conventions
+
+Programs stored by **Compile to Disk** use the same directory format.
+
+- programs use entry type `2`
+- the bootloader can `run` them
+- text-oriented FS tools should not overwrite or edit type `2` entries as if they were normal text files
+
+#### Practical compatibility rules
+
+If you are writing your own filesystem tool in C, follow these rules:
+
+- preserve bytes `0` and `1` as the shared FS header
+- preserve the `12`-byte directory entry format
+- preserve type `2` program entries
+- keep names within the shared `8`-character limit
+- do not invent a different meaning for bytes `+8..+11`
+
+One practical limit: the bootloader supports all `64` directory entries, but some bundled C examples scan fewer entries so they still fit inside the simulator code-size budget. If your program only scans part of the directory, keep the same entry format anyway so it remains compatible with the rest of the system.
+
 ### Misc
 
 #### `rand()`
@@ -768,6 +895,7 @@ The language runs on a very small machine, so programs must fit inside its memor
 
 - Code area: about `1024` bytes of assembled code
 - Global storage: `16` bytes total
+  This includes both normal global variables and global arrays.
 - Local variables and parameters: fixed addresses in RAM
 - Stack: `512` bytes total
 
@@ -795,6 +923,8 @@ The following features are not part of this language:
 - string variables
 - array initializers like `int t[3] = {1,2,3};`
 - multi-dimensional arrays
+- multiple declarations in one statement like `int a, b;`
+- array types in function arguments like `int f(int arr[4])`
 
 Also keep in mind:
 

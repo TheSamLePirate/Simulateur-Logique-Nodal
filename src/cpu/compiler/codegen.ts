@@ -84,6 +84,7 @@ export function generate(program: Program): {
     "putchar",
     "print_num",
     "print",
+    "console_clear",
     "color",
     "draw",
     "clear",
@@ -1479,6 +1480,12 @@ export function generate(program: Program): {
     // ── Built-in: clear() ──
     if (expr.name === "clear") {
       emit(`  CLR`);
+      return;
+    }
+
+    // ── Built-in: console_clear() ──
+    if (expr.name === "console_clear") {
+      emit(`  CLCON`);
       return;
     }
 

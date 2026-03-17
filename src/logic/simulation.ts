@@ -2,6 +2,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { Bit, GroupNodeData } from "../types";
 import { logicGates } from "./gates";
 import { add8 } from "./adder";
+import { getEdgeSignal, getSourceSignal } from "./nodeSignals";
 import {
   DEFAULT_PLOTTER_COLOR,
   encodePlotterCoord,
@@ -56,104 +57,12 @@ export const getInputValue = (
   nodes: Node[],
   edges: Edge[],
 ): Bit => {
-  const edge = edges.find(
+  const matchingEdges = edges.filter(
     (e) => e.target === targetNodeId && e.targetHandle === targetHandleId,
   );
-  if (!edge) return 0;
+  if (matchingEdges.length === 0) return 0;
 
-  const sourceNode = nodes.find((n) => n.id === edge.source);
-  if (!sourceNode) return 0;
-
-  if (sourceNode.type === "input") return sourceNode.data.value as Bit;
-  if (sourceNode.type === "gate") return sourceNode.data.value as Bit;
-  if (sourceNode.type === "adder8") {
-    if (edge.sourceHandle === "cout") return sourceNode.data.cout as Bit;
-    if (edge.sourceHandle?.startsWith("s")) {
-      const idx = parseInt(edge.sourceHandle.replace("s", ""));
-      return ((sourceNode.data.sum as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "sram8") {
-    if (edge.sourceHandle?.startsWith("q")) {
-      const idx = parseInt(edge.sourceHandle.replace("q", ""));
-      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "bus8") {
-    if (edge.sourceHandle?.startsWith("out")) {
-      const idx = parseInt(edge.sourceHandle.replace("out", ""));
-      return ((sourceNode.data.val as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "inputNumber") {
-    if (edge.sourceHandle?.startsWith("out")) {
-      const idx = parseInt(edge.sourceHandle.replace("out", ""));
-      return ((sourceNode.data.value as number) || 0) & (1 << idx) ? 1 : 0;
-    }
-  }
-  if (sourceNode.type === "group") {
-    const outputs = (sourceNode.data as unknown as GroupNodeData).outputs;
-    if (edge.sourceHandle && outputs) {
-      return (outputs[edge.sourceHandle] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "clock") {
-    return (sourceNode.data.value as Bit) || 0;
-  }
-  if (sourceNode.type === "register8") {
-    if (edge.sourceHandle?.startsWith("q")) {
-      const idx = parseInt(edge.sourceHandle.replace("q", ""));
-      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "alu8") {
-    if (edge.sourceHandle?.startsWith("r")) {
-      const idx = parseInt(edge.sourceHandle.replace("r", ""));
-      return ((sourceNode.data.r as Bit[])?.[idx] || 0) as Bit;
-    }
-    if (edge.sourceHandle === "zero") return (sourceNode.data.zero as Bit) || 0;
-    if (edge.sourceHandle === "carry")
-      return (sourceNode.data.carry as Bit) || 0;
-    if (edge.sourceHandle === "neg")
-      return (sourceNode.data.negative as Bit) || 0;
-  }
-  if (sourceNode.type === "mux8") {
-    if (edge.sourceHandle?.startsWith("out")) {
-      const idx = parseInt(edge.sourceHandle.replace("out", ""));
-      return ((sourceNode.data.out as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "console") {
-    if (edge.sourceHandle?.startsWith("q")) {
-      const idx = parseInt(edge.sourceHandle.replace("q", ""));
-      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
-    }
-    if (edge.sourceHandle === "avail")
-      return (sourceNode.data.avail as Bit) || 0;
-  }
-  if (sourceNode.type === "keyboard") {
-    if (edge.sourceHandle?.startsWith("k")) {
-      const idx = parseInt(edge.sourceHandle.replace("k", ""));
-      return ((sourceNode.data.keys as number[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "drive") {
-    if (edge.sourceHandle?.startsWith("q")) {
-      const idx = parseInt(edge.sourceHandle.replace("q", ""));
-      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
-    }
-  }
-  if (sourceNode.type === "network") {
-    if (edge.sourceHandle?.startsWith("q")) {
-      const idx = parseInt(edge.sourceHandle.replace("q", ""));
-      return ((sourceNode.data.q as Bit[])?.[idx] || 0) as Bit;
-    }
-    if (edge.sourceHandle === "avail")
-      return (sourceNode.data.avail as Bit) || 0;
-    if (edge.sourceHandle === "pending")
-      return (sourceNode.data.pending as Bit) || 0;
-  }
-  return 0;
+  return matchingEdges.some((edge) => getEdgeSignal(edge, nodes) === 1) ? 1 : 0;
 };
 
 /**
@@ -184,6 +93,26 @@ export const simulateNodes = (nodes: Node[], edges: Edge[]): Node[] => {
       }
       if (node.data.value !== val) {
         newNodes[index] = { ...node, data: { ...node.data, value: val } };
+        changed = true;
+      }
+    } else if (node.type === "transistor") {
+      const inputValue = getVal(node.id, "in");
+      const gateValue = getVal(node.id, "gate");
+      const conducting =
+        node.data.mode === "pmos"
+          ? (gateValue ? 0 : 1)
+          : gateValue;
+      const value = (inputValue && conducting ? 1 : 0) as Bit;
+
+      if (
+        node.data.value !== value ||
+        node.data.inputValue !== inputValue ||
+        node.data.conducting !== conducting
+      ) {
+        newNodes[index] = {
+          ...node,
+          data: { ...node.data, value, inputValue, conducting },
+        };
         changed = true;
       }
     } else if (node.type === "adder8") {
@@ -900,78 +829,11 @@ export const updateEdgeStyles = (nodes: Node[], edges: Edge[]): Edge[] => {
   let changed = false;
 
   const newEdges = edges.map((edge) => {
-    const sourceNode = nodes.find((n) => n.id === edge.source);
-    let isActive = false;
-
-    if (sourceNode) {
-      if (sourceNode.type === "input" || sourceNode.type === "gate") {
-        isActive = sourceNode.data.value === 1;
-      } else if (sourceNode.type === "adder8") {
-        if (edge.sourceHandle === "cout") isActive = sourceNode.data.cout === 1;
-        if (edge.sourceHandle?.startsWith("s")) {
-          const idx = parseInt(edge.sourceHandle.replace("s", ""));
-          isActive = (sourceNode.data.sum as Bit[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "sram8") {
-        if (edge.sourceHandle?.startsWith("q")) {
-          const idx = parseInt(edge.sourceHandle.replace("q", ""));
-          isActive = (sourceNode.data.q as Bit[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "bus8") {
-        if (edge.sourceHandle?.startsWith("out")) {
-          const idx = parseInt(edge.sourceHandle.replace("out", ""));
-          isActive = (sourceNode.data.val as Bit[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "inputNumber") {
-        if (edge.sourceHandle?.startsWith("out")) {
-          const idx = parseInt(edge.sourceHandle.replace("out", ""));
-          const val = Number(sourceNode.data.value) || 0;
-          isActive = (val & (1 << idx)) !== 0;
-        }
-      } else if (sourceNode.type === "group") {
-        const outputs = (sourceNode.data as unknown as GroupNodeData).outputs;
-        if (edge.sourceHandle && outputs) {
-          isActive = outputs[edge.sourceHandle] === 1;
-        }
-      } else if (sourceNode.type === "clock") {
-        isActive = sourceNode.data.value === 1;
-      } else if (sourceNode.type === "register8") {
-        if (edge.sourceHandle?.startsWith("q")) {
-          const idx = parseInt(edge.sourceHandle.replace("q", ""));
-          isActive = (sourceNode.data.q as Bit[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "alu8") {
-        if (edge.sourceHandle?.startsWith("r")) {
-          const idx = parseInt(edge.sourceHandle.replace("r", ""));
-          isActive = (sourceNode.data.r as Bit[])?.[idx] === 1;
-        } else if (edge.sourceHandle === "zero") {
-          isActive = sourceNode.data.zero === 1;
-        } else if (edge.sourceHandle === "carry") {
-          isActive = sourceNode.data.carry === 1;
-        } else if (edge.sourceHandle === "neg") {
-          isActive = sourceNode.data.negative === 1;
-        }
-      } else if (sourceNode.type === "mux8") {
-        if (edge.sourceHandle?.startsWith("out")) {
-          const idx = parseInt(edge.sourceHandle.replace("out", ""));
-          isActive = (sourceNode.data.out as Bit[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "keyboard") {
-        if (edge.sourceHandle?.startsWith("k")) {
-          const idx = parseInt(edge.sourceHandle.replace("k", ""));
-          isActive = (sourceNode.data.keys as number[])?.[idx] === 1;
-        }
-      } else if (sourceNode.type === "network") {
-        if (edge.sourceHandle?.startsWith("q")) {
-          const idx = parseInt(edge.sourceHandle.replace("q", ""));
-          isActive = (sourceNode.data.q as Bit[])?.[idx] === 1;
-        } else if (edge.sourceHandle === "avail") {
-          isActive = sourceNode.data.avail === 1;
-        } else if (edge.sourceHandle === "pending") {
-          isActive = sourceNode.data.pending === 1;
-        }
-      }
-    }
+    const isActive =
+      getSourceSignal(
+        nodes.find((n) => n.id === edge.source),
+        edge.sourceHandle,
+      ) === 1;
 
     const strokeColor = isActive ? "#60a5fa" : "#475569";
 

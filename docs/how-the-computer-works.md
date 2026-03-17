@@ -27,7 +27,7 @@ Layer 2: SOFTWARE (this document)
   You write code (ASM or C) --> it runs on a simulated CPU
 
 Layer 1: HARDWARE (the node editor)
-  Logic gates --> Adders --> ALU --> Registers --> Full CPU
+  Transistors --> Logic gates --> Adders --> ALU --> Registers --> Full CPU
 ```
 
 The software layer works like this:
@@ -224,6 +224,7 @@ wait:
 | `COLG`    | 0x1B   | 1     | Set plotter green channel from A |
 | `COLB`    | 0x1C   | 1     | Set plotter blue channel from A  |
 | `HTTPIN`  | 0x1D   | 1     | A = next byte from the HTTP response buffer |
+| `CLCON`   | 0x1E   | 1     | Clear the console output         |
 | `DRAW`    | 0x22   | 1     | Plot pixel at (A, B) in current plotter color |
 | `CLR`     | 0x23   | 1     | Clear all pixels on plotter      |
 | `DRVRD`   | 0x24   | 1     | A = external_drive[(page<<8) + A] |
@@ -693,7 +694,7 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
 | Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
-| Output | `putchar(65)`, `print_num(42)`, `print("hello")` | Built-in functions |
+| Output | `putchar(65)`, `print_num(42)`, `print("hello")`, `console_clear()` | Built-in functions |
 | Input | `getchar()`, `getKey(0)`, `get("...")`, `post("...", "...")`, `gethttpchar()` | Console, keyboard, and HTTP built-ins |
 | Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
 | External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()`, `drive_set_page(p)`, `drive_read_at(p, a)`, `drive_write_at(p, a, v)` | 8 KB persistent storage |

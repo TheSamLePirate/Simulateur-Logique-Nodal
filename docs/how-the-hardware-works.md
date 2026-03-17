@@ -7,7 +7,7 @@ A complete guide to the hardware simulation layer: from basic logic gates to a w
 ## Table of Contents
 
 1. [The Big Picture](#1-the-big-picture)
-2. [Logic Gates — The Foundation](#2-logic-gates--the-foundation)
+2. [Transistors and Logic Gates — The Foundation](#2-transistors-and-logic-gates--the-foundation)
 3. [The Simulation Engine](#3-the-simulation-engine)
 4. [Building Blocks — Simple I/O](#4-building-blocks--simple-io)
 5. [8-bit Components](#5-8-bit-components)
@@ -38,25 +38,43 @@ Every component is a **node** in the graph. Wires are **edges**. The simulation 
 
 ### The Component Hierarchy
 
-Everything in the simulator is built from simple gates upward:
+Everything in the simulator is built from simple transistors and gates upward:
 
 ```
   Level 0:  BITS          0 and 1 — that's it
-  Level 1:  GATES         AND, OR, XOR, NAND, NOR, NOT
-  Level 2:  ADDERS        Full Adder (1-bit), Ripple Carry Adder (8-bit)
-  Level 3:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (1024x8)
-  Level 4:  ALU           8 operations (ADD, SUB, AND, OR, XOR, NOT, SHL, SHR)
-  Level 5:  PERIPHERALS   Console, Plotter, Drive, Network host bridge
-  Level 6:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
+  Level 1:  TRANSISTORS   Simple controlled switches
+  Level 2:  GATES         AND, OR, XOR, NAND, NOR, NOT
+  Level 3:  ADDERS        Full Adder (1-bit), Ripple Carry Adder (8-bit)
+  Level 4:  MEMORY        D-Latch (1-bit), Register (8-bit), SRAM (1024x8)
+  Level 5:  ALU           8 operations (ADD, SUB, AND, OR, XOR, NOT, SHL, SHR)
+  Level 6:  PERIPHERALS   Console, Plotter, Drive, Network host bridge
+  Level 7:  COMPUTER      ALU + Registers + SRAM + Clock + Peripherals = working CPU
 ```
 
 The HTTP network interface is still a **software-host bridge**, not a gate-level implementation of TCP/IP. In the hardware editor it appears as a dedicated **network controller node**: you configure the URL/body in the node UI, trigger GET/POST with wires, and read the response back as bytes through `Q0-Q7`.
 
 ---
 
-## 2. Logic Gates — The Foundation
+## 2. Transistors and Logic Gates — The Foundation
 
-A logic gate takes 1 or 2 input bits and produces 1 output bit. These are the **atoms** of digital circuits. Everything else is built from them.
+### Transistor Module (Simple On/Off)
+
+The simulator now includes a **transistor** node modeled as a simple controlled switch:
+
+```text
+OUT = IN, if GATE = 1
+OUT = 0,  if GATE = 0
+```
+
+That makes it useful for showing the core idea behind transistor logic:
+
+- One transistor can act like a **controlled buffer**
+- Two transistors in **series** behave like an `AND`
+- Two transistors in **parallel** behave like an `OR`
+
+There is a built-in hardware scene called **"4 bis. Transistors -> portes"** that demonstrates these patterns.
+
+A logic gate takes 1 or 2 input bits and produces 1 output bit. These are the next layer up from transistors, and they are the **atoms** of the rest of the digital circuit.
 
 ### The 6 Gate Types
 

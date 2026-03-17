@@ -890,6 +890,20 @@ export default function App() {
           data: { type: specificType, value: 0 },
         };
         break;
+      case "transistor":
+        newNode = {
+          id,
+          type,
+          position,
+          data: {
+            label: (specificType || "nmos").toUpperCase(),
+            mode: specificType === "pmos" ? "pmos" : "nmos",
+            value: 0 as Bit,
+            inputValue: 0 as Bit,
+            conducting: 0 as Bit,
+          },
+        };
+        break;
       case "adder8":
         newNode = {
           id,
@@ -2042,6 +2056,20 @@ export default function App() {
                     {gate}
                   </button>
                 ))}
+                <button
+                  onClick={() => addNode("transistor", "nmos")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-amber-900/50 rounded p-2 text-sm font-mono font-bold transition-colors"
+                  title="Transistor actif quand GATE = 1"
+                >
+                  NMOS
+                </button>
+                <button
+                  onClick={() => addNode("transistor", "pmos")}
+                  className="bg-slate-800 hover:bg-slate-700 border border-rose-900/50 rounded p-2 text-sm font-mono font-bold transition-colors"
+                  title="Transistor actif quand GATE = 0"
+                >
+                  PMOS
+                </button>
               </div>
             </div>
 
