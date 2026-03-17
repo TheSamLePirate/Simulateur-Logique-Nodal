@@ -1076,24 +1076,24 @@ row_type_draw:
 
 draw_scan_entry_name:
   LDA 0
-  STA 0x1012
+  STA 0x101D
 scan_name_loop:
-  LDM 0x1012
+  LDM 0x101D
   CMP 8
   JZ scan_name_done
   LDM 0x100E
   DRVPG
   LDM 0x100D
   TAB
-  LDM 0x1012
+  LDM 0x101D
   ADDB
   DRVRD
   CMP 0
   JZ scan_name_done
   CALL draw_char_adv
-  LDM 0x1012
+  LDM 0x101D
   INC
-  STA 0x1012
+  STA 0x101D
   JMP scan_name_loop
 scan_name_done:
   RET
@@ -1181,24 +1181,24 @@ draw_empty_preview:
 
 draw_selected_name:
   LDA 0
-  STA 0x1012
+  STA 0x101E
 selected_name_loop:
-  LDM 0x1012
+  LDM 0x101E
   CMP 8
   JZ selected_name_done
   LDM 0x1008
   DRVPG
   LDM 0x1007
   TAB
-  LDM 0x1012
+  LDM 0x101E
   ADDB
   DRVRD
   CMP 0
   JZ selected_name_done
   CALL draw_char_adv
-  LDM 0x1012
+  LDM 0x101E
   INC
-  STA 0x1012
+  STA 0x101E
   JMP selected_name_loop
 selected_name_done:
   RET

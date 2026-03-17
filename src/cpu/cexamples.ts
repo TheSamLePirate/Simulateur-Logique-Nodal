@@ -2078,6 +2078,533 @@ int main() {
 }`,
   },
   {
+    name: "writeDigits",
+    description: "Ecrit le fichier DIGITS dans le FS partage bootloader",
+    code: `// Writer compatible avec le FS partage bootloader
+// Cree un seul fichier: DIGITS
+// Contenu:
+// digit 0 = octets 0..4
+// digit 1 = octets 5..9
+// ...
+// digit 9 = octets 45..49
+
+#define DIR_START 16
+#define ENTRY_SIZE 12
+#define ENTRY_COUNT 8
+#define FS_MAGIC 66
+#define FS_VER 3
+
+void clear_entry(int base) {
+  int j;
+  j = 0;
+  while (j < ENTRY_SIZE) {
+    drive_write_at(0, base + j, 0);
+    j = j + 1;
+  }
+}
+
+void format_drive() {
+  int i;
+  int base;
+
+  drive_clear();
+  drive_write_at(0, 0, FS_MAGIC);
+  drive_write_at(0, 1, FS_VER);
+
+  base = DIR_START;
+  i = 0;
+  while (i < ENTRY_COUNT) {
+    clear_entry(base);
+    base = base + ENTRY_SIZE;
+    i = i + 1;
+  }
+}
+
+void ensure_drive() {
+  if (drive_read_at(0, 0) != FS_MAGIC) {
+    format_drive();
+    return;
+  }
+  if (drive_read_at(0, 1) != FS_VER) {
+    format_drive();
+    return;
+  }
+}
+
+int is_digits_name(int base) {
+  if (drive_read_at(0, base + 0) != 'D') { return 0; }
+  if (drive_read_at(0, base + 1) != 'I') { return 0; }
+  if (drive_read_at(0, base + 2) != 'G') { return 0; }
+  if (drive_read_at(0, base + 3) != 'I') { return 0; }
+  if (drive_read_at(0, base + 4) != 'T') { return 0; }
+  if (drive_read_at(0, base + 5) != 'S') { return 0; }
+  if (drive_read_at(0, base + 6) != 0) { return 0; }
+  return 1;
+}
+
+int find_digits_entry() {
+  int i;
+  int base;
+
+  base = DIR_START;
+  i = 0;
+  while (i < ENTRY_COUNT) {
+    if (drive_read_at(0, base + 0) != 0) {
+      if (is_digits_name(base)) {
+        return base;
+      }
+    }
+    base = base + ENTRY_SIZE;
+    i = i + 1;
+  }
+  return 255;
+}
+
+int find_free_entry() {
+  int i;
+  int base;
+
+  base = DIR_START;
+  i = 0;
+  while (i < ENTRY_COUNT) {
+    if (drive_read_at(0, base + 0) == 0) {
+      return base;
+    }
+    base = base + ENTRY_SIZE;
+    i = i + 1;
+  }
+  return 255;
+}
+
+int page_used(int page) {
+  int i;
+  int base;
+
+  base = DIR_START;
+  i = 0;
+  while (i < ENTRY_COUNT) {
+    if (drive_read_at(0, base + 0) != 0) {
+      if (drive_read_at(0, base + 9) == page) {
+        return 1;
+      }
+    }
+    base = base + ENTRY_SIZE;
+    i = i + 1;
+  }
+  return 0;
+}
+
+int find_free_page() {
+  int page;
+
+  page = 255;
+  while (1) {
+    if (page != 0) {
+      if (!page_used(page)) {
+        return page;
+      }
+    }
+    if (page == 1) { break; }
+    page = page - 1;
+  }
+  return 0;
+}
+
+void write_digits_entry(int base, int page) {
+  drive_write_at(0, base + 0, 'D');
+  drive_write_at(0, base + 1, 'I');
+  drive_write_at(0, base + 2, 'G');
+  drive_write_at(0, base + 3, 'I');
+  drive_write_at(0, base + 4, 'T');
+  drive_write_at(0, base + 5, 'S');
+  drive_write_at(0, base + 6, 0);
+  drive_write_at(0, base + 7, 0);
+  drive_write_at(0, base + 8, 1);    // type=file
+  drive_write_at(0, base + 9, page); // page de donnees
+  drive_write_at(0, base + 10, 1);   // pages utilisees
+  drive_write_at(0, base + 11, 50);  // taille en octets
+}
+
+void save_digit_row(int page, int digit, int row, int mask) {
+  drive_write_at(page, digit * 5 + row, mask);
+}
+
+int main() {
+  int base;
+  int page;
+
+  ensure_drive();
+
+  base = find_digits_entry();
+  if (base == 255) {
+    base = find_free_entry();
+    if (base == 255) {
+      print("directory full");
+      putchar(10);
+      return 0;
+    }
+
+    page = find_free_page();
+    if (page == 0) {
+      print("disk full");
+      putchar(10);
+      return 0;
+    }
+
+    write_digits_entry(base, page);
+  } else {
+    page = drive_read_at(0, base + 9);
+    write_digits_entry(base, page);
+  }
+
+  // 0 = 111 / 101 / 101 / 101 / 111
+  save_digit_row(page, 0, 0, 7);
+  save_digit_row(page, 0, 1, 5);
+  save_digit_row(page, 0, 2, 5);
+  save_digit_row(page, 0, 3, 5);
+  save_digit_row(page, 0, 4, 7);
+
+  // 1 = 010 / 110 / 010 / 010 / 111
+  save_digit_row(page, 1, 0, 2);
+  save_digit_row(page, 1, 1, 6);
+  save_digit_row(page, 1, 2, 2);
+  save_digit_row(page, 1, 3, 2);
+  save_digit_row(page, 1, 4, 7);
+
+  // 2 = 111 / 001 / 111 / 100 / 111
+  save_digit_row(page, 2, 0, 7);
+  save_digit_row(page, 2, 1, 1);
+  save_digit_row(page, 2, 2, 7);
+  save_digit_row(page, 2, 3, 4);
+  save_digit_row(page, 2, 4, 7);
+
+  // 3 = 111 / 001 / 111 / 001 / 111
+  save_digit_row(page, 3, 0, 7);
+  save_digit_row(page, 3, 1, 1);
+  save_digit_row(page, 3, 2, 7);
+  save_digit_row(page, 3, 3, 1);
+  save_digit_row(page, 3, 4, 7);
+
+  // 4 = 101 / 101 / 111 / 001 / 001
+  save_digit_row(page, 4, 0, 5);
+  save_digit_row(page, 4, 1, 5);
+  save_digit_row(page, 4, 2, 7);
+  save_digit_row(page, 4, 3, 1);
+  save_digit_row(page, 4, 4, 1);
+
+  // 5 = 111 / 100 / 111 / 001 / 111
+  save_digit_row(page, 5, 0, 7);
+  save_digit_row(page, 5, 1, 4);
+  save_digit_row(page, 5, 2, 7);
+  save_digit_row(page, 5, 3, 1);
+  save_digit_row(page, 5, 4, 7);
+
+  // 6 = 111 / 100 / 111 / 101 / 111
+  save_digit_row(page, 6, 0, 7);
+  save_digit_row(page, 6, 1, 4);
+  save_digit_row(page, 6, 2, 7);
+  save_digit_row(page, 6, 3, 5);
+  save_digit_row(page, 6, 4, 7);
+
+  // 7 = 111 / 001 / 001 / 001 / 001
+  save_digit_row(page, 7, 0, 7);
+  save_digit_row(page, 7, 1, 1);
+  save_digit_row(page, 7, 2, 1);
+  save_digit_row(page, 7, 3, 1);
+  save_digit_row(page, 7, 4, 1);
+
+  // 8 = 111 / 101 / 111 / 101 / 111
+  save_digit_row(page, 8, 0, 7);
+  save_digit_row(page, 8, 1, 5);
+  save_digit_row(page, 8, 2, 7);
+  save_digit_row(page, 8, 3, 5);
+  save_digit_row(page, 8, 4, 7);
+
+  // 9 = 111 / 101 / 111 / 001 / 111
+  save_digit_row(page, 9, 0, 7);
+  save_digit_row(page, 9, 1, 5);
+  save_digit_row(page, 9, 2, 7);
+  save_digit_row(page, 9, 3, 1);
+  save_digit_row(page, 9, 4, 7);
+
+  print("saved DIGITS");
+  putchar(10);
+  return 0;
+}`,
+  },
+  {
+    name: "writeLetters",
+    description: "Ecrit le fichier LETTERS dans le FS partage bootloader",
+    code: `// Writer minimal pour fichier LETTERS
+// Compatible avec le FS partage bootloader
+// Le disque doit deja etre formate
+
+int i;
+int base;
+int found;
+int free_base;
+int page;
+
+int main() {
+  drive_set_page(0);
+
+  if (drive_read(0) != 66) {
+    print("fmt first");
+    putchar(10);
+    return 0;
+  }
+  if (drive_read(1) != 3) {
+    print("fmt first");
+    putchar(10);
+    return 0;
+  }
+
+  found = 255;
+  free_base = 255;
+  page = 0;
+  base = 16;
+  i = 0;
+
+  while (i < 8) {
+    if (drive_read(base) == 0) {
+      if (free_base == 255) {
+        free_base = base;
+        page = 255 - i;
+      }
+    } else {
+      if (drive_read(base + 0) == 'L') {
+        if (drive_read(base + 1) == 'E') {
+          if (drive_read(base + 2) == 'T') {
+            if (drive_read(base + 3) == 'T') {
+              if (drive_read(base + 4) == 'E') {
+                if (drive_read(base + 5) == 'R') {
+                  if (drive_read(base + 6) == 'S') {
+                    found = base;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    base = base + 12;
+    i = i + 1;
+  }
+
+  if (found != 255) {
+    base = found;
+    page = drive_read(base + 9);
+  } else {
+    if (free_base == 255) {
+      print("directory full");
+      putchar(10);
+      return 0;
+    }
+    base = free_base;
+  }
+
+  drive_write(base + 0, 'L');
+  drive_write(base + 1, 'E');
+  drive_write(base + 2, 'T');
+  drive_write(base + 3, 'T');
+  drive_write(base + 4, 'E');
+  drive_write(base + 5, 'R');
+  drive_write(base + 6, 'S');
+  drive_write(base + 7, 0);
+  drive_write(base + 8, 1);
+  drive_write(base + 9, page);
+  drive_write(base + 10, 1);
+  drive_write(base + 11, 130);
+
+  // A
+  drive_write_at(page, 0, 2);
+  drive_write_at(page, 1, 5);
+  drive_write_at(page, 2, 7);
+  drive_write_at(page, 3, 5);
+  drive_write_at(page, 4, 5);
+
+  // B
+  drive_write_at(page, 5, 6);
+  drive_write_at(page, 6, 5);
+  drive_write_at(page, 7, 6);
+  drive_write_at(page, 8, 5);
+  drive_write_at(page, 9, 6);
+
+  // C
+  drive_write_at(page, 10, 3);
+  drive_write_at(page, 11, 4);
+  drive_write_at(page, 12, 4);
+  drive_write_at(page, 13, 4);
+  drive_write_at(page, 14, 3);
+
+  // D
+  drive_write_at(page, 15, 6);
+  drive_write_at(page, 16, 5);
+  drive_write_at(page, 17, 5);
+  drive_write_at(page, 18, 5);
+  drive_write_at(page, 19, 6);
+
+  // E
+  drive_write_at(page, 20, 7);
+  drive_write_at(page, 21, 4);
+  drive_write_at(page, 22, 6);
+  drive_write_at(page, 23, 4);
+  drive_write_at(page, 24, 7);
+
+  // F
+  drive_write_at(page, 25, 7);
+  drive_write_at(page, 26, 4);
+  drive_write_at(page, 27, 6);
+  drive_write_at(page, 28, 4);
+  drive_write_at(page, 29, 4);
+
+  // G
+  drive_write_at(page, 30, 3);
+  drive_write_at(page, 31, 4);
+  drive_write_at(page, 32, 5);
+  drive_write_at(page, 33, 5);
+  drive_write_at(page, 34, 3);
+
+  // H
+  drive_write_at(page, 35, 5);
+  drive_write_at(page, 36, 5);
+  drive_write_at(page, 37, 7);
+  drive_write_at(page, 38, 5);
+  drive_write_at(page, 39, 5);
+
+  // I
+  drive_write_at(page, 40, 7);
+  drive_write_at(page, 41, 2);
+  drive_write_at(page, 42, 2);
+  drive_write_at(page, 43, 2);
+  drive_write_at(page, 44, 7);
+
+  // J
+  drive_write_at(page, 45, 1);
+  drive_write_at(page, 46, 1);
+  drive_write_at(page, 47, 1);
+  drive_write_at(page, 48, 5);
+  drive_write_at(page, 49, 2);
+
+  // K
+  drive_write_at(page, 50, 5);
+  drive_write_at(page, 51, 5);
+  drive_write_at(page, 52, 6);
+  drive_write_at(page, 53, 5);
+  drive_write_at(page, 54, 5);
+
+  // L
+  drive_write_at(page, 55, 4);
+  drive_write_at(page, 56, 4);
+  drive_write_at(page, 57, 4);
+  drive_write_at(page, 58, 4);
+  drive_write_at(page, 59, 7);
+
+  // M
+  drive_write_at(page, 60, 5);
+  drive_write_at(page, 61, 7);
+  drive_write_at(page, 62, 7);
+  drive_write_at(page, 63, 5);
+  drive_write_at(page, 64, 5);
+
+  // N
+  drive_write_at(page, 65, 5);
+  drive_write_at(page, 66, 7);
+  drive_write_at(page, 67, 7);
+  drive_write_at(page, 68, 7);
+  drive_write_at(page, 69, 5);
+
+  // O
+  drive_write_at(page, 70, 2);
+  drive_write_at(page, 71, 5);
+  drive_write_at(page, 72, 5);
+  drive_write_at(page, 73, 5);
+  drive_write_at(page, 74, 2);
+
+  // P
+  drive_write_at(page, 75, 6);
+  drive_write_at(page, 76, 5);
+  drive_write_at(page, 77, 6);
+  drive_write_at(page, 78, 4);
+  drive_write_at(page, 79, 4);
+
+  // Q
+  drive_write_at(page, 80, 2);
+  drive_write_at(page, 81, 5);
+  drive_write_at(page, 82, 5);
+  drive_write_at(page, 83, 7);
+  drive_write_at(page, 84, 3);
+
+  // R
+  drive_write_at(page, 85, 6);
+  drive_write_at(page, 86, 5);
+  drive_write_at(page, 87, 6);
+  drive_write_at(page, 88, 5);
+  drive_write_at(page, 89, 5);
+
+  // S
+  drive_write_at(page, 90, 3);
+  drive_write_at(page, 91, 4);
+  drive_write_at(page, 92, 2);
+  drive_write_at(page, 93, 1);
+  drive_write_at(page, 94, 6);
+
+  // T
+  drive_write_at(page, 95, 7);
+  drive_write_at(page, 96, 2);
+  drive_write_at(page, 97, 2);
+  drive_write_at(page, 98, 2);
+  drive_write_at(page, 99, 2);
+
+  // U
+  drive_write_at(page, 100, 5);
+  drive_write_at(page, 101, 5);
+  drive_write_at(page, 102, 5);
+  drive_write_at(page, 103, 5);
+  drive_write_at(page, 104, 7);
+
+  // V
+  drive_write_at(page, 105, 5);
+  drive_write_at(page, 106, 5);
+  drive_write_at(page, 107, 5);
+  drive_write_at(page, 108, 5);
+  drive_write_at(page, 109, 2);
+
+  // W
+  drive_write_at(page, 110, 5);
+  drive_write_at(page, 111, 5);
+  drive_write_at(page, 112, 7);
+  drive_write_at(page, 113, 7);
+  drive_write_at(page, 114, 5);
+
+  // X
+  drive_write_at(page, 115, 5);
+  drive_write_at(page, 116, 5);
+  drive_write_at(page, 117, 2);
+  drive_write_at(page, 118, 5);
+  drive_write_at(page, 119, 5);
+
+  // Y
+  drive_write_at(page, 120, 5);
+  drive_write_at(page, 121, 5);
+  drive_write_at(page, 122, 2);
+  drive_write_at(page, 123, 2);
+  drive_write_at(page, 124, 2);
+
+  // Z
+  drive_write_at(page, 125, 7);
+  drive_write_at(page, 126, 1);
+  drive_write_at(page, 127, 2);
+  drive_write_at(page, 128, 4);
+  drive_write_at(page, 129, 7);
+
+  print("saved LETTERS");
+  putchar(10);
+  return 0;
+}`,
+  },
+  {
     name: "FS Disque Externe",
     description: "Petit systeme de fichiers sur le lecteur externe IO",
     code: `// FS partage avec le bootloader
