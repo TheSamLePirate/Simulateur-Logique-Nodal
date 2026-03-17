@@ -806,8 +806,16 @@ That means:
 - programs compiled with **Compile to Disk** appear in `FS Disque Externe`
 - text files created by `FS Disque Externe` appear in the boot shell `ls`
 - the boot shell refuses to `run` text files, and `FS Disque Externe` refuses to overwrite program entries
+- the ASM example `Éditeur FS ASM` also uses this same layout, so `/o nom` opens or creates a real bootloader-format text file and `/s` saves it back in place
 
 One practical caveat: the bootloader and TypeScript-side disk helpers support the full `64`-entry directory, but the bundled C filesystem examples still keep their own directory scans small so they fit inside the simulator's `4096`-byte code limit.
+
+The ASM editor example is intentionally closer to the raw filesystem:
+
+- `/o nom` opens or creates any text file with an 8-character max name and no spaces
+- arrow keys move the cursor immediately inside the in-memory text buffer
+- `/n` inserts a newline, `/d` deletes before the cursor, `/s` saves, and `@` quits
+- it scans the full `64`-entry shared directory, so it can edit files that live beyond the first directory page too
 
 ### NOT Supported
 

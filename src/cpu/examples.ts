@@ -2,6 +2,9 @@
  * Example assembly programs for the 8-bit CPU.
  */
 
+import { BOOTLOADER_SOURCE } from "./bootloader";
+import { ASM_FS_EDITOR_SOURCE } from "./asmFsEditor";
+
 export interface Example {
   name: string;
   description: string;
@@ -181,6 +184,16 @@ loop:
 newline:
   OUT 10       ; saut de ligne
   JMP loop`,
+  },
+  {
+    name: "Unix Bootloader",
+    description: "Replica exacte du vrai bootloader assembleur du simulateur",
+    code: BOOTLOADER_SOURCE,
+  },
+  {
+    name: "Éditeur FS ASM",
+    description: "Editeur texte ASM multi-fichier avec /o nom, fleches, sauvegarde et FS partage",
+    code: ASM_FS_EDITOR_SOURCE,
   },
   {
     name: "Majuscules (Saisie)",
