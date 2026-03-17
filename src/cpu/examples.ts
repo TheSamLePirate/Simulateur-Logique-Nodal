@@ -4,6 +4,7 @@
 
 import { BOOTLOADER_SOURCE } from "./bootloader";
 import { ASM_FS_EDITOR_SOURCE } from "./asmFsEditor";
+import { ASM_PLOTTER_SHELL_SOURCE } from "./asmPlotterShell";
 
 export interface Example {
   name: string;
@@ -194,6 +195,11 @@ newline:
     name: "Éditeur FS ASM",
     description: "Editeur texte ASM multi-fichier avec /o nom, fleches, sauvegarde et FS partage",
     code: ASM_FS_EDITOR_SOURCE,
+  },
+  {
+    name: "Super Unix Shell Plotter",
+    description: "Shell graphique ASM sur le plotter avec fontes LETTERS/DIGITS du FS partage",
+    code: ASM_PLOTTER_SHELL_SOURCE,
   },
   {
     name: "Majuscules (Saisie)",

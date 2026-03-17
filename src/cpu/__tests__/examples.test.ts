@@ -9,6 +9,7 @@ import {
 import { CPU } from "../cpu";
 import { EXAMPLES } from "../examples";
 import { CODE_SIZE } from "../isa";
+import { encodePlotterCoord } from "../../plotter";
 
 function findEntry(cpu: CPU, name: string) {
   for (let base = 16; base < 16 + 64 * 12; base += 12) {
@@ -29,6 +30,24 @@ function findEntry(cpu: CPU, name: string) {
   return -1;
 }
 
+function countPixelsInRect(
+  cpu: CPU,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+) {
+  let count = 0;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (cpu.plotterPixels.has(encodePlotterCoord(x, y))) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
 describe("ASM examples", () => {
   it('"Éditeur FS ASM" assembles and fits in code memory', () => {
     const example = EXAMPLES.find((e) => e.name === "Éditeur FS ASM");
@@ -38,6 +57,103 @@ describe("ASM examples", () => {
     expect(ar.success).toBe(true);
     expect(ar.errors).toHaveLength(0);
     expect(ar.bytes.length).toBeLessThanOrEqual(CODE_SIZE);
+  });
+
+  it('"Super Unix Shell Plotter" assembles and fits in code memory', () => {
+    const example = EXAMPLES.find((e) => e.name === "Super Unix Shell Plotter");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+    expect(ar.errors).toHaveLength(0);
+    expect(ar.bytes.length).toBeLessThanOrEqual(CODE_SIZE);
+  });
+
+  it('"Super Unix Shell Plotter" boots from the shared FS fonts and draws on the plotter', () => {
+    const example = EXAMPLES.find((e) => e.name === "Super Unix Shell Plotter");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    let disk = formatBootDisk();
+    disk = writeFileToBootDisk(disk, "LETTERS", new Uint8Array(130).fill(7));
+    disk = writeFileToBootDisk(disk, "DIGITS", new Uint8Array(50).fill(7));
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      new Uint8Array(Array.from("hello\nworld").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = new CPU();
+    cpu.driveData.set(disk);
+    cpu.loadProgram(ar.bytes);
+    cpu.run(200_000);
+
+    expect(cpu.state.halted).toBe(false);
+    expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+    expect(cpu.consoleOutput.join("")).toBe("");
+  });
+
+  it('"Super Unix Shell Plotter" draws one typed command character once on the last line', () => {
+    const example = EXAMPLES.find((e) => e.name === "Super Unix Shell Plotter");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    let disk = formatBootDisk();
+    disk = writeFileToBootDisk(disk, "LETTERS", new Uint8Array(130).fill(7));
+    disk = writeFileToBootDisk(disk, "DIGITS", new Uint8Array(50).fill(7));
+
+    const cpu = new CPU();
+    cpu.driveData.set(disk);
+    cpu.loadProgram(ar.bytes);
+    cpu.run(50_000);
+
+    const before = countPixelsInRect(cpu, 20, 244, 255, 248);
+
+    cpu.pushInput("a".charCodeAt(0));
+    cpu.run(10_000);
+
+    const after = countPixelsInRect(cpu, 20, 244, 255, 248);
+    expect(cpu.state.memory[0x1006]).toBe(1);
+    expect(cpu.state.memory[0x1040]).toBe("A".charCodeAt(0));
+    expect(after - before).toBeLessThanOrEqual(15);
+  });
+
+  it('"Super Unix Shell Plotter" CAT updates the plotter preview for the selected file', () => {
+    const example = EXAMPLES.find((e) => e.name === "Super Unix Shell Plotter");
+    expect(example).toBeDefined();
+
+    const ar = assemble(example!.code);
+    expect(ar.success).toBe(true);
+
+    let disk = formatBootDisk();
+    disk = writeFileToBootDisk(disk, "empty", new Uint8Array([]));
+    disk = writeFileToBootDisk(disk, "LETTERS", new Uint8Array(130).fill(7));
+    disk = writeFileToBootDisk(disk, "DIGITS", new Uint8Array(50).fill(7));
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      new Uint8Array(Array.from("hello\nworld").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = new CPU();
+    cpu.driveData.set(disk);
+    cpu.loadProgram(ar.bytes);
+    cpu.run(50_000);
+    const before = countPixelsInRect(cpu, 120, 40, 255, 220);
+
+    for (const ch of "cat notes\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+    cpu.run(500_000);
+
+    const after = countPixelsInRect(cpu, 120, 40, 255, 220);
+    expect(cpu.consoleOutput.join("")).toBe("");
+    expect(cpu.state.memory[0x1002]).toBe(3);
+    expect(after).toBeGreaterThan(before);
   });
 
   it('"Éditeur FS ASM" opens /o filename on the real FS and edits that file with arrow movement', () => {
