@@ -2,7 +2,15 @@
 
 Made by **TheSamLePirate**.
 
-A tiny, understandable computer world in TypeScript:
+A tiny, understandable computer laboratory in TypeScript.
+
+Welcome to the classroom/laboratory/garage accident where we start with tiny electric lies called bits, wire them into logic, bully them into becoming an 8-bit computer, then make that computer run ASM, mini C, a bootloader, and a tiny Linux-like disk.
+
+Yes, this is educational.
+Yes, this is a little unhinged.
+Yes, that is the correct amount of unhinged.
+
+Inside the machine:
 
 - start with transistors
 - build up to logic gates
@@ -12,8 +20,17 @@ A tiny, understandable computer world in TypeScript:
 - boot a tiny Linux-like disk
 
 If you love C, you will probably love my mini C.
+If you fear C, this may be the safest possible place to get bitten by it.
 
 It is small, a little strict, a little retro, and just dangerous enough to teach you why buffer overflows were such a legendary hobby.
+
+Remember when writing a single letter on screen was a small emotional crisis?
+
+Remember when your biggest respectable number was `255`?
+
+Remember when division was just repeated subtraction wearing a fake mustache?
+
+And who even uses modulo anymore, except absolutely everyone the moment pixels, loops, counters, clocks, wraparound, or chaos show up?
 
 ## Why this repo is fun
 
@@ -47,6 +64,33 @@ Then:
 4. boot the bootloader
 5. install the Linux disk
 6. run weird little programs with joy
+
+## Test and report
+
+```bash
+npm test
+```
+
+Then open:
+
+```text
+report/index.html
+```
+
+You get one test dashboard with:
+
+- all suites
+- console output
+- plotter snapshots
+- animated previews for multi-frame programs
+
+## Docs
+
+- [Easy user guide](docs/userguide.md)
+- [How the hardware works](docs/how-the-hardware-works.md)
+- [How the computer works](docs/how-the-computer-works.md)
+- [Mini C guide](docs/c-language-guide.md)
+- [Compiler bugs and tests](docs/compiler-bugfixes-and-tests.md)
 
 ## Gentle warning
 
