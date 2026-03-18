@@ -31,6 +31,9 @@ import type {
   Program,
   FunctionDecl,
   ParamDecl,
+  VarDecl,
+  Initializer,
+  ArrayInitializer,
   Stmt,
   Expr,
   Block,
@@ -72,6 +75,8 @@ interface FuncInfo {
   localAddrs: Map<string, number>; // local name → memory address
   frameAddrs: number[]; // reusable frame slots actually reserved for this function
   arrays: Map<string, ArrayInfo>; // array name → base address + size
+  constScalars: Set<string>;
+  constArrays: Set<string>;
 }
 
 interface FuncParamInfo {
@@ -100,6 +105,8 @@ export function generate(program: Program): {
 
   const globals = new Map<string, number>(); // name → address
   const globalArrays = new Map<string, ArrayInfo>(); // array name → info
+  const globalConstScalars = new Set<string>();
+  const globalConstArrays = new Set<string>();
   const funcTable = new Map<string, FuncInfo>();
   const runtimeHelpersUsed = new Set<string>();
   const constantData: { label: string; bytes: number[] }[] = [];
@@ -221,6 +228,8 @@ export function generate(program: Program): {
     paramSlots: Map<string, number>;
     localSlots: Map<string, number>;
     arrays: Map<string, PlannedArrayInfo>;
+    constScalars: Set<string>;
+    constArrays: Set<string>;
     frameSize: number;
     frameBase: number;
     directCallees: Set<string>;
@@ -257,13 +266,24 @@ export function generate(program: Program): {
   }
 
   function scanStmtForCallees(stmt: Stmt, out: Set<string>) {
+    function scanInitializer(initializer: Initializer | null) {
+      if (!initializer) return;
+      if (initializer.kind === "ArrayInitializer") {
+        for (const element of initializer.elements) {
+          scanExprForCallees(element, out);
+        }
+        return;
+      }
+      scanExprForCallees(initializer, out);
+    }
+
     switch (stmt.kind) {
       case "VarDecl":
-        if (stmt.initializer) scanExprForCallees(stmt.initializer, out);
+        scanInitializer(stmt.initializer);
         break;
       case "VarDeclList":
         for (const decl of stmt.declarations) {
-          if (decl.initializer) scanExprForCallees(decl.initializer, out);
+          scanInitializer(decl.initializer);
         }
         break;
       case "ExprStmt":
@@ -299,6 +319,8 @@ export function generate(program: Program): {
     const paramSlots = new Map<string, number>();
     const localSlots = new Map<string, number>();
     const arrays = new Map<string, PlannedArrayInfo>();
+    const constScalars = new Set<string>();
+    const constArrays = new Set<string>();
     const directCallees = new Set<string>();
     const occupied: boolean[] = [];
     let maxSlots = 0;
@@ -325,14 +347,24 @@ export function generate(program: Program): {
       for (let i = 0; i < size; i++) occupied[base + i] = false;
     }
 
-    function allocDecl(name: string, arraySize: number | null, releases: { base: number; size: number }[]) {
+    function allocDecl(
+      name: string,
+      arraySize: number | null,
+      isConst: boolean,
+      releases: { base: number; size: number }[],
+    ) {
       if (paramSlots.has(name) || localSlots.has(name) || arrays.has(name)) {
         return;
       }
       const size = arraySize ?? 1;
       const base = allocSlots(size);
-      if (arraySize !== null) arrays.set(name, { baseSlot: base, size: arraySize });
-      else localSlots.set(name, base);
+      if (arraySize !== null) {
+        arrays.set(name, { baseSlot: base, size: arraySize });
+        if (isConst) constArrays.add(name);
+      } else {
+        localSlots.set(name, base);
+        if (isConst) constScalars.add(name);
+      }
       releases.push({ base, size });
     }
 
@@ -353,10 +385,10 @@ export function generate(program: Program): {
       if (stmt.kind === "ForStmt") {
         const releases: { base: number; size: number }[] = [];
         if (stmt.init?.kind === "VarDecl") {
-          allocDecl(stmt.init.name, stmt.init.arraySize, releases);
+          allocDecl(stmt.init.name, stmt.init.arraySize, stmt.init.isConst, releases);
         } else if (stmt.init?.kind === "VarDeclList") {
           for (const decl of stmt.init.declarations) {
-            allocDecl(decl.name, decl.arraySize, releases);
+            allocDecl(decl.name, decl.arraySize, decl.isConst, releases);
           }
         }
         planScopedStmt(stmt.body);
@@ -370,12 +402,12 @@ export function generate(program: Program): {
       const releases: { base: number; size: number }[] = [];
       for (const stmt of block.statements) {
         if (stmt.kind === "VarDecl") {
-          allocDecl(stmt.name, stmt.arraySize, releases);
+          allocDecl(stmt.name, stmt.arraySize, stmt.isConst, releases);
           continue;
         }
         if (stmt.kind === "VarDeclList") {
           for (const decl of stmt.declarations) {
-            allocDecl(decl.name, decl.arraySize, releases);
+            allocDecl(decl.name, decl.arraySize, decl.isConst, releases);
           }
           continue;
         }
@@ -409,6 +441,8 @@ export function generate(program: Program): {
       paramSlots,
       localSlots,
       arrays,
+      constScalars,
+      constArrays,
       frameSize: maxSlots,
       frameBase: -1,
       directCallees,
@@ -449,6 +483,7 @@ export function generate(program: Program): {
         continue;
       }
       globalArrays.set(g.name, { baseAddr: globalAddr, size: g.arraySize });
+      if (g.isConst) globalConstArrays.add(g.name);
       globalAddr += g.arraySize;
     } else {
       // Scalar
@@ -460,6 +495,7 @@ export function generate(program: Program): {
         continue;
       }
       globals.set(g.name, globalAddr);
+      if (g.isConst) globalConstScalars.add(g.name);
       globalAddr++;
     }
   }
@@ -557,6 +593,8 @@ export function generate(program: Program): {
       localAddrs,
       frameAddrs: Array.from({ length: plan.frameSize }, (_, i) => plan.frameBase + i),
       arrays,
+      constScalars: new Set(plan.constScalars),
+      constArrays: new Set(plan.constArrays),
     });
   }
 
@@ -762,8 +800,7 @@ export function generate(program: Program): {
     if (isMain) {
       for (const g of program.globals) {
         if (g.initializer) {
-          emitExpr(g.initializer, ctx);
-          emit(`  STA ${fmt(globals.get(g.name)!)}`);
+          emitVarInitializer(g, ctx);
         }
       }
     }
@@ -790,10 +827,77 @@ export function generate(program: Program): {
     }
   }
 
-  function emitVarDecl(stmt: { initializer: Expr | null; name: string }, ctx: FuncInfo) {
+  function emitArrayInitializer(
+    baseAddr: number,
+    size: number,
+    initializer: ArrayInitializer,
+    ctx: FuncInfo,
+    line: number,
+  ) {
+    if (initializer.elements.length > size) {
+      errors.push({
+        line,
+        message: "Trop d'elements dans l'initialiseur du tableau",
+      });
+    }
+
+    for (let i = 0; i < size; i++) {
+      if (i < initializer.elements.length) {
+        emitExpr(initializer.elements[i], ctx);
+      } else {
+        emit(`  LDA 0`);
+      }
+      emit(`  STA ${fmt(baseAddr + i)}`);
+    }
+  }
+
+  function emitVarInitializer(stmt: VarDecl, ctx: FuncInfo) {
+    if (!stmt.initializer) return;
+
+    if (stmt.arraySize !== null) {
+      const baseAddr =
+        ctx.arrays.get(stmt.name)?.baseAddr ?? globalArrays.get(stmt.name)?.baseAddr;
+
+      if (baseAddr === undefined) {
+        errors.push({
+          line: stmt.line,
+          message: `Tableau non défini: "${stmt.name}"`,
+        });
+        return;
+      }
+
+      if (stmt.initializer.kind === "ArrayInitializer") {
+        emitArrayInitializer(
+          baseAddr,
+          stmt.arraySize,
+          stmt.initializer,
+          ctx,
+          stmt.line,
+        );
+      } else {
+        errors.push({
+          line: stmt.line,
+          message: "Un tableau doit être initialisé avec { ... } ou une chaine littérale",
+        });
+      }
+      return;
+    }
+
+    if (stmt.initializer.kind === "ArrayInitializer") {
+      errors.push({
+        line: stmt.line,
+        message: "Une variable scalaire ne peut pas recevoir un initialiseur de tableau",
+      });
+      return;
+    }
+
+    emitExpr(stmt.initializer, ctx);
+    storeVar(stmt.name, ctx, stmt.line, true);
+  }
+
+  function emitVarDecl(stmt: VarDecl, ctx: FuncInfo) {
     if (stmt.initializer) {
-      emitExpr(stmt.initializer, ctx);
-      storeVar(stmt.name, ctx);
+      emitVarInitializer(stmt, ctx);
     }
   }
 
@@ -948,10 +1052,12 @@ export function generate(program: Program): {
         break;
 
       case "StringLiteral":
-        // Standalone string: emit each char via OUT
-        for (const ch of expr.value) {
-          emit(`  OUT ${ch.charCodeAt(0)}`);
-        }
+        errors.push({
+          line: expr.line,
+          message:
+            'Une chaine littérale ne peut pas être utilisée comme expression ici; utilisez un caractère comme \'a\' pour une seule case, ou print("...") pour afficher du texte',
+        });
+        emit(`  LDA 0`);
         break;
 
       case "Identifier":
@@ -960,7 +1066,7 @@ export function generate(program: Program): {
 
       case "AssignExpr":
         emitExpr(expr.value, ctx);
-        storeVar(expr.name, ctx);
+        storeVar(expr.name, ctx, expr.line);
         break;
 
       case "CompoundAssignExpr": {
@@ -971,7 +1077,7 @@ export function generate(program: Program): {
         emit(`  LBM ${fmt(TEMP_BASE)}`); // B = RHS
         if (expr.op === "+=") emit(`  ADDB`);
         else emit(`  SUBB`);
-        storeVar(expr.name, ctx);
+        storeVar(expr.name, ctx, expr.line);
         break;
       }
 
@@ -1013,6 +1119,13 @@ export function generate(program: Program): {
         //   STAI base (MEM[base + B] = A)
         const base2 = resolveArray(expr.arrayName, ctx, expr.line);
         if (base2 !== null) {
+          if (isConstArray(expr.arrayName, ctx)) {
+            errors.push({
+              line: expr.line,
+              message: `Le tableau const "${expr.arrayName}" ne peut pas être modifié`,
+            });
+            break;
+          }
           emitExpr(expr.value, ctx); // A = value
           emit(`  PUSH`); // save value
           emitExpr(expr.index, ctx); // A = index
@@ -1470,7 +1583,7 @@ export function generate(program: Program): {
       if (expr.operand.kind === "Identifier") {
         loadVar(expr.operand.name, ctx, expr.line);
         emit(expr.op === "++" ? "  INC" : "  DEC");
-        storeVar(expr.operand.name, ctx);
+        storeVar(expr.operand.name, ctx, expr.line);
       }
       return;
     }
@@ -1514,7 +1627,7 @@ export function generate(program: Program): {
       loadVar(expr.operand.name, ctx, expr.line);
       emit(`  PUSH`); // save old value as result
       emit(expr.op === "++" ? "  INC" : "  DEC");
-      storeVar(expr.operand.name, ctx);
+      storeVar(expr.operand.name, ctx, expr.line);
       emit(`  POP`); // restore old value as expression result
     }
   }
@@ -1934,6 +2047,14 @@ export function generate(program: Program): {
     return ctx.arrays.has(name) || globalArrays.has(name);
   }
 
+  function isConstScalar(name: string, ctx: FuncInfo): boolean {
+    return ctx.constScalars.has(name) || globalConstScalars.has(name);
+  }
+
+  function isConstArray(name: string, ctx: FuncInfo): boolean {
+    return ctx.constArrays.has(name) || globalConstArrays.has(name);
+  }
+
   function resolveArray(
     name: string,
     ctx: FuncInfo,
@@ -1965,8 +2086,27 @@ export function generate(program: Program): {
     }
   }
 
-  function storeVar(name: string, ctx: FuncInfo) {
-    if (isArray(name, ctx)) return;
+  function storeVar(
+    name: string,
+    ctx: FuncInfo,
+    line = 0,
+    allowConstWrite = false,
+  ) {
+    if (isArray(name, ctx)) {
+      errors.push({
+        line,
+        message: `"${name}" est un tableau, utilisez ${name}[index]`,
+      });
+      return;
+    }
+
+    if (!allowConstWrite && isConstScalar(name, ctx)) {
+      errors.push({
+        line,
+        message: `La variable const "${name}" ne peut pas être modifiée`,
+      });
+      return;
+    }
 
     const addr =
       ctx.localAddrs.get(name) ?? ctx.paramAddrs.get(name) ?? globals.get(name);

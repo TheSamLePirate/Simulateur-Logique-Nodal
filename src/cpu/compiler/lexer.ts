@@ -11,7 +11,9 @@ export enum TokenType {
   STRING_LITERAL,
   // Identifiers & keywords
   IDENTIFIER,
+  CONST,
   INT,
+  STRING,
   VOID,
   IF,
   ELSE,
@@ -67,7 +69,9 @@ export interface Token {
 }
 
 const KEYWORDS: Record<string, TokenType> = {
+  const: TokenType.CONST,
   int: TokenType.INT,
+  string: TokenType.STRING,
   void: TokenType.VOID,
   if: TokenType.IF,
   else: TokenType.ELSE,

@@ -130,7 +130,9 @@ function highlightASMLine(line: string): React.ReactNode[] {
 // ─── C Highlighting ───
 
 const C_KEYWORDS = new Set([
+  "const",
   "int",
+  "string",
   "void",
   "if",
   "else",

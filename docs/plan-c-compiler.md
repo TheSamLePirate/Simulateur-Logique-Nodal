@@ -23,9 +23,10 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 | Feature | Syntax | Notes |
 |---------|--------|-------|
-| Types | `int`, `void` | int = 8-bit unsigned (0–255) |
+| Types | `int`, `string`, `void` | `string` declares a zero-terminated character array |
 | Globals | `int x = 5;`, `int a = 1, b = 2;` | Stored at fixed addresses 0x1000+; comma-separated declarations are supported |
 | Locals | `int y = 3;`, `int i = 0, j = 3;` | Fixed addresses 0x1018+ (per function); comma-separated declarations are supported |
+| Read-only data | `const int msg_len = 5;` | Local/global `const` data is initialized once and is read-only afterwards |
 | Functions | `int foo(int a) { return a+1; }`, `int sum(int values[3]) { ... }` | With params, recursion, and fixed-size array arguments |
 | Entry point | `int main() { ... }` | Required |
 | If/else | `if (x > 0) { ... } else { ... }` | |
@@ -38,7 +39,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Unary | `!`, `~`, `++`, `--` | |
 | Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
 | Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
-| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes; fixed-size arrays can also be passed to functions |
+| Arrays | `int arr[10] = {1, 2, 3}; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes; array initializers and fixed-size function arguments are supported |
 | Built-in Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB pixel drawing |
 | Comments | `//` and `/* */` | |
 | Constants | `#define NAME value` | Preprocessed |
@@ -56,7 +57,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | `clear()` | Clear all pixels on plotter | `CLR` |
 
 ### NOT Supported
-- Pointers, structs, strings as values, switch/case, float, array initializers, 2D arrays
+- Pointers, structs, full pointer-style strings, switch/case, float, 2D arrays
 
 ---
 
@@ -64,7 +65,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 
 ### 1. `src/cpu/compiler/lexer.ts` (~150 lines)
 - Tokenizer with line/column tracking for error reporting
-- Token types: NUMBER, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER, keywords (`int`, `void`, `if`, `else`, `while`, `for`, `return`), operators, delimiters, EOF
+- Token types: NUMBER, CHAR_LITERAL, STRING_LITERAL, IDENTIFIER, keywords (`const`, `int`, `string`, `void`, `if`, `else`, `while`, `for`, `return`), operators, delimiters, EOF
 - Handles: decimal `42`, hex `0x2A`, char `'A'`, strings `"hello"`, `//` and `/* */` comments
 - Returns `Token[]` array
 
@@ -74,7 +75,8 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 - AST node types:
   - `Program { defines, globals, functions }`
   - `FunctionDecl { name, params, returnType, body }`
-  - `VarDecl { name, initializer?, arraySize? }`
+  - `VarDecl { name, initializer?, arraySize?, isConst }`
+  - `ArrayInitializer { elements }`
   - `IfStmt`, `WhileStmt`, `ForStmt`, `ReturnStmt`, `ExprStmt`, `Block`
   - `BinaryExpr`, `UnaryExpr`, `CallExpr`, `AssignExpr`, `NumberLiteral`, `Identifier`, `StringLiteral`
   - `IndexExpr { arrayName, index }` — array read: `arr[i]`
@@ -120,6 +122,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
   10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire 2K]*
   19. **"Tableau (Tri)"** — bubble sort of 8 elements using arrays and indexed addressing
   20. **"Tableau (Nouvelles Fonctionnalites)"** — fixed-size array arguments plus comma-separated declarations
+  21. **"Const et String"** — const globals/locals, array initializers, and `string` declarations
 
 ---
 

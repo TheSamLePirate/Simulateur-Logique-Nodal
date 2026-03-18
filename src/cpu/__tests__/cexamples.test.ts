@@ -535,6 +535,14 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Somme: 68");
   });
 
+  it('"Const et String" demonstrates const data, array initializers, and string declarations', () => {
+    const example = C_EXAMPLES.find((e) => e.name === "Const et String");
+    expect(example).toBeDefined();
+    const r = compileAndRun(example!.code, { maxCycles: 5_000_000 });
+    expect(r.halted).toBe(true);
+    expect(r.output).toBe("hello 128 7 3\n");
+  });
+
   it('"Pong" runs game loop with plotter output', () => {
     // Simulate pressing DOWN key — player paddle moves
     const example = C_EXAMPLES.find((e) => e.name === "Pong");
@@ -1957,17 +1965,235 @@ describe("Compiler — Arrays", () => {
     ).toBe(true);
   });
 
-  it("array initializer is rejected", () => {
+  it("array initializer works for local arrays", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a[4] = {1, 2, 3};
+        print_num(a[0]);
+        putchar(32);
+        print_num(a[1]);
+        putchar(32);
+        print_num(a[2]);
+        putchar(32);
+        print_num(a[3]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("1 2 3 0");
+    expect(r.halted).toBe(true);
+  });
+
+  it("const global data and arrays initialize correctly", () => {
+    const r = compileAndRun(`
+      const int digits[10] = {48,49,50,51,52,53,54,55,56,57};
+      const int palette[3] = {0, 128, 255};
+      const int msg_len = 5;
+
+      int main() {
+        print_num(digits[0]);
+        putchar(32);
+        print_num(digits[9]);
+        putchar(32);
+        print_num(palette[1]);
+        putchar(32);
+        print_num(msg_len);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("48 57 128 5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("global array initializer works", () => {
+    const r = compileAndRun(`
+      int values[4] = {9, 8, 7, 6};
+      int main() {
+        print_num(values[0]);
+        putchar(32);
+        print_num(values[3]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("9 6");
+    expect(r.halted).toBe(true);
+  });
+
+  it("string declaration stores a zero-terminated character array", () => {
+    const r = compileAndRun(`
+      int main() {
+        string msg = "hello";
+        int i;
+        i = 0;
+        while (msg[i] != 0) {
+          putchar(msg[i]);
+          i = i + 1;
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("hello");
+    expect(r.halted).toBe(true);
+  });
+
+  it("global string declaration stores a zero-terminated character array", () => {
+    const r = compileAndRun(`
+      string msg = "abc";
+      int main() {
+        int i;
+        i = 0;
+        while (msg[i] != 0) {
+          putchar(msg[i]);
+          i = i + 1;
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("abc");
+    expect(r.halted).toBe(true);
+  });
+
+  it("string can be modified by index when it is not const", () => {
+    const r = compileAndRun(`
+      int main() {
+        string msg = "hello";
+        int i;
+        msg[0] = 'H';
+        msg[4] = 'O';
+        i = 0;
+        while (msg[i] != 0) {
+          putchar(msg[i]);
+          i = i + 1;
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("HellO");
+    expect(r.halted).toBe(true);
+  });
+
+  it("string buffers can be manually appended when extra capacity exists", () => {
+    const r = compileAndRun(`
+      int main() {
+        int buf[8] = "hi";
+        int i;
+        buf[2] = '!';
+        buf[3] = 0;
+        i = 0;
+        while (buf[i] != 0) {
+          putchar(buf[i]);
+          i = i + 1;
+        }
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("hi!");
+    expect(r.halted).toBe(true);
+  });
+
+  it("const string cannot be modified by index", () => {
     const cr = compile(`
       int main() {
-        int a[3] = {1, 2, 3};
+        const string msg = "hello";
+        msg[0] = 'H';
         return 0;
       }
     `);
     expect(cr.success).toBe(false);
-    expect(cr.errors.some((e) => e.message.includes("Initialisation"))).toBe(
-      true,
-    );
+    expect(cr.errors.some((e) => e.message.includes("const"))).toBe(true);
+  });
+
+  it("writing to a const scalar is rejected", () => {
+    const cr = compile(`
+      int main() {
+        const int x = 5;
+        x = 6;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("const"))).toBe(true);
+  });
+
+  it("const declaration without initializer is rejected", () => {
+    const cr = compile(`
+      int main() {
+        const int x;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("initialiseur"))).toBe(true);
+  });
+
+  it("string declaration without literal initializer is rejected", () => {
+    const cr = compile(`
+      int main() {
+        string msg;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("string"))).toBe(true);
+  });
+
+  it("string concatenation with + is not supported", () => {
+    const cr = compile(`
+      int main() {
+        string a = "he";
+        string b = "llo";
+        string c = a + b;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("chaine") || e.message.includes("tableau"))).toBe(true);
+  });
+
+  it("assigning a string literal to one array element is rejected", () => {
+    const cr = compile(`
+      int main() {
+        string msg = "hello";
+        msg[4] = "a";
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("chaine littérale"))).toBe(true);
+  });
+
+  it("reassigning a string variable is not supported", () => {
+    const cr = compile(`
+      int main() {
+        string msg = "hello";
+        msg = "bye";
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("tableau"))).toBe(true);
+  });
+
+  it("out-of-bounds array access is not rejected by the compiler", () => {
+    const cr = compile(`
+      int main() {
+        int a[2] = {1, 2};
+        a[9] = 7;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+  });
+
+  it("writing to a const array is rejected", () => {
+    const cr = compile(`
+      int main() {
+        const int a[2] = {1, 2};
+        a[0] = 9;
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("const"))).toBe(true);
   });
 
   it("passing a scalar to an array parameter is rejected", () => {

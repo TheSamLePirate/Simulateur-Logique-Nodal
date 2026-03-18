@@ -4479,4 +4479,31 @@ int main() {
   return 0;
 }`,
   },
+  {
+    name: "Const et String",
+    description: "Montre const global/local, initialisateurs de tableaux et string",
+    code: `// Donnees constantes globales
+const int digits[10] = {48,49,50,51,52,53,54,55,56,57};
+const int palette[3] = {0, 128, 255};
+const int msg_len = 5;
+
+int main() {
+  string msg = "hello";
+  const int local_mix[2] = {1, 2};
+  int i;
+
+  for (i = 0; i < msg_len; i++) {
+    putchar(msg[i]);
+  }
+  putchar(32);
+  print_num(palette[1]);
+  putchar(32);
+  putchar(digits[7]);
+  putchar(32);
+  print_num(local_mix[0] + local_mix[1]);
+  putchar(10);
+
+  return 0;
+}`,
+  },
 ];

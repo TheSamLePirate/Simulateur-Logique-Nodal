@@ -454,7 +454,7 @@ Becomes:
 [KEYWORD:int] [IDENTIFIER:x] [EQUALS] [NUMBER:42] [SEMICOLON]
 ```
 
-The lexer handles: numbers (decimal, hex), char literals (`'A'`), string literals (`"hello"`), keywords, identifiers, operators, and comments.
+The lexer handles: numbers (decimal, hex), char literals (`'A'`), string literals (`"hello"`), keywords like `const` and `string`, identifiers, operators, and comments.
 
 ### Step 3: Parser (`parser.ts`)
 
@@ -694,12 +694,15 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 
 Fixed-size arrays can also be used as **function arguments**. The compiler gives the callee its own contiguous array parameter space, copies the requested elements in before `CALL`, then copies them back after `RET`, so indexed reads and writes still look natural in C code.
 
+One important limitation: the compiler does **not** inject bounds checks for `arr[i]` or `msg[i]`. If your index goes past the declared size, the generated `LDAI` / `STAI` instructions will read or write neighboring memory instead.
+
 ### Supported C Features
 
 | Feature | Example | Notes |
 |---------|---------|-------|
-| Types | `int`, `void` | int = 8-bit (0-255) |
+| Types | `int`, `string`, `void` | `string` declares a zero-terminated character array |
 | Variables | `int x = 5;`, `int a = 1, b = 2;` | Global or local; comma-separated declarations are supported |
+| Read-only data | `const int palette[3] = {0, 128, 255};` | `const` data is initialized once and later writes are rejected |
 | Functions | `int add(int a, int b) { return a + b; }`, `int sum(int values[3]) { ... }` | With recursion and fixed-size array arguments |
 | If/else | `if (x > 0) { ... } else { ... }` | |
 | While | `while (x > 0) { ... }` | |
@@ -710,7 +713,7 @@ Fixed-size arrays can also be used as **function arguments**. The compiler gives
 | Logical | `&& \|\|` | Short-circuit |
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
-| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI; fixed-size arrays can be passed to functions |
+| Arrays | `int arr[10] = {1, 2, 3}; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI; array initializers and fixed-size function arguments are supported |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")`, `console_clear()` | Built-in functions |
 | Input | `getchar()`, `getKey(0)`, `get("...")`, `post("...", "...")`, `gethttpchar()` | Console, keyboard, and HTTP built-ins |
 | Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
@@ -839,7 +842,7 @@ The ASM editor example is intentionally closer to the raw filesystem:
 
 ### NOT Supported
 
-Pointers, structs, strings as values, switch/case, float, sizeof, array initializers, 2D arrays.
+Pointers, structs, full pointer-style strings, switch/case, float, sizeof, 2D arrays.
 
 ---
 
@@ -1149,6 +1152,7 @@ Runs each program and checks exact output. Examples:
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
   "Test Mémoire"    → "PASS" with globals and reusable local frames validated
+  "Const et String" → "hello 128 7 3"
   "Tableau (Nouvelles Fonctionnalites)" → "Avant: 42 7 19 " + "Trie: 7 19 42 " + "Somme: 68"
   "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```

@@ -167,10 +167,13 @@ Comments are supported:
 Supported types:
 
 - `int`
+- `string`
 - `void`
 
-Use `int` for variables and function parameters.
+Use `int` for numeric variables and function parameters.
+Use `string` for zero-terminated character arrays initialized from a string literal.
 Use `void` for functions that do not return a value.
+Use `const` in front of `int` or `string` when the data should be read-only after initialization.
 
 ### Local variables
 
@@ -193,6 +196,14 @@ Initializers can also be mixed in:
 
 ```c
 int a = 1, b = 2, c;
+```
+
+Read-only data is also supported:
+
+```c
+const int digits[3] = {48, 49, 50};
+const int count = 3;
+string msg = "hello";
 ```
 
 ### Global variables
@@ -454,6 +465,7 @@ One-dimensional arrays are supported.
 
 ```c
 int values[8];
+int warm[4] = {10, 20, 30, 40};
 ```
 
 The size must be a constant number.
@@ -484,9 +496,11 @@ for (i = 0; i < 8; i++) {
 ### Important array rules
 
 - Only 1D arrays are supported
-- Array initializers are not supported
+- Array initializers are supported and fill any missing trailing elements with `0`
 - Use `arr[index]`, not just `arr`
 - Arrays cannot be used like pointer values
+- `string name = "hello";` creates a zero-terminated array, so `name[0]` is `'h'`
+- There is no automatic bounds checking: `arr[99]` will compile and may corrupt nearby memory
 
 This is valid:
 
@@ -503,6 +517,54 @@ int t[4];
 int x;
 x = t;   // not supported
 ```
+
+### Strings
+
+`string` is a convenience declaration for a zero-terminated character array initialized from a string literal.
+
+```c
+string msg = "hello";
+```
+
+You can read and write individual characters by index as long as the string is not `const`:
+
+```c
+msg[0] = 'H';
+```
+
+Use single quotes for one character. This is correct:
+
+```c
+msg[4] = 'a';
+```
+
+This is not:
+
+```c
+msg[4] = "a";
+```
+
+Concatenation is not built in. This does **not** work:
+
+```c
+string c = a + b;
+```
+
+If you want to append text, you must do it manually in a writable buffer with enough extra capacity and write the terminating `0` yourself:
+
+```c
+int buf[8] = "hi";
+buf[2] = '!';
+buf[3] = 0;
+```
+
+Important string limits:
+
+- `string name = "text";` must be initialized immediately with a string literal
+- `string` storage size is exactly the literal length plus the final `0`
+- `string msg = "hello"; msg = "bye";` is not supported
+- there is no automatic concatenation, copy helper, or length helper
+- index operations are not bounds-checked
 
 ---
 
@@ -991,8 +1053,6 @@ The following features are not part of this language:
 - `switch`
 - `sizeof`
 - function pointer syntax
-- string variables
-- array initializers like `int t[3] = {1,2,3};`
 - multi-dimensional arrays
 Also keep in mind:
 
@@ -1095,6 +1155,7 @@ Useful ones to start with:
 - `Plotter`, `Courbe`, and `Spirale` for graphics
 - `Tableau (Tri)` for arrays
 - `Tableau (Nouvelles Fonctionnalites)` for fixed-size array parameters and comma-separated declarations
+- `Const et String` for `const` data, array initializers, and `string msg = "hello";`
 
 If you want the assembly-language version of that same idea, look at `Éditeur FS ASM` in [src/cpu/examples.ts](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/src/cpu/examples.ts). It uses `/o nom` to open or create any shared-FS text file, edits with the arrow keys, saves with `/s`, and writes files in the real bootloader disk format.
 

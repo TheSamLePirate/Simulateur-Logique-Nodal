@@ -34,8 +34,9 @@ export interface ParamDecl {
 export interface VarDecl {
   kind: "VarDecl";
   name: string;
-  initializer: Expr | null;
+  initializer: Initializer | null;
   arraySize: number | null; // null = scalar, N = array of N elements
+  isConst: boolean;
   line: number;
 }
 
@@ -106,6 +107,14 @@ export interface ContinueStmt {
 export interface ExprStmt {
   kind: "ExprStmt";
   expression: Expr;
+  line: number;
+}
+
+export type Initializer = Expr | ArrayInitializer;
+
+export interface ArrayInitializer {
+  kind: "ArrayInitializer";
+  elements: Expr[];
   line: number;
 }
 
@@ -270,10 +279,16 @@ export function parse(tokens: Token[]): {
         continue;
       }
 
-      // Expect type: int or void
-      if (check(TokenType.INT) || check(TokenType.VOID)) {
+      // Expect declaration or function
+      if (
+        check(TokenType.CONST) ||
+        check(TokenType.INT) ||
+        check(TokenType.STRING) ||
+        check(TokenType.VOID)
+      ) {
+        const isConst = match(TokenType.CONST);
         const typeToken = advance();
-        const returnType = typeToken.value as "int" | "void";
+        const declType = typeToken.value as "int" | "void" | "string";
 
         if (!check(TokenType.IDENTIFIER)) {
           errors.push({
@@ -286,12 +301,14 @@ export function parse(tokens: Token[]): {
         const nameToken = advance();
 
         // Function: int/void name(...)
-        if (check(TokenType.LPAREN)) {
-          functions.push(parseFunctionDecl(returnType, nameToken));
+        if (!isConst && declType !== "string" && check(TokenType.LPAREN)) {
+          functions.push(parseFunctionDecl(declType as "int" | "void", nameToken));
         } else {
           globals.push(
             ...parseVarDeclSequence(
               nameToken,
+              declType as "int" | "string",
+              isConst,
               "';' attendu après déclaration globale",
             ),
           );
@@ -308,7 +325,75 @@ export function parse(tokens: Token[]): {
     return { kind: "Program", globals, functions };
   }
 
-  function parseVarDeclarator(nameToken: Token): VarDecl {
+  function parseArrayInitializer(): ArrayInitializer {
+    const line = peek().line;
+    expect(TokenType.LBRACE, "'{' attendu pour l'initialisation du tableau");
+    const elements: Expr[] = [];
+
+    if (!check(TokenType.RBRACE)) {
+      do {
+        elements.push(parseExpression());
+      } while (match(TokenType.COMMA));
+    }
+
+    expect(TokenType.RBRACE, "'}' attendu après l'initialisation du tableau");
+    return {
+      kind: "ArrayInitializer",
+      elements,
+      line,
+    };
+  }
+
+  function stringLiteralToArrayInitializer(literal: Token): ArrayInitializer {
+    return {
+      kind: "ArrayInitializer",
+      line: literal.line,
+      elements: [...literal.value, "\0"].map((ch) => ({
+        kind: "NumberLiteral" as const,
+        value: ch.charCodeAt(0) & 0xff,
+        line: literal.line,
+      })),
+    };
+  }
+
+  function parseVarDeclarator(
+    nameToken: Token,
+    declType: "int" | "string",
+    isConst: boolean,
+  ): VarDecl {
+    if (declType === "string") {
+      let initializer: Initializer | null = null;
+      let arraySize = 1;
+
+      if (match(TokenType.ASSIGN)) {
+        if (check(TokenType.STRING_LITERAL)) {
+          const literal = advance();
+          initializer = stringLiteralToArrayInitializer(literal);
+          arraySize = literal.value.length + 1;
+        } else {
+          errors.push({
+            line: peek().line,
+            message: "Une variable string doit être initialisée avec une chaine littérale",
+          });
+          parseExpression();
+        }
+      } else {
+        errors.push({
+          line: nameToken.line,
+          message: "Une variable string doit être initialisée",
+        });
+      }
+
+      return {
+        kind: "VarDecl",
+        name: nameToken.value,
+        initializer,
+        arraySize,
+        isConst,
+        line: nameToken.line,
+      };
+    }
+
     if (match(TokenType.LBRACKET)) {
       const sizeTok = peek();
       let arraySize = 1;
@@ -328,26 +413,44 @@ export function parse(tokens: Token[]): {
         });
       }
       expect(TokenType.RBRACKET, "']' attendu après taille du tableau");
-      if (check(TokenType.ASSIGN)) {
+      let initializer: Initializer | null = null;
+      if (match(TokenType.ASSIGN)) {
+        if (check(TokenType.LBRACE)) {
+          initializer = parseArrayInitializer();
+        } else if (check(TokenType.STRING_LITERAL)) {
+          initializer = stringLiteralToArrayInitializer(advance());
+        } else {
+          errors.push({
+            line: peek().line,
+            message:
+              "Initialiseur de tableau attendu: utilisez { ... } ou une chaine littérale",
+          });
+          parseExpression();
+        }
+      } else if (isConst) {
         errors.push({
-          line: peek().line,
-          message: "Initialisation de tableau non supportée",
+          line: nameToken.line,
+          message: "Une declaration const doit avoir un initialiseur",
         });
-        advance();
-        parseExpression();
       }
       return {
         kind: "VarDecl",
         name: nameToken.value,
-        initializer: null,
+        initializer,
         arraySize,
+        isConst,
         line: nameToken.line,
       };
     }
 
-    let initializer: Expr | null = null;
+    let initializer: Initializer | null = null;
     if (match(TokenType.ASSIGN)) {
       initializer = parseExpression();
+    } else if (isConst) {
+      errors.push({
+        line: nameToken.line,
+        message: "Une declaration const doit avoir un initialiseur",
+      });
     }
 
     return {
@@ -355,19 +458,24 @@ export function parse(tokens: Token[]): {
       name: nameToken.value,
       initializer,
       arraySize: null,
+      isConst,
       line: nameToken.line,
     };
   }
 
   function parseVarDeclSequence(
     firstNameToken: Token,
+    declType: "int" | "string",
+    isConst: boolean,
     terminatorMessage: string,
   ): VarDecl[] {
-    const declarations: VarDecl[] = [parseVarDeclarator(firstNameToken)];
+    const declarations: VarDecl[] = [
+      parseVarDeclarator(firstNameToken, declType, isConst),
+    ];
 
     while (match(TokenType.COMMA)) {
       const nextName = expect(TokenType.IDENTIFIER, "Nom de variable attendu");
-      declarations.push(parseVarDeclarator(nextName));
+      declarations.push(parseVarDeclarator(nextName, declType, isConst));
     }
 
     expect(TokenType.SEMICOLON, terminatorMessage);
@@ -451,7 +559,11 @@ export function parse(tokens: Token[]): {
     if (check(TokenType.LBRACE)) return parseBlock();
 
     // Variable declaration
-    if (check(TokenType.INT)) {
+    if (
+      check(TokenType.CONST) ||
+      check(TokenType.INT) ||
+      check(TokenType.STRING)
+    ) {
       return parseVarDecl();
     }
 
@@ -486,10 +598,15 @@ export function parse(tokens: Token[]): {
   }
 
   function parseVarDecl(): VarDecl | VarDeclList {
-    const tok = advance(); // consume 'int'
+    const tok = peek();
+    const isConst = match(TokenType.CONST);
+    const typeToken = advance(); // consume 'int' or 'string'
+    const declType = typeToken.value as "int" | "string";
     const nameToken = expect(TokenType.IDENTIFIER, "Nom de variable attendu");
     const declarations = parseVarDeclSequence(
       nameToken,
+      declType,
+      isConst,
       "';' attendu après déclaration",
     );
     if (declarations.length === 1) {
@@ -536,7 +653,11 @@ export function parse(tokens: Token[]): {
 
     // Init
     let init: Stmt | null = null;
-    if (check(TokenType.INT)) {
+    if (
+      check(TokenType.CONST) ||
+      check(TokenType.INT) ||
+      check(TokenType.STRING)
+    ) {
       init = parseVarDecl();
     } else if (!check(TokenType.SEMICOLON)) {
       init = {
