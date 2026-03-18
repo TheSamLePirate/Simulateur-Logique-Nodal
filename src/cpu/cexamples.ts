@@ -1008,6 +1008,50 @@ int main() {
 }`,
   },
   {
+    name: "Tableau (Fonction)",
+    description: "Passe un tableau a des fonctions qui le modifient",
+    code: `// Passage de tableau a une fonction
+// Les fonctions recoivent un tableau de taille fixe,
+// le lisent et peuvent aussi le modifier.
+
+void fill_pair(int values[2]) {
+  values[0] = 12;
+  values[1] = 34;
+}
+
+int sum_pair(int values[2]) {
+  return values[0] + values[1];
+}
+
+void bump_second(int values[2]) {
+  values[1] = values[1] + 5;
+}
+
+int main() {
+  int data[2];
+
+  fill_pair(data);
+  print("Init: ");
+  print_num(data[0]);
+  putchar(32);
+  print_num(data[1]);
+  putchar(10);
+
+  bump_second(data);
+  print("Apres: ");
+  print_num(data[0]);
+  putchar(32);
+  print_num(data[1]);
+  putchar(10);
+
+  print("Somme: ");
+  print_num(sum_pair(data));
+  putchar(10);
+
+  return 0;
+}`,
+  },
+  {
     name: "Tableau (Tri)",
     description: "Tri à bulles d'un tableau de 8 éléments",
     code: `// Tri a bulles (Bubble Sort)
@@ -4369,6 +4413,68 @@ int main() {
   for (i = 0; i < boot_arg_size(); i++) {
     putchar(boot_file_read(i));
   }
+
+  return 0;
+}`,
+  },
+  {
+    name: "Tableau (Nouvelles Fonctionnalites)",
+    description: "Utilise declarations multiples et tableaux passes aux fonctions",
+    code: `// Demonstration des nouvelles fonctionnalites:
+// 1. declarations multiples: int a, b, c;
+// 2. parametres de tableau: int values[3]
+
+void sort3(int values[3]) {
+  int i, j, tmp;
+
+  for (i = 0; i < 2; i++) {
+    for (j = 0; j < 2 - i; j++) {
+      if (values[j] > values[j + 1]) {
+        tmp = values[j];
+        values[j] = values[j + 1];
+        values[j + 1] = tmp;
+      }
+    }
+  }
+}
+
+int sum3(int values[3]) {
+  int i, total;
+  total = 0;
+  for (i = 0; i < 3; i++) {
+    total = total + values[i];
+  }
+  return total;
+}
+
+int main() {
+  int a = 42, b = 7, c = 19;
+  int data[3];
+  int i;
+
+  data[0] = a;
+  data[1] = b;
+  data[2] = c;
+
+  print("Avant: ");
+  for (i = 0; i < 3; i++) {
+    print_num(data[i]);
+    putchar(32);
+  }
+  putchar(10);
+
+  sort3(data);
+
+  print("Trie: ");
+  for (i = 0; i < 3; i++) {
+    print_num(data[i]);
+    putchar(32);
+  }
+  putchar(10);
+
+  print("Somme: ");
+  print_num(sum3(data));
+  putchar(10);
 
   return 0;
 }`,

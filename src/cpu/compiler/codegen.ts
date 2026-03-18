@@ -27,7 +27,14 @@
  *   - After RET, recursive callers restore their saved frame
  */
 
-import type { Program, FunctionDecl, Stmt, Expr, Block } from "./parser";
+import type {
+  Program,
+  FunctionDecl,
+  ParamDecl,
+  Stmt,
+  Expr,
+  Block,
+} from "./parser";
 import {
   BOOT_ARG_COUNT_ADDR,
   BOOT_ARG0_DIR_OFFSET_ADDR,
@@ -60,10 +67,18 @@ interface FuncInfo {
   name: string;
   isMain: boolean;
   recursive: boolean;
+  params: FuncParamInfo[];
   paramAddrs: Map<string, number>; // param name → memory address
   localAddrs: Map<string, number>; // local name → memory address
   frameAddrs: number[]; // reusable frame slots actually reserved for this function
   arrays: Map<string, ArrayInfo>; // array name → base address + size
+}
+
+interface FuncParamInfo {
+  name: string;
+  arraySize: number | null;
+  addr?: number;
+  baseAddr?: number;
 }
 
 // Scratch memory constants
@@ -145,6 +160,23 @@ export function generate(program: Program): {
     return "0x" + (addr & 0xffff).toString(16).padStart(4, "0");
   }
 
+  function emitCopyBytes(srcBase: number, destBase: number, size: number) {
+    if (size <= 0) return;
+
+    if (srcBase < destBase && srcBase + size > destBase) {
+      for (let i = size - 1; i >= 0; i--) {
+        emit(`  LDM ${fmt(srcBase + i)}`);
+        emit(`  STA ${fmt(destBase + i)}`);
+      }
+      return;
+    }
+
+    for (let i = 0; i < size; i++) {
+      emit(`  LDM ${fmt(srcBase + i)}`);
+      emit(`  STA ${fmt(destBase + i)}`);
+    }
+  }
+
   function bytesForString(value: string): number[] {
     return [...value].map((ch) => ch.charCodeAt(0) & 0xff);
   }
@@ -185,6 +217,7 @@ export function generate(program: Program): {
     name: string;
     isMain: boolean;
     recursive: boolean;
+    params: ParamDecl[];
     paramSlots: Map<string, number>;
     localSlots: Map<string, number>;
     arrays: Map<string, PlannedArrayInfo>;
@@ -227,6 +260,11 @@ export function generate(program: Program): {
     switch (stmt.kind) {
       case "VarDecl":
         if (stmt.initializer) scanExprForCallees(stmt.initializer, out);
+        break;
+      case "VarDeclList":
+        for (const decl of stmt.declarations) {
+          if (decl.initializer) scanExprForCallees(decl.initializer, out);
+        }
         break;
       case "ExprStmt":
         scanExprForCallees(stmt.expression, out);
@@ -316,6 +354,10 @@ export function generate(program: Program): {
         const releases: { base: number; size: number }[] = [];
         if (stmt.init?.kind === "VarDecl") {
           allocDecl(stmt.init.name, stmt.init.arraySize, releases);
+        } else if (stmt.init?.kind === "VarDeclList") {
+          for (const decl of stmt.init.declarations) {
+            allocDecl(decl.name, decl.arraySize, releases);
+          }
         }
         planScopedStmt(stmt.body);
         for (let i = releases.length - 1; i >= 0; i--) {
@@ -331,6 +373,12 @@ export function generate(program: Program): {
           allocDecl(stmt.name, stmt.arraySize, releases);
           continue;
         }
+        if (stmt.kind === "VarDeclList") {
+          for (const decl of stmt.declarations) {
+            allocDecl(decl.name, decl.arraySize, releases);
+          }
+          continue;
+        }
         planScopedStmt(stmt);
       }
       for (let i = releases.length - 1; i >= 0; i--) {
@@ -340,7 +388,14 @@ export function generate(program: Program): {
 
     for (const p of fn.params) {
       if (paramSlots.has(p.name)) continue;
-      paramSlots.set(p.name, allocSlots(1));
+      if (p.arraySize !== null) {
+        arrays.set(p.name, {
+          baseSlot: allocSlots(p.arraySize),
+          size: p.arraySize,
+        });
+      } else {
+        paramSlots.set(p.name, allocSlots(1));
+      }
     }
 
     scanStmtForCallees(fn.body, directCallees);
@@ -350,6 +405,7 @@ export function generate(program: Program): {
       name: fn.name,
       isMain: fn.name === "main",
       recursive: false,
+      params: fn.params,
       paramSlots,
       localSlots,
       arrays,
@@ -457,6 +513,7 @@ export function generate(program: Program): {
   }
 
   for (const plan of plannedFuncs) {
+    const params: FuncParamInfo[] = [];
     const paramAddrs = new Map<string, number>();
     for (const [name, slot] of plan.paramSlots) {
       paramAddrs.set(name, plan.frameBase + slot);
@@ -475,10 +532,27 @@ export function generate(program: Program): {
       });
     }
 
+    for (const param of plan.params) {
+      if (param.arraySize !== null) {
+        params.push({
+          name: param.name,
+          arraySize: param.arraySize,
+          baseAddr: arrays.get(param.name)?.baseAddr,
+        });
+      } else {
+        params.push({
+          name: param.name,
+          arraySize: null,
+          addr: paramAddrs.get(param.name),
+        });
+      }
+    }
+
     funcTable.set(plan.name, {
       name: plan.name,
       isMain: plan.isMain,
       recursive: plan.recursive,
+      params,
       paramAddrs,
       localAddrs,
       frameAddrs: Array.from({ length: plan.frameSize }, (_, i) => plan.frameBase + i),
@@ -716,12 +790,21 @@ export function generate(program: Program): {
     }
   }
 
+  function emitVarDecl(stmt: { initializer: Expr | null; name: string }, ctx: FuncInfo) {
+    if (stmt.initializer) {
+      emitExpr(stmt.initializer, ctx);
+      storeVar(stmt.name, ctx);
+    }
+  }
+
   function emitStmt(stmt: Stmt, ctx: FuncInfo) {
     switch (stmt.kind) {
       case "VarDecl":
-        if (stmt.initializer) {
-          emitExpr(stmt.initializer, ctx);
-          storeVar(stmt.name, ctx);
+        emitVarDecl(stmt, ctx);
+        break;
+      case "VarDeclList":
+        for (const decl of stmt.declarations) {
+          emitVarDecl(decl, ctx);
         }
         break;
       case "ExprStmt":
@@ -1724,6 +1807,10 @@ export function generate(program: Program): {
     }
 
     const saveCallerFrame = ctx.recursive && ctx.frameAddrs.length > 0;
+    const scalarParamTargets: number[] = [];
+    const arrayCopyBacks: { srcBase: number; destBase: number; size: number }[] =
+      [];
+    const skippedRestoreAddrs = new Set<number>();
 
     // 1. Save current function's frame only for recursive callers
     if (saveCallerFrame) {
@@ -1734,37 +1821,114 @@ export function generate(program: Program): {
       }
     }
 
-    // 2. Evaluate each arg and push to stack
+    // 2. Evaluate args left-to-right.
     for (let i = 0; i < expr.args.length; i++) {
-      emitExpr(expr.args[i], ctx);
+      const arg = expr.args[i];
+      const param = calleeInfo.params[i];
+
+      if (!param) {
+        emitExpr(arg, ctx);
+        continue;
+      }
+
+      if (param.arraySize !== null) {
+        if (arg.kind !== "Identifier") {
+          errors.push({
+            line: arg.line,
+            message:
+              "Un argument de tableau doit être le nom d'un tableau déclaré",
+          });
+          continue;
+        }
+        if (!isArray(arg.name, ctx)) {
+          errors.push({
+            line: arg.line,
+            message:
+              "Un argument de tableau doit être le nom d'un tableau déclaré",
+          });
+          continue;
+        }
+
+        const sourceInfo = resolveArrayInfo(arg.name, ctx, arg.line);
+        if (!sourceInfo || param.baseAddr === undefined) {
+          continue;
+        }
+        if (sourceInfo.size < param.arraySize) {
+          errors.push({
+            line: arg.line,
+            message: `Le tableau "${arg.name}" est trop petit pour le paramètre "${param.name}"`,
+          });
+          continue;
+        }
+
+        emitCopyBytes(sourceInfo.baseAddr, param.baseAddr, param.arraySize);
+        arrayCopyBacks.push({
+          srcBase: param.baseAddr,
+          destBase: sourceInfo.baseAddr,
+          size: param.arraySize,
+        });
+
+        if (saveCallerFrame && ctx.arrays.has(arg.name)) {
+          for (let offset = 0; offset < param.arraySize; offset++) {
+            skippedRestoreAddrs.add(sourceInfo.baseAddr + offset);
+          }
+        }
+        continue;
+      }
+
+      emitExpr(arg, ctx);
       emit(`  PUSH`);
+      if (param.addr !== undefined) {
+        scalarParamTargets.push(param.addr);
+      }
     }
 
-    // 3. Pop args into callee's param addresses
-    const calleeParamAddrs = [...calleeInfo.paramAddrs.values()];
-    // Args were pushed left-to-right, so last arg is on top
-    for (let i = expr.args.length - 1; i >= 0; i--) {
+    // 3. Pop scalar args into callee scalar param addresses
+    for (let i = scalarParamTargets.length - 1; i >= 0; i--) {
       emit(`  POP`);
-      if (i < calleeParamAddrs.length) {
-        emit(`  STA ${fmt(calleeParamAddrs[i])}`);
-      }
+      emit(`  STA ${fmt(scalarParamTargets[i])}`);
     }
 
     // 4. CALL
     emit(`  CALL __${expr.name}`);
 
+    if (arrayCopyBacks.length > 0 || saveCallerFrame) {
+      emit(`  STA ${fmt(TEMP_RETVAL)}`); // preserve return value across copies/restores
+    }
+
+    for (const copy of arrayCopyBacks) {
+      emitCopyBytes(copy.srcBase, copy.destBase, copy.size);
+    }
+
     // 5. Restore current function's frame
     if (saveCallerFrame) {
-      emit(`  STA ${fmt(TEMP_RETVAL)}`); // save return value
       for (let i = ctx.frameAddrs.length - 1; i >= 0; i--) {
         emit(`  POP`);
-        emit(`  STA ${fmt(ctx.frameAddrs[i])}`);
+        if (!skippedRestoreAddrs.has(ctx.frameAddrs[i])) {
+          emit(`  STA ${fmt(ctx.frameAddrs[i])}`);
+        }
       }
+    }
+
+    if (arrayCopyBacks.length > 0 || saveCallerFrame) {
       emit(`  LDM ${fmt(TEMP_RETVAL)}`); // restore return value to A
     }
   }
 
   // ─── Array access helpers ───
+
+  function resolveArrayInfo(
+    name: string,
+    ctx: FuncInfo,
+    line: number,
+  ): ArrayInfo | null {
+    const localArr = ctx.arrays.get(name);
+    if (localArr) return localArr;
+    const globalArr = globalArrays.get(name);
+    if (globalArr) return globalArr;
+    errors.push({ line, message: `Tableau non défini: "${name}"` });
+    return null;
+  }
 
   function isArray(name: string, ctx: FuncInfo): boolean {
     return ctx.arrays.has(name) || globalArrays.has(name);
@@ -1775,12 +1939,7 @@ export function generate(program: Program): {
     ctx: FuncInfo,
     line: number,
   ): number | null {
-    const localArr = ctx.arrays.get(name);
-    if (localArr) return localArr.baseAddr;
-    const globalArr = globalArrays.get(name);
-    if (globalArr) return globalArr.baseAddr;
-    errors.push({ line, message: `Tableau non défini: "${name}"` });
-    return null;
+    return resolveArrayInfo(name, ctx, line)?.baseAddr ?? null;
   }
 
   // ─── Variable access helpers ───

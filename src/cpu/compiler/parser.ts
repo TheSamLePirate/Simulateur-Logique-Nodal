@@ -19,9 +19,15 @@ export interface Program {
 export interface FunctionDecl {
   kind: "FunctionDecl";
   name: string;
-  params: { name: string }[];
+  params: ParamDecl[];
   returnType: "int" | "void";
   body: Block;
+  line: number;
+}
+
+export interface ParamDecl {
+  name: string;
+  arraySize: number | null; // null = scalar param, N = fixed-size array param
   line: number;
 }
 
@@ -33,6 +39,12 @@ export interface VarDecl {
   line: number;
 }
 
+export interface VarDeclList {
+  kind: "VarDeclList";
+  declarations: VarDecl[];
+  line: number;
+}
+
 export interface Block {
   kind: "Block";
   statements: Stmt[];
@@ -41,6 +53,7 @@ export interface Block {
 
 export type Stmt =
   | VarDecl
+  | VarDeclList
   | IfStmt
   | WhileStmt
   | ForStmt
@@ -275,57 +288,13 @@ export function parse(tokens: Token[]): {
         // Function: int/void name(...)
         if (check(TokenType.LPAREN)) {
           functions.push(parseFunctionDecl(returnType, nameToken));
-        } else if (check(TokenType.LBRACKET)) {
-          // Global array: int name[SIZE];
-          advance(); // consume '['
-          const sizeTok = peek();
-          let arraySize = 1;
-          if (check(TokenType.NUMBER)) {
-            arraySize = parseInt(advance().value, 10);
-            if (arraySize <= 0) {
-              errors.push({
-                line: sizeTok.line,
-                message: "La taille du tableau doit être > 0",
-              });
-              arraySize = 1;
-            }
-          } else {
-            errors.push({
-              line: sizeTok.line,
-              message: "Taille du tableau attendue (constante entière)",
-            });
-          }
-          expect(TokenType.RBRACKET, "']' attendu");
-          if (check(TokenType.ASSIGN)) {
-            errors.push({
-              line: peek().line,
-              message: "Initialisation de tableau non supportée",
-            });
-            while (!check(TokenType.SEMICOLON) && !check(TokenType.EOF))
-              advance();
-          }
-          expect(TokenType.SEMICOLON, "';' attendu après déclaration globale");
-          globals.push({
-            kind: "VarDecl",
-            name: nameToken.value,
-            initializer: null,
-            arraySize,
-            line: nameToken.line,
-          });
         } else {
-          // Global variable: int name = expr;
-          let initializer: Expr | null = null;
-          if (match(TokenType.ASSIGN)) {
-            initializer = parseExpression();
-          }
-          expect(TokenType.SEMICOLON, "';' attendu après déclaration globale");
-          globals.push({
-            kind: "VarDecl",
-            name: nameToken.value,
-            initializer,
-            arraySize: null,
-            line: nameToken.line,
-          });
+          globals.push(
+            ...parseVarDeclSequence(
+              nameToken,
+              "';' attendu après déclaration globale",
+            ),
+          );
         }
       } else {
         errors.push({
@@ -339,12 +308,78 @@ export function parse(tokens: Token[]): {
     return { kind: "Program", globals, functions };
   }
 
+  function parseVarDeclarator(nameToken: Token): VarDecl {
+    if (match(TokenType.LBRACKET)) {
+      const sizeTok = peek();
+      let arraySize = 1;
+      if (check(TokenType.NUMBER)) {
+        arraySize = parseInt(advance().value, 10);
+        if (arraySize <= 0) {
+          errors.push({
+            line: sizeTok.line,
+            message: "La taille du tableau doit être > 0",
+          });
+          arraySize = 1;
+        }
+      } else {
+        errors.push({
+          line: sizeTok.line,
+          message: "Taille du tableau attendue (constante entière)",
+        });
+      }
+      expect(TokenType.RBRACKET, "']' attendu après taille du tableau");
+      if (check(TokenType.ASSIGN)) {
+        errors.push({
+          line: peek().line,
+          message: "Initialisation de tableau non supportée",
+        });
+        advance();
+        parseExpression();
+      }
+      return {
+        kind: "VarDecl",
+        name: nameToken.value,
+        initializer: null,
+        arraySize,
+        line: nameToken.line,
+      };
+    }
+
+    let initializer: Expr | null = null;
+    if (match(TokenType.ASSIGN)) {
+      initializer = parseExpression();
+    }
+
+    return {
+      kind: "VarDecl",
+      name: nameToken.value,
+      initializer,
+      arraySize: null,
+      line: nameToken.line,
+    };
+  }
+
+  function parseVarDeclSequence(
+    firstNameToken: Token,
+    terminatorMessage: string,
+  ): VarDecl[] {
+    const declarations: VarDecl[] = [parseVarDeclarator(firstNameToken)];
+
+    while (match(TokenType.COMMA)) {
+      const nextName = expect(TokenType.IDENTIFIER, "Nom de variable attendu");
+      declarations.push(parseVarDeclarator(nextName));
+    }
+
+    expect(TokenType.SEMICOLON, terminatorMessage);
+    return declarations;
+  }
+
   function parseFunctionDecl(
     returnType: "int" | "void",
     nameToken: Token,
   ): FunctionDecl {
     expect(TokenType.LPAREN, "'(' attendu");
-    const params: { name: string }[] = [];
+    const params: ParamDecl[] = [];
 
     if (!check(TokenType.RPAREN)) {
       do {
@@ -353,7 +388,35 @@ export function parse(tokens: Token[]): {
           TokenType.IDENTIFIER,
           "Nom de paramètre attendu",
         );
-        params.push({ name: paramName.value });
+        let arraySize: number | null = null;
+
+        if (match(TokenType.LBRACKET)) {
+          const sizeTok = peek();
+          if (check(TokenType.NUMBER)) {
+            arraySize = parseInt(advance().value, 10);
+            if (arraySize <= 0) {
+              errors.push({
+                line: sizeTok.line,
+                message: "La taille du tableau doit être > 0",
+              });
+              arraySize = 1;
+            }
+          } else {
+            errors.push({
+              line: sizeTok.line,
+              message:
+                "Taille du tableau attendue pour le paramètre (constante entière)",
+            });
+            arraySize = 1;
+          }
+          expect(TokenType.RBRACKET, "']' attendu");
+        }
+
+        params.push({
+          name: paramName.value,
+          arraySize,
+          line: paramName.line,
+        });
       } while (match(TokenType.COMMA));
     }
 
@@ -422,59 +485,19 @@ export function parse(tokens: Token[]): {
     return parseExprStmt();
   }
 
-  function parseVarDecl(): VarDecl {
+  function parseVarDecl(): VarDecl | VarDeclList {
     const tok = advance(); // consume 'int'
     const nameToken = expect(TokenType.IDENTIFIER, "Nom de variable attendu");
-
-    // Array declaration: int name[SIZE];
-    if (match(TokenType.LBRACKET)) {
-      const sizeTok = peek();
-      let arraySize = 1;
-      if (check(TokenType.NUMBER)) {
-        arraySize = parseInt(advance().value, 10);
-        if (arraySize <= 0) {
-          errors.push({
-            line: sizeTok.line,
-            message: "La taille du tableau doit être > 0",
-          });
-          arraySize = 1;
-        }
-      } else {
-        errors.push({
-          line: sizeTok.line,
-          message: "Taille du tableau attendue (constante entière)",
-        });
-      }
-      expect(TokenType.RBRACKET, "']' attendu après taille du tableau");
-      // Forbid initializers on arrays
-      if (check(TokenType.ASSIGN)) {
-        errors.push({
-          line: peek().line,
-          message: "Initialisation de tableau non supportée",
-        });
-        while (!check(TokenType.SEMICOLON) && !check(TokenType.EOF)) advance();
-      }
-      expect(TokenType.SEMICOLON, "';' attendu après déclaration de tableau");
-      return {
-        kind: "VarDecl",
-        name: nameToken.value,
-        initializer: null,
-        arraySize,
-        line: tok.line,
-      };
+    const declarations = parseVarDeclSequence(
+      nameToken,
+      "';' attendu après déclaration",
+    );
+    if (declarations.length === 1) {
+      return declarations[0];
     }
-
-    // Scalar declaration: int name [= expr];
-    let initializer: Expr | null = null;
-    if (match(TokenType.ASSIGN)) {
-      initializer = parseExpression();
-    }
-    expect(TokenType.SEMICOLON, "';' attendu après déclaration");
     return {
-      kind: "VarDecl",
-      name: nameToken.value,
-      initializer,
-      arraySize: null,
+      kind: "VarDeclList",
+      declarations,
       line: tok.line,
     };
   }

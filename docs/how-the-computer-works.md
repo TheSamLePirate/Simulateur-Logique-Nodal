@@ -692,13 +692,15 @@ Arrays are allocated as contiguous bytes in the same memory regions as scalars (
 
 Local arrays live inside the same reusable frames as scalars. For recursive calls, the current frame is saved first, so **recursion with arrays** still works correctly.
 
+Fixed-size arrays can also be used as **function arguments**. The compiler gives the callee its own contiguous array parameter space, copies the requested elements in before `CALL`, then copies them back after `RET`, so indexed reads and writes still look natural in C code.
+
 ### Supported C Features
 
 | Feature | Example | Notes |
 |---------|---------|-------|
 | Types | `int`, `void` | int = 8-bit (0-255) |
-| Variables | `int x = 5;` | Global or local |
-| Functions | `int add(int a, int b) { return a + b; }` | With recursion |
+| Variables | `int x = 5;`, `int a = 1, b = 2;` | Global or local; comma-separated declarations are supported |
+| Functions | `int add(int a, int b) { return a + b; }`, `int sum(int values[3]) { ... }` | With recursion and fixed-size array arguments |
 | If/else | `if (x > 0) { ... } else { ... }` | |
 | While | `while (x > 0) { ... }` | |
 | For | `for (i = 0; i < 10; i++) { ... }` | |
@@ -708,7 +710,7 @@ Local arrays live inside the same reusable frames as scalars. For recursive call
 | Logical | `&& \|\|` | Short-circuit |
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
-| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI |
+| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI; fixed-size arrays can be passed to functions |
 | Output | `putchar(65)`, `print_num(42)`, `print("hello")`, `console_clear()` | Built-in functions |
 | Input | `getchar()`, `getKey(0)`, `get("...")`, `post("...", "...")`, `gethttpchar()` | Console, keyboard, and HTTP built-ins |
 | Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
@@ -1147,6 +1149,7 @@ Runs each program and checks exact output. Examples:
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
   "Test Mémoire"    → "PASS" with globals and reusable local frames validated
+  "Tableau (Nouvelles Fonctionnalites)" → "Avant: 42 7 19 " + "Trie: 7 19 42 " + "Somme: 68"
   "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```
 

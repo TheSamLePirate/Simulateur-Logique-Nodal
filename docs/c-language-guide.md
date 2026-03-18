@@ -183,19 +183,16 @@ int main() {
 }
 ```
 
-Declare one variable per statement.
-
-This is not valid:
+You can declare several variables in one statement.
 
 ```c
 int a, b;
 ```
 
-Write it like this instead:
+Initializers can also be mixed in:
 
 ```c
-int a;
-int b;
+int a = 1, b = 2, c;
 ```
 
 ### Global variables
@@ -393,11 +390,9 @@ int add(int a, int b) {
 }
 ```
 
-Function parameters must be plain `int` values.
+Function parameters can be plain `int` values or fixed-size array parameters.
 
-Array parameters are not supported.
-
-This is not valid:
+This is valid:
 
 ```c
 int sum(int values[4]) {
@@ -405,7 +400,7 @@ int sum(int values[4]) {
 }
 ```
 
-Use globals or local arrays inside the function body instead.
+When you pass an array to a function, the compiler copies the requested slice into the callee's fixed-size array parameter and copies it back after the call. That means writes inside the function are visible to the caller, but the parameter size must be written as a constant.
 
 ### Calling functions
 
@@ -999,14 +994,11 @@ The following features are not part of this language:
 - string variables
 - array initializers like `int t[3] = {1,2,3};`
 - multi-dimensional arrays
-- multiple declarations in one statement like `int a, b;`
-- array types in function arguments like `int f(int arr[4])`
-
 Also keep in mind:
 
 - `print` is only for string literals
 - array sizes must be constant integers
-- arrays are not passed around like pointers
+- arrays are not general pointer values; only declared arrays can be passed to fixed-size array parameters
 
 ---
 
@@ -1102,6 +1094,7 @@ Useful ones to start with:
 - `Éditeur Multi-fichier FS` for opening, editing, and saving multiple files with arrow-key cursor movement
 - `Plotter`, `Courbe`, and `Spirale` for graphics
 - `Tableau (Tri)` for arrays
+- `Tableau (Nouvelles Fonctionnalites)` for fixed-size array parameters and comma-separated declarations
 
 If you want the assembly-language version of that same idea, look at `Éditeur FS ASM` in [src/cpu/examples.ts](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/src/cpu/examples.ts). It uses `/o nom` to open or create any shared-FS text file, edits with the arrow keys, saves with `/s`, and writes files in the real bootloader disk format.
 

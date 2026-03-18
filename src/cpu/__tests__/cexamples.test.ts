@@ -515,15 +515,31 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Tableau (Tri)" sorts 8 elements correctly', () => {
-    const r = compileAndRun(C_EXAMPLES[18].code, { maxCycles: 5_000_000 });
+    const example = C_EXAMPLES.find((e) => e.name === "Tableau (Tri)");
+    expect(example).toBeDefined();
+    const r = compileAndRun(example!.code, { maxCycles: 5_000_000 });
     expect(r.halted).toBe(true);
     expect(r.output).toContain("Avant: 64 25 12 22 11 90 33 44");
     expect(r.output).toContain("Apres: 11 12 22 25 33 44 64 90");
   });
 
+  it('"Tableau (Nouvelles Fonctionnalites)" demonstrates array params and multi declarations', () => {
+    const example = C_EXAMPLES.find(
+      (e) => e.name === "Tableau (Nouvelles Fonctionnalites)",
+    );
+    expect(example).toBeDefined();
+    const r = compileAndRun(example!.code, { maxCycles: 5_000_000 });
+    expect(r.halted).toBe(true);
+    expect(r.output).toContain("Avant: 42 7 19 ");
+    expect(r.output).toContain("Trie: 7 19 42 ");
+    expect(r.output).toContain("Somme: 68");
+  });
+
   it('"Pong" runs game loop with plotter output', () => {
     // Simulate pressing DOWN key — player paddle moves
-    const r = compileAndRun(C_EXAMPLES[19].code, {
+    const example = C_EXAMPLES.find((e) => e.name === "Pong");
+    expect(example).toBeDefined();
+    const r = compileAndRun(example!.code, {
       maxCycles: 500_000,
       keyState: [0, 0, 0, 1, 0],
     });
@@ -534,7 +550,9 @@ describe("C Examples — Output Verification", () => {
   });
 
   it('"Démo Ultime" combines console, keyboard, arrays, recursion and plotter', () => {
-    const r = compileAndRun(C_EXAMPLES[20].code, {
+    const example = C_EXAMPLES.find((e) => e.name === "Démo Ultime");
+    expect(example).toBeDefined();
+    const r = compileAndRun(example!.code, {
       input: "7",
       keyState: [1, 0, 1, 0, 1],
       maxCycles: 5_000_000,
@@ -1307,6 +1325,48 @@ describe("Compiler — Edge Cases", () => {
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
   });
 
+  it("supports multiple local declarations in one statement", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a = 2, b = 3, c;
+        c = a + b;
+        print_num(c);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("supports multiple global declarations in one statement", () => {
+    const r = compileAndRun(`
+      int g0 = 4, g1 = 7;
+      int main() {
+        print_num(g0 + g1);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("11");
+    expect(r.halted).toBe(true);
+  });
+
+  it("supports multiple declarations in for-loop init", () => {
+    const r = compileAndRun(`
+      int main() {
+        int total;
+        total = 0;
+        for (int i = 0, j = 3; i < 3; i++) {
+          total = total + i + j;
+          j = j - 1;
+        }
+        print_num(total);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("9");
+    expect(r.halted).toBe(true);
+  });
+
   it("reuses frame memory across unrelated functions", () => {
     const cr = compile(`
       int f() {
@@ -1759,6 +1819,70 @@ describe("Compiler — Arrays", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("array parameter can be read inside a function", () => {
+    const r = compileAndRun(`
+      int sum2(int values[2]) {
+        return values[0] + values[1];
+      }
+      int main() {
+        int data[2];
+        data[0] = 7;
+        data[1] = 9;
+        print_num(sum2(data));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("16");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array parameter writes are copied back to the caller array", () => {
+    const r = compileAndRun(`
+      void bump(int values[3]) {
+        values[1] = values[1] + 5;
+      }
+      int main() {
+        int data[3];
+        data[0] = 10;
+        data[1] = 20;
+        data[2] = 30;
+        bump(data);
+        print_num(data[0]);
+        putchar(32);
+        print_num(data[1]);
+        putchar(32);
+        print_num(data[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("10 25 30");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array parameter works from a recursive caller frame", () => {
+    const r = compileAndRun(`
+      void bump(int values[2]) {
+        values[0] = values[0] + 1;
+      }
+      int recur(int n) {
+        int local[2];
+        local[0] = n;
+        local[1] = 0;
+        bump(local);
+        if (n == 0) {
+          return local[0];
+        }
+        return local[0] + recur(n - 1);
+      }
+      int main() {
+        print_num(recur(2));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("6");
+    expect(r.halted).toBe(true);
+  });
+
   it("swap via array (bubble sort pattern)", () => {
     const r = compileAndRun(`
       int main() {
@@ -1844,6 +1968,22 @@ describe("Compiler — Arrays", () => {
     expect(cr.errors.some((e) => e.message.includes("Initialisation"))).toBe(
       true,
     );
+  });
+
+  it("passing a scalar to an array parameter is rejected", () => {
+    const cr = compile(`
+      void fill(int values[2]) {
+        values[0] = 1;
+      }
+      int main() {
+        int x;
+        x = 0;
+        fill(x);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("tableau"))).toBe(true);
   });
 });
 

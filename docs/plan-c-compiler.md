@@ -24,9 +24,9 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Feature | Syntax | Notes |
 |---------|--------|-------|
 | Types | `int`, `void` | int = 8-bit unsigned (0–255) |
-| Globals | `int x = 5;` | Stored at fixed addresses 0x1000+ |
-| Locals | `int y = 3;` | Fixed addresses 0x1018+ (per function) |
-| Functions | `int foo(int a) { return a+1; }` | With params, recursion |
+| Globals | `int x = 5;`, `int a = 1, b = 2;` | Stored at fixed addresses 0x1000+; comma-separated declarations are supported |
+| Locals | `int y = 3;`, `int i = 0, j = 3;` | Fixed addresses 0x1018+ (per function); comma-separated declarations are supported |
+| Functions | `int foo(int a) { return a+1; }`, `int sum(int values[3]) { ... }` | With params, recursion, and fixed-size array arguments |
 | Entry point | `int main() { ... }` | Required |
 | If/else | `if (x > 0) { ... } else { ... }` | |
 | While | `while (x > 0) { x--; }` | |
@@ -38,7 +38,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Unary | `!`, `~`, `++`, `--` | |
 | Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
 | Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
-| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes |
+| Arrays | `int arr[10]; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes; fixed-size arrays can also be passed to functions |
 | Built-in Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB pixel drawing |
 | Comments | `//` and `/* */` | |
 | Constants | `#define NAME value` | Preprocessed |
@@ -119,6 +119,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
   9. **"Compteur de lettres"** — counts characters per line of input
   10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire 2K]*
   19. **"Tableau (Tri)"** — bubble sort of 8 elements using arrays and indexed addressing
+  20. **"Tableau (Nouvelles Fonctionnalites)"** — fixed-size array arguments plus comma-separated declarations
 
 ---
 
