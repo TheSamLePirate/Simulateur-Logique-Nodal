@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 import { deflateSync } from "node:zlib";
 
 import { DEFAULT_PLOTTER_COLOR, type PlotterPixels, unpackPlotterColor } from "../../plotter";
@@ -282,9 +282,10 @@ export function writePlotterPng(
 
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, png);
+  const displayPath = relative(process.cwd(), outputPath) || basename(outputPath);
 
   return {
-    outputPath,
+    outputPath: displayPath,
     width,
     height,
     scale,
@@ -899,7 +900,7 @@ export function writeCombinedPlotterHtmlReport(rootDir: string) {
           <span class="pill">${totalTests} test${totalTests === 1 ? "" : "s"}</span>
           <span class="pill">${totalSnapshots} image${totalSnapshots === 1 ? "" : "s"} captured</span>
           <span class="pill">Generated ${escapeHtml(generatedAt)}</span>
-          <span class="pill">${escapeHtml(join(rootDir, "index.html"))}</span>
+          <span class="pill">report/index.html</span>
         </div>
       </section>
       <section class="suite-list">

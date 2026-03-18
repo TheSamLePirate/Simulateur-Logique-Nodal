@@ -1183,7 +1183,7 @@ for (i = 0; i < 10; i++) {
 
 ## 15. Example Programs
 
-The best real examples are in [src/cpu/cexamples.ts](/Users/olivierveinand/Downloads/Simulateur Logique Nodal%20%281%29/src/cpu/cexamples.ts).
+The best real examples are in `src/cpu/cexamples.ts`.
 
 Useful ones to start with:
 
@@ -1199,6 +1199,6 @@ Useful ones to start with:
 - `Tableau (Nouvelles Fonctionnalites)` for fixed-size array parameters and comma-separated declarations
 - `Const et String` for const data, array initializers, string editing, `array_len(...)`, and `string_len(...)`
 
-If you want the assembly-language version of that same idea, look at `Éditeur FS ASM` in [src/cpu/examples.ts](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/src/cpu/examples.ts). It uses `/o nom` to open or create any shared-FS text file, edits with the arrow keys, saves with `/s`, and writes files in the real bootloader disk format.
+If you want the assembly-language version of that same idea, look at `Éditeur FS ASM` in `src/cpu/examples.ts`. It uses `/o nom` to open or create any shared-FS text file, edits with the arrow keys, saves with `/s`, and writes files in the real bootloader disk format.
 
-If you want the implementation details of how this language compiles to ASM, also read [docs/how-the-computer-works.md](/Users/olivierveinand/Downloads/Simulateur Logique Nodal%20%281%29/docs/how-the-computer-works.md), especially the compiler section.
+If you want the implementation details of how this language compiles to ASM, also read `docs/how-the-computer-works.md`, especially the compiler section.

@@ -1,7 +1,7 @@
 {
   "suiteName": "Bootloader Plotter Tests",
   "suiteKey": "bootloader",
-  "generatedAt": "18 Mar 2026, 18:02:24",
+  "generatedAt": "19 Mar 2026, 00:01:15",
   "notes": [
     "Generated at the end of bootloader.test.ts during vitest.",
     "Includes bootloader shell plotter cases, glxsh, and glxnano interaction frames."
@@ -18,7 +18,7 @@
     "[test] bootloader shell > clears boot arguments before a later run without file arguments",
     "[test] bootloader shell > keeps the shell usable after error paths in cat and run",
     "[test] bootloader shell > can return to the shell prompt after a program halts",
-    "[snapshot] bootloader-draw-preserved: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/bootloader-draw-preserved.png (256x256, scale 2, pixels 1)",
+    "[snapshot] bootloader-draw-preserved: report/bootloader/bootloader-draw-preserved.png (256x256, scale 2, pixels 1)",
     "[test] bootloader shell > can return to the shell prompt without clearing the plotter",
     "[test] bootloader shell > cats a text file from disk",
     "[test] bootloader shell > builds a bundled Linux-like disk image with programs and files",
@@ -27,20 +27,20 @@
     "[test] bootloader shell > moves a file with bundled mv",
     "[test] bootloader shell > searches text with bundled grep",
     "[test] bootloader shell > extracts JSON values with bundled jsonp",
-    "[snapshot] glxsh-start: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxsh-start.png (256x256, scale 2, pixels 1297)",
+    "[snapshot] glxsh-start: report/bootloader/glxsh-start.png (256x256, scale 2, pixels 1297)",
     "[test] bootloader shell > runs glxsh from the bundled disk with fonts already installed",
     "[test] bootloader shell > keeps glxnano under the 4K code limit",
-    "[snapshot] glxnano-edit-save: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-edit-save.png (256x256, scale 2, pixels 2044)",
+    "[snapshot] glxnano-edit-save: report/bootloader/glxnano-edit-save.png (256x256, scale 2, pixels 2044)",
     "[test] bootloader shell > runs glxnano from the bundled disk and saves edits back to the target file",
-    "[snapshot] glxnano-frame: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-frame.png (256x256, scale 2, pixels 2063)",
+    "[snapshot] glxnano-frame: report/bootloader/glxnano-frame.png (256x256, scale 2, pixels 2063)",
     "[test] bootloader shell > draws straight vertical frame borders in glxnano",
-    "[snapshot] glxnano-enter: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-enter.png (256x256, scale 2, pixels 2049)",
+    "[snapshot] glxnano-enter: report/bootloader/glxnano-enter.png (256x256, scale 2, pixels 2049)",
     "[test] bootloader shell > accepts immediate typed characters and Enter while glxnano is running",
-    "[snapshot] glxnano-arrows: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-arrows.png (256x256, scale 2, pixels 2043)",
+    "[snapshot] glxnano-arrows: report/bootloader/glxnano-arrows.png (256x256, scale 2, pixels 2043)",
     "[test] bootloader shell > moves immediately on arrow key presses inside glxnano",
-    "[snapshot] glxnano-readme-base: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-base.png (256x256, scale 2, pixels 3397)",
-    "[snapshot] glxnano-readme-zoom: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom.png (256x256, scale 2, pixels 7540)",
-    "[snapshot] glxnano-readme-zoom-theme: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom-theme.png (256x256, scale 2, pixels 7540)",
+    "[snapshot] glxnano-readme-base: report/bootloader/glxnano-readme-base.png (256x256, scale 2, pixels 3397)",
+    "[snapshot] glxnano-readme-zoom: report/bootloader/glxnano-readme-zoom.png (256x256, scale 2, pixels 7540)",
+    "[snapshot] glxnano-readme-zoom-theme: report/bootloader/glxnano-readme-zoom-theme.png (256x256, scale 2, pixels 7540)",
     "[test] bootloader shell > toggles zoom with Tab and theme with & inside glxnano",
     "[test] bootloader shell > prints a helpful message when glxnano is launched without a file argument",
     "[test] bootloader shell > runs bundled wget against a URL file",
@@ -167,7 +167,7 @@
   "snapshots": [
     {
       "name": "bootloader-draw-preserved",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/bootloader-draw-preserved.png",
+      "outputPath": "report/bootloader/bootloader-draw-preserved.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -176,7 +176,7 @@
     },
     {
       "name": "glxsh-start",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxsh-start.png",
+      "outputPath": "report/bootloader/glxsh-start.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -185,7 +185,7 @@
     },
     {
       "name": "glxnano-edit-save",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-edit-save.png",
+      "outputPath": "report/bootloader/glxnano-edit-save.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -194,7 +194,7 @@
     },
     {
       "name": "glxnano-frame",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-frame.png",
+      "outputPath": "report/bootloader/glxnano-frame.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -203,7 +203,7 @@
     },
     {
       "name": "glxnano-enter",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-enter.png",
+      "outputPath": "report/bootloader/glxnano-enter.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -212,7 +212,7 @@
     },
     {
       "name": "glxnano-arrows",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-arrows.png",
+      "outputPath": "report/bootloader/glxnano-arrows.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -221,7 +221,7 @@
     },
     {
       "name": "glxnano-readme-base",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-base.png",
+      "outputPath": "report/bootloader/glxnano-readme-base.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -230,7 +230,7 @@
     },
     {
       "name": "glxnano-readme-zoom",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom.png",
+      "outputPath": "report/bootloader/glxnano-readme-zoom.png",
       "width": 256,
       "height": 256,
       "scale": 2,
@@ -239,7 +239,7 @@
     },
     {
       "name": "glxnano-readme-zoom-theme",
-      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom-theme.png",
+      "outputPath": "report/bootloader/glxnano-readme-zoom-theme.png",
       "width": 256,
       "height": 256,
       "scale": 2,
