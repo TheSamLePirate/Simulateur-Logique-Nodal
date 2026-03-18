@@ -11,6 +11,7 @@ import {
 } from "./bootArgs";
 import { CPU } from "./cpu";
 import { CODE_SIZE, DRIVE_PAGE_SIZE, DRIVE_SIZE } from "./isa";
+import { LINUX_USERLAND_FILES, LINUX_USERLAND_PROGRAMS } from "./linuxUserland";
 
 export const BOOTLOADER_START = 0x1100;
 export const BOOTLOADER_LIMIT = 0x1800;
@@ -28,7 +29,7 @@ export const BOOT_DISK_DATA_START_PAGE = Math.ceil(
 export const BOOT_PROGRAM_MAX_PAGES = CODE_SIZE / DRIVE_PAGE_SIZE;
 export const BOOT_ENTRY_TYPE_FILE = 1;
 export const BOOT_ENTRY_TYPE_PROGRAM = 2;
-export const BOOTLOADER_PROMPT = "unix$ ";
+export const BOOTLOADER_PROMPT = "root# ";
 export const BOOT_DISK_TYPE_OFFSET = BOOT_DISK_NAME_LENGTH;
 export const BOOT_DISK_START_PAGE_OFFSET = BOOT_DISK_NAME_LENGTH + 1;
 export const BOOT_DISK_PAGE_COUNT_OFFSET = BOOT_DISK_NAME_LENGTH + 2;
@@ -46,6 +47,29 @@ export interface BootDiskEntry {
 export interface BootloaderImage {
   bytes: number[];
   startAddr: number;
+}
+
+function emitPrintRoutine(name: string, text: string, tempAddr = 0x1038): string {
+  const bytes = [...text, "\0"].map((ch) => ch.charCodeAt(0) & 0xff).join(", ");
+  return `
+${name}:
+  LDA 0
+  STA ${tempAddr}
+${name}_loop:
+  LDM ${tempAddr}
+  LDAI ${name}_data
+  CMP 0
+  JZ ${name}_done
+  OUTA
+  LDM ${tempAddr}
+  INC
+  STA ${tempAddr}
+  JMP ${name}_loop
+${name}_done:
+  RET
+${name}_data:
+  .db ${bytes}
+`;
 }
 
 function normalizeEntryName(name: string): string {
@@ -219,26 +243,13 @@ export function writeFileToBootDisk(
 
 export const BOOTLOADER_SOURCE = `
 start:
-  OUT 'U'
-  OUT 'N'
-  OUT 'I'
-  OUT 'X'
-  OUT ' '
-  OUT 'B'
-  OUT 'O'
-  OUT 'O'
-  OUT 'T'
-  OUT 10
-  CALL cmd_help
+  LDA 0
+  DRVPG
+  CALL msg_boot
 main_loop:
   LDA 0
   DRVPG
-  OUT 'u'
-  OUT 'n'
-  OUT 'i'
-  OUT 'x'
-  OUT '$'
-  OUT ' '
+  CALL msg_prompt
   CALL read_line
   LDA 0
   LDAI 0x1000
@@ -251,11 +262,31 @@ main_loop:
   LDA 1
   LDAI 0x1000
   CMP 's'
+  JNZ check_help
+  LDA 2
+  LDAI 0x1000
+  CMP 0
   JZ cmd_ls
 check_help:
   LDA 0
   LDAI 0x1000
   CMP 'h'
+  JNZ check_run
+  LDA 1
+  LDAI 0x1000
+  CMP 'e'
+  JNZ check_run
+  LDA 2
+  LDAI 0x1000
+  CMP 'l'
+  JNZ check_run
+  LDA 3
+  LDAI 0x1000
+  CMP 'p'
+  JNZ check_run
+  LDA 4
+  LDAI 0x1000
+  CMP 0
   JZ cmd_help
 check_run:
   LDA 0
@@ -269,6 +300,10 @@ check_run:
   LDA 2
   LDAI 0x1000
   CMP 'n'
+  JNZ cmd_unknown
+  LDA 3
+  LDAI 0x1000
+  CMP ' '
   JNZ cmd_unknown
   LDA 4
   STA 0x1023
@@ -299,15 +334,19 @@ check_cat:
   LDA 0
   LDAI 0x1000
   CMP 'c'
-  JNZ check_clr
+  JNZ check_clear
   LDA 1
   LDAI 0x1000
   CMP 'a'
-  JNZ check_clr
+  JNZ check_clear
   LDA 2
   LDAI 0x1000
   CMP 't'
-  JNZ cmd_unknown
+  JNZ check_clear
+  LDA 3
+  LDAI 0x1000
+  CMP ' '
+  JNZ check_clear
   LDA 4
   STA 0x1023
   CALL skip_spaces
@@ -319,7 +358,7 @@ check_cat:
   JNZ cmd_not_file
   CALL cat_entry
   JMP main_loop
-check_clr:
+check_clear:
   LDA 0
   LDAI 0x1000
   CMP 'c'
@@ -327,15 +366,33 @@ check_clr:
   LDA 1
   LDAI 0x1000
   CMP 'l'
-  JNZ cmd_unknown
+  JNZ check_free
   LDA 2
   LDAI 0x1000
   CMP 'r'
-  JNZ cmd_unknown
+  JZ check_clr_exact
+  CMP 'e'
+  JNZ check_free
+  LDA 3
+  LDAI 0x1000
+  CMP 'a'
+  JNZ check_free
+  LDA 4
+  LDAI 0x1000
+  CMP 'r'
+  JNZ check_free
+  LDA 5
+  LDAI 0x1000
+  CMP 0
+  JZ do_clear
+  JNZ check_free
+check_clr_exact:
   LDA 3
   LDAI 0x1000
   CMP 0
-  JNZ cmd_unknown
+  JZ do_clear
+  JNZ check_free
+do_clear:
   CALL cmd_clr
   JMP main_loop
 check_free:
@@ -355,64 +412,19 @@ check_free:
   LDAI 0x1000
   CMP 'e'
   JNZ cmd_unknown
+  LDA 4
+  LDAI 0x1000
+  CMP 0
+  JZ run_free
+  JNZ cmd_unknown
+run_free:
   CALL cmd_free
   JMP main_loop
 cmd_ls:
   CALL list_entries
   JMP main_loop
 cmd_help:
-  OUT 'l'
-  OUT 's'
-  OUT ' '
-  OUT '|'
-  OUT ' '
-  OUT 'r'
-  OUT 'u'
-  OUT 'n'
-  OUT ' '
-  OUT 'n'
-  OUT 'a'
-  OUT 'm'
-  OUT 'e'
-  OUT ' '
-  OUT '['
-  OUT 'f'
-  OUT 'i'
-  OUT 'l'
-  OUT 'e'
-  OUT ']'
-  OUT ' '
-  OUT '|'
-  OUT ' '
-  OUT 'c'
-  OUT 'a'
-  OUT 't'
-  OUT ' '
-  OUT 'n'
-  OUT 'a'
-  OUT 'm'
-  OUT 'e'
-  OUT ' '
-  OUT '|'
-  OUT ' '
-  OUT 'c'
-  OUT 'l'
-  OUT 'r'
-  OUT ' '
-  OUT '|'
-  OUT ' '
-  OUT 'f'
-  OUT 'r'
-  OUT 'e'
-  OUT 'e'
-  OUT ' '
-  OUT '|'
-  OUT ' '
-  OUT 'h'
-  OUT 'e'
-  OUT 'l'
-  OUT 'p'
-  OUT 10
+  CALL msg_help
   RET
 cmd_free:
   CALL count_used_pages
@@ -422,65 +434,33 @@ cmd_free:
   LDA ${BOOT_DISK_PAGE_COUNT - BOOT_DISK_DATA_START_PAGE}
   SUBB
   OUTD
-  OUT 'p'
-  OUT ' '
-  OUT 'f'
-  OUT 'r'
-  OUT 'e'
-  OUT 'e'
-  OUT 10
+  CALL msg_pages_free
   RET
 cmd_clr:
   CLCON
   CLR
   RET
 cmd_not_found:
-  OUT 'n'
-  OUT 'o'
-  OUT 't'
-  OUT ' '
-  OUT 'f'
-  OUT 'o'
-  OUT 'u'
-  OUT 'n'
-  OUT 'd'
-  OUT 10
+  CALL msg_not_found
   JMP main_loop
 cmd_not_program:
-  OUT 'n'
-  OUT 'o'
-  OUT 't'
-  OUT ' '
-  OUT 'r'
-  OUT 'u'
-  OUT 'n'
-  OUT 'n'
-  OUT 'a'
-  OUT 'b'
-  OUT 'l'
-  OUT 'e'
-  OUT 10
+  CALL msg_not_program
   JMP main_loop
 cmd_not_file:
-  OUT 'n'
-  OUT 'o'
-  OUT 't'
-  OUT ' '
-  OUT 'f'
-  OUT 'i'
-  OUT 'l'
-  OUT 'e'
-  OUT 10
+  CALL msg_not_file
   JMP main_loop
 cmd_unknown:
-  OUT '?'
-  OUT ' '
-  OUT 'h'
-  OUT 'e'
-  OUT 'l'
-  OUT 'p'
-  OUT 10
+  CALL msg_unknown
   JMP main_loop
+
+${emitPrintRoutine("msg_boot", "NodalLinux\n")}
+${emitPrintRoutine("msg_prompt", BOOTLOADER_PROMPT)}
+${emitPrintRoutine("msg_help", "ls run cat clear free help\n")}
+${emitPrintRoutine("msg_pages_free", " pages free\n")}
+${emitPrintRoutine("msg_not_found", "not found\n")}
+${emitPrintRoutine("msg_not_program", "not runnable\n")}
+${emitPrintRoutine("msg_not_file", "not file\n")}
+${emitPrintRoutine("msg_unknown", "unknown command\ntry help\n")}
 
 read_line:
   LDA 0
@@ -867,6 +847,7 @@ launch_program:
 `;
 
 let bootloaderCache: BootloaderImage | null = null;
+let linuxDiskCache: Uint8Array | null = null;
 
 export function getBootloaderImage(): BootloaderImage {
   if (bootloaderCache) return bootloaderCache;
@@ -883,6 +864,34 @@ export function getBootloaderImage(): BootloaderImage {
     startAddr: BOOTLOADER_START,
   };
   return bootloaderCache;
+}
+
+export function getLinuxBootDiskImage(): Uint8Array {
+  if (linuxDiskCache) return Uint8Array.from(linuxDiskCache);
+
+  let disk = formatBootDisk();
+
+  for (const program of LINUX_USERLAND_PROGRAMS) {
+    const result = assemble(program.code);
+    if (!result.success) {
+      throw new Error(
+        `Linux disk program "${program.name}" failed to assemble: ${result.errors
+          .map((e) => e.message)
+          .join(" | ")}`,
+      );
+    }
+    disk = writeProgramToBootDisk(disk, program.name, result.bytes);
+  }
+
+  for (const file of LINUX_USERLAND_FILES) {
+    const bytes = file.bytes
+      ? Uint8Array.from(file.bytes.map((value) => value & 0xff))
+      : Uint8Array.from([...(file.text ?? "")].map((ch) => ch.charCodeAt(0) & 0xff));
+    disk = writeFileToBootDisk(disk, file.name, bytes);
+  }
+
+  linuxDiskCache = disk;
+  return Uint8Array.from(linuxDiskCache);
 }
 
 export function bootCpuToShell(

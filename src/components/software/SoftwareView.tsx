@@ -27,6 +27,7 @@ import {
 import {
   bootCpuToShell,
   getBootloaderImage,
+  getLinuxBootDiskImage,
   writeProgramToBootDisk,
 } from "../../cpu/bootloader";
 import { EXAMPLES } from "../../cpu/examples";
@@ -530,6 +531,17 @@ export function SoftwareView({
     }
   }, [compiledProgramBytes, syncCpuView]);
 
+  const handleInstallLinuxDisk = useCallback(() => {
+    const confirmed = window.confirm(
+      "Replace the current external drive with the bundled Linux-like disk image?",
+    );
+    if (!confirmed) return;
+
+    const cpu = cpuRef.current;
+    cpu.loadDriveData(getLinuxBootDiskImage());
+    syncCpuView(cpu);
+  }, [syncCpuView]);
+
   const handleExportDisk = useCallback(() => {
     const blob = new Blob([cpuRef.current.exportDriveData()], {
       type: "application/octet-stream",
@@ -699,6 +711,14 @@ export function SoftwareView({
           >
             <HardDrive size={13} /> Compile to Disk
           </button>
+          {useBootloader && (
+            <button
+              onClick={handleInstallLinuxDisk}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25"
+            >
+              <HardDrive size={13} /> Install Linux Disk
+            </button>
+          )}
         </div>
 
         {/* Speed control */}

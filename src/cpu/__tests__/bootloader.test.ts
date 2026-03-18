@@ -8,8 +8,10 @@ import { DRIVE_SIZE } from "../isa";
 import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
 import {
   BOOT_DISK_MAX_ENTRIES,
+  BOOTLOADER_PROMPT,
   bootCpuToShell,
   getBootloaderImage,
+  getLinuxBootDiskImage,
   readBootDiskEntries,
   writeFileToBootDisk,
   writeProgramToBootDisk,
@@ -54,7 +56,7 @@ function bootToPrompt(disk: Uint8Array) {
   cpu.loadDriveData(disk);
   cpu.loadProgram(boot.bytes, boot.startAddr);
   expect(
-    runCpuUntil(cpu, () => cpu.consoleOutput.join("").endsWith("unix$ ")),
+    runCpuUntil(cpu, () => cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT)),
   ).toBe(true);
   return cpu;
 }
@@ -99,7 +101,7 @@ describe("bootloader shell", () => {
       Uint8Array.from("hello".split("").map((ch) => ch.charCodeAt(0))),
     );
     const result = runBootCommand(disk1, "ls");
-    expect(result.output).toContain("UNIX BOOT");
+    expect(result.output).toContain("NodalLinux");
     expect(result.output).toContain("p calc 1p");
     expect(result.output).toContain("f notes 5b");
   });
@@ -117,12 +119,12 @@ describe("bootloader shell", () => {
 
     for (let i = 0; i < 200000 && !cpu.state.halted; i++) {
       cpu.step();
-      if (cpu.consoleOutput.join("") === "unix$ ") {
+      if (cpu.consoleOutput.join("") === BOOTLOADER_PROMPT) {
         break;
       }
     }
 
-    expect(cpu.consoleOutput.join("")).toBe("unix$ ");
+    expect(cpu.consoleOutput.join("")).toBe(BOOTLOADER_PROMPT);
     expect(cpu.plotterPixels.size).toBe(0);
   });
 
@@ -335,7 +337,7 @@ describe("bootloader shell", () => {
         cpu,
         () =>
           cpu.consoleOutput.join("").length > beforeMissing.length &&
-          cpu.consoleOutput.join("").endsWith("unix$ "),
+          cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT),
       ),
     ).toBe(true);
     expect(cpu.consoleOutput.join("").slice(beforeMissing.length)).toContain("not found");
@@ -346,7 +348,7 @@ describe("bootloader shell", () => {
         cpu,
         () =>
           cpu.consoleOutput.join("").length > beforeNotRunnable.length &&
-          cpu.consoleOutput.join("").endsWith("unix$ "),
+          cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT),
       ),
     ).toBe(true);
     expect(cpu.consoleOutput.join("").slice(beforeNotRunnable.length)).toContain(
@@ -359,7 +361,7 @@ describe("bootloader shell", () => {
         cpu,
         () =>
           cpu.consoleOutput.join("").length > beforeNotFile.length &&
-          cpu.consoleOutput.join("").endsWith("unix$ "),
+          cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT),
       ),
     ).toBe(true);
     expect(cpu.consoleOutput.join("").slice(beforeNotFile.length)).toContain("not file");
@@ -377,8 +379,8 @@ describe("bootloader shell", () => {
 
     expect(resumed).toBe(true);
     expect(result.cpu.state.halted).toBe(false);
-    expect(output).toContain("OK\nUNIX BOOT");
-    expect(output).toContain("unix$ ");
+    expect(output).toContain("OK\nNodalLinux");
+    expect(output).toContain(BOOTLOADER_PROMPT);
   });
 
   it("can return to the shell prompt without clearing the plotter", () => {
@@ -423,5 +425,117 @@ describe("bootloader shell", () => {
     );
     const result = runBootCommand(disk, "cat notes");
     expect(result.output).toContain("hello");
+  });
+
+  it("builds a bundled Linux-like disk image with programs and files", () => {
+    const disk = getLinuxBootDiskImage();
+    const entries = readBootDiskEntries(disk);
+    const names = entries.map((entry) => entry.name);
+
+    expect(names).toContain("hello");
+    expect(names).toContain("bootcat");
+    expect(names).toContain("wc");
+    expect(names).toContain("wget");
+    expect(names).toContain("nano");
+    expect(names).toContain("glxsh");
+    expect(names).toContain("readme");
+    expect(names).toContain("motd");
+    expect(names).toContain("url");
+    expect(names).toContain("DIGITS");
+    expect(names).toContain("LETTERS");
+    expect(names).toContain("result");
+  });
+
+  it("runs bundled Linux-like userland programs from disk", () => {
+    const disk = getLinuxBootDiskImage();
+
+    const hello = runBootCommand(disk, "run hello");
+    expect(hello.output).toContain("hello from /bin/hello");
+
+    const bootcat = runBootCommand(disk, "run bootcat readme");
+    expect(bootcat.output).toContain("This is a tiny Linux-like environment");
+  });
+
+  it("runs glxsh from the bundled disk with fonts already installed", () => {
+    const disk = getLinuxBootDiskImage();
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+
+    for (const ch of "run glxsh\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+
+    cpu.run(600_000);
+
+    expect(cpu.state.halted).toBe(false);
+    expect(cpu.consoleOutput.join("")).not.toContain("NEED LETTERS DIGITS");
+    expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+  });
+
+  it("runs bundled wget against a URL file", async () => {
+    const disk = getLinuxBootDiskImage();
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+    cpu.httpFetch = async ({ method, url }) => {
+      expect(method).toBe("GET");
+      expect(url).toBe("https://example.com");
+      return "tiny fetch ok";
+    };
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+
+    for (const ch of "run wget url\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+
+    await cpu.runAsync(500_000);
+
+    expect(cpu.consoleOutput.join("")).toContain("tiny fetch ok");
+    const resultEntry = readBootDiskEntries(cpu.driveData).find((entry) => entry.name === "result");
+    expect(resultEntry).toBeDefined();
+    expect(
+      String.fromCharCode(
+        ...Array.from(resultEntry!.bytes.slice(0, resultEntry!.sizeBytes)),
+      ),
+    ).toContain("tiny fetch ok");
+    expect(cpu.state.halted).toBe(true);
+  });
+
+  it("keeps long wget URLs intact before issuing HTTP GET", async () => {
+    let disk = getLinuxBootDiskImage();
+    const longUrl = "https://jsonplaceholder.typicode.com/todos/1";
+    disk = writeFileToBootDisk(
+      disk,
+      "url",
+      Uint8Array.from(Array.from(longUrl).map((ch) => ch.charCodeAt(0))),
+    );
+
+    const boot = getBootloaderImage();
+    const cpu = new CPU();
+    cpu.httpFetch = async ({ method, url }) => {
+      expect(method).toBe("GET");
+      expect(url).toBe(longUrl);
+      return "{\"ok\":1}";
+    };
+    cpu.loadDriveData(disk);
+    cpu.loadProgram(boot.bytes, boot.startAddr);
+
+    for (const ch of "run wget url\n") {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+
+    await cpu.runAsync(500_000);
+
+    expect(cpu.httpLastUrl).toBe(longUrl);
+    expect(cpu.consoleOutput.join("")).toContain("{\"ok\":1}");
+    const resultEntry = readBootDiskEntries(cpu.driveData).find((entry) => entry.name === "result");
+    expect(resultEntry).toBeDefined();
+    expect(
+      String.fromCharCode(
+        ...Array.from(resultEntry!.bytes.slice(0, resultEntry!.sizeBytes)),
+      ),
+    ).toContain("{\"ok\":1}");
   });
 });
