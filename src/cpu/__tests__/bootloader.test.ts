@@ -38,6 +38,26 @@ function runBootCommand(disk: Uint8Array, command: string) {
   };
 }
 
+function runBootInput(disk: Uint8Array, input: string, maxSteps = 400000) {
+  const boot = getBootloaderImage();
+  const cpu = new CPU();
+
+  cpu.loadDriveData(disk);
+  cpu.loadProgram(boot.bytes, boot.startAddr);
+  for (const ch of input) {
+    cpu.pushInput(ch.charCodeAt(0));
+  }
+
+  for (let i = 0; i < maxSteps && !cpu.state.halted; i++) {
+    cpu.step();
+  }
+
+  return {
+    output: cpu.consoleOutput.join(""),
+    cpu,
+  };
+}
+
 function runCpuUntil(
   cpu: CPU,
   predicate: () => boolean,
@@ -438,6 +458,10 @@ describe("bootloader shell", () => {
     expect(names).toContain("wget");
     expect(names).toContain("nano");
     expect(names).toContain("glxsh");
+    expect(names).toContain("cp");
+    expect(names).toContain("mv");
+    expect(names).toContain("grep");
+    expect(names).toContain("jsonp");
     expect(names).toContain("readme");
     expect(names).toContain("motd");
     expect(names).toContain("url");
@@ -454,6 +478,55 @@ describe("bootloader shell", () => {
 
     const bootcat = runBootCommand(disk, "run bootcat readme");
     expect(bootcat.output).toContain("This is a tiny Linux-like environment");
+  });
+
+  it("copies a file with bundled cp", () => {
+    const disk = getLinuxBootDiskImage();
+    const result = runBootInput(disk, "run cp readme\ncopy2\n");
+    const entries = readBootDiskEntries(result.cpu.driveData);
+    const source = entries.find((entry) => entry.name === "readme");
+    const copy = entries.find((entry) => entry.name === "copy2");
+
+    expect(result.output).toContain("copied");
+    expect(source).toBeDefined();
+    expect(copy).toBeDefined();
+    expect(copy!.sizeBytes).toBe(source!.sizeBytes);
+    expect(
+      String.fromCharCode(...Array.from(copy!.bytes.slice(0, copy!.sizeBytes))),
+    ).toBe(
+      String.fromCharCode(...Array.from(source!.bytes.slice(0, source!.sizeBytes))),
+    );
+  });
+
+  it("moves a file with bundled mv", () => {
+    const disk = getLinuxBootDiskImage();
+    const result = runBootInput(disk, "run mv story\narchiv\n");
+    const entries = readBootDiskEntries(result.cpu.driveData);
+
+    expect(result.output).toContain("moved");
+    expect(entries.find((entry) => entry.name === "story")).toBeUndefined();
+    expect(entries.find((entry) => entry.name === "archiv")).toBeDefined();
+  });
+
+  it("searches text with bundled grep", () => {
+    const disk = getLinuxBootDiskImage();
+    const result = runBootInput(disk, "run grep story\ndreams\n");
+
+    expect(result.output).toContain("match ");
+  });
+
+  it("extracts JSON values with bundled jsonp", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "samplejs",
+      Uint8Array.from(
+        Array.from('{"title":"Hello","done":false}').map((ch) => ch.charCodeAt(0)),
+      ),
+    );
+
+    const result = runBootInput(disk, "run jsonp samplejs\ntitle\n");
+    expect(result.output).toContain('"Hello"');
   });
 
   it("runs glxsh from the bundled disk with fonts already installed", () => {
@@ -480,7 +553,7 @@ describe("bootloader shell", () => {
     const cpu = new CPU();
     cpu.httpFetch = async ({ method, url }) => {
       expect(method).toBe("GET");
-      expect(url).toBe("https://example.com");
+      expect(url).toBe("https://jsonplaceholder.typicode.com/todos/1");
       return "tiny fetch ok";
     };
     cpu.loadDriveData(disk);

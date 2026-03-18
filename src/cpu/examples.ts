@@ -779,5 +779,8 @@ done_rgb_scene:
     name: program.exampleName,
     description: program.description,
     code: program.code,
-  })),
+  })).filter((program) => {
+    const source = LINUX_USERLAND_PROGRAMS.find((entry) => entry.exampleName === program.name);
+    return source?.language !== "c";
+  }),
 ];

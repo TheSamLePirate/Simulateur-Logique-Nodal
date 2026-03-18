@@ -1,4 +1,5 @@
 import { assemble } from "./assembler";
+import { compile } from "./compiler";
 import {
   BOOT_ARG_COUNT_ADDR,
   BOOT_ARG0_DIR_OFFSET_ADDR,
@@ -872,15 +873,37 @@ export function getLinuxBootDiskImage(): Uint8Array {
   let disk = formatBootDisk();
 
   for (const program of LINUX_USERLAND_PROGRAMS) {
-    const result = assemble(program.code);
-    if (!result.success) {
-      throw new Error(
-        `Linux disk program "${program.name}" failed to assemble: ${result.errors
-          .map((e) => e.message)
-          .join(" | ")}`,
-      );
+    let bytes: number[];
+    if (program.language === "c") {
+      const compiled = compile(program.code);
+      if (!compiled.success) {
+        throw new Error(
+          `Linux disk program "${program.name}" failed to compile: ${compiled.errors
+            .map((e) => `${e.phase} L${e.line}: ${e.message}`)
+            .join(" | ")}`,
+        );
+      }
+      const assembled = assemble(compiled.assembly);
+      if (!assembled.success) {
+        throw new Error(
+          `Linux disk program "${program.name}" failed to assemble: ${assembled.errors
+            .map((e) => `L${e.line}: ${e.message}`)
+            .join(" | ")}`,
+        );
+      }
+      bytes = assembled.bytes;
+    } else {
+      const assembled = assemble(program.code);
+      if (!assembled.success) {
+        throw new Error(
+          `Linux disk program "${program.name}" failed to assemble: ${assembled.errors
+            .map((e) => e.message)
+            .join(" | ")}`,
+        );
+      }
+      bytes = assembled.bytes;
     }
-    disk = writeProgramToBootDisk(disk, program.name, result.bytes);
+    disk = writeProgramToBootDisk(disk, program.name, bytes);
   }
 
   for (const file of LINUX_USERLAND_FILES) {
