@@ -37,7 +37,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 | Comparison | `==`, `!=`, `<`, `>`, `<=`, `>=` | Produce 0 or 1 |
 | Assignment | `=`, `+=`, `-=` | |
 | Unary | `!`, `~`, `++`, `--` | |
-| Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")` | Console output |
+| Built-in Output | `putchar(c)`, `print_num(n)`, `print("str")`, `print(buf)`, `array_len(arr)`, `string_len(buf)` | Console output plus array/string length helpers |
 | Built-in Input | `getchar()` | Reads one char (blocking busy-wait) |
 | Arrays | `int arr[10] = {1, 2, 3}; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI opcodes; array initializers and fixed-size function arguments are supported |
 | Built-in Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB pixel drawing |
@@ -50,7 +50,9 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 |----------|-------------|-------------|
 | `putchar(expr)` | Output one ASCII character | Evaluate expr → A, then `OUTA` |
 | `print_num(expr)` | Output a decimal number | Evaluate expr → A, then `OUTD` |
-| `print("str")` | Output a string literal | Series of `OUT` instructions |
+| `print("str")`, `print(buf)` | Output a string literal or zero-terminated buffer | Series of `OUT` instructions or an inline indexed print loop |
+| `array_len(arr)` | Return declared array capacity | Compiled to an immediate constant |
+| `string_len(buf)` | Return current length until `0` | Inline indexed scan loop |
 | `getchar()` | Read one char from input (blocks until available) | `INA; CMP 0; JZ wait` busy-wait loop |
 | `color(r, g, b)` | Set current plotter RGB color | `r -> COLR`, `g -> COLG`, `b -> COLB` |
 | `draw(x, y)` | Plot pixel at (x, y) on plotter | x → A, y → B, then `DRAW` |
@@ -122,7 +124,7 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
   10–18. *[additional examples: Calculatrice, Traceur, Cercle, Clavier, Horloge, Spirale, Nombres premiers, Étoiles, Test Mémoire 2K]*
   19. **"Tableau (Tri)"** — bubble sort of 8 elements using arrays and indexed addressing
   20. **"Tableau (Nouvelles Fonctionnalites)"** — fixed-size array arguments plus comma-separated declarations
-  21. **"Const et String"** — const globals/locals, array initializers, and `string` declarations
+  21. **"Const et String"** — const globals/locals, array initializers, string editing, and array/string length helpers
 
 ---
 

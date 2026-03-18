@@ -540,7 +540,9 @@ describe("C Examples — Output Verification", () => {
     expect(example).toBeDefined();
     const r = compileAndRun(example!.code, { maxCycles: 5_000_000 });
     expect(r.halted).toBe(true);
-    expect(r.output).toBe("hello 128 7 3\n");
+    expect(r.output).toBe(
+      "Base: hello 5/6\nPatch: hellA 5/6\nBuf: hi! 3/8\nData: 128 7 10 6\n",
+    );
   });
 
   it('"Pong" runs game loop with plotter output', () => {
@@ -2049,6 +2051,74 @@ describe("Compiler — Arrays", () => {
       }
     `);
     expect(r.output).toBe("abc");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array_len returns the declared array capacity", () => {
+    const r = compileAndRun(`
+      int main() {
+        int values[6] = {1, 2, 3};
+        string msg = "hello";
+        print_num(array_len(values));
+        putchar(32);
+        print_num(array_len(msg));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("6 6");
+    expect(r.halted).toBe(true);
+  });
+
+  it("string_len returns the current zero-terminated string length", () => {
+    const r = compileAndRun(`
+      int main() {
+        string msg = "hello";
+        msg[4] = 'a';
+        print_num(string_len(msg));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("print accepts a string variable", () => {
+    const r = compileAndRun(`
+      int main() {
+        string msg = "hello";
+        print(msg);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("hello");
+    expect(r.halted).toBe(true);
+  });
+
+  it("print accepts a zero-terminated buffer", () => {
+    const r = compileAndRun(`
+      int main() {
+        int buf[8] = "hi";
+        buf[2] = '!';
+        buf[3] = 0;
+        print(buf);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("hi!");
+    expect(r.halted).toBe(true);
+  });
+
+  it("string_len reflects manual append inside a larger buffer", () => {
+    const r = compileAndRun(`
+      int main() {
+        int buf[8] = "hi";
+        buf[2] = '!';
+        buf[3] = 0;
+        print_num(string_len(buf));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("3");
     expect(r.halted).toBe(true);
   });
 

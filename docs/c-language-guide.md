@@ -592,15 +592,39 @@ Prints a number in decimal.
 print_num(42);
 ```
 
-#### `print("text")`
+#### `array_len(array_name)`
 
-Prints a string literal.
+Returns the declared capacity of an array.
+
+```c
+int values[6];
+print_num(array_len(values));   // 6
+```
+
+For `string msg = "hello";`, `array_len(msg)` is `6` because the trailing `0` is part of the storage.
+
+#### `string_len(buffer_name)`
+
+Returns the current length up to the first `0`.
+
+```c
+string msg = "hello";
+print_num(string_len(msg));   // 5
+```
+
+If you manually edit the buffer contents, `string_len(...)` reflects the updated runtime value.
+
+#### `print(text_or_buffer)`
+
+Prints either a string literal or a zero-terminated string/buffer.
 
 ```c
 print("Hello");
+string msg = "Hello";
+print(msg);
 ```
 
-Use it only with a string literal.
+When you pass a variable, `print(...)` reads characters until the first `0`.
 
 #### `console_clear()`
 
@@ -1155,7 +1179,7 @@ Useful ones to start with:
 - `Plotter`, `Courbe`, and `Spirale` for graphics
 - `Tableau (Tri)` for arrays
 - `Tableau (Nouvelles Fonctionnalites)` for fixed-size array parameters and comma-separated declarations
-- `Const et String` for `const` data, array initializers, and `string msg = "hello";`
+- `Const et String` for const data, array initializers, string editing, `array_len(...)`, and `string_len(...)`
 
 If you want the assembly-language version of that same idea, look at `Éditeur FS ASM` in [src/cpu/examples.ts](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/src/cpu/examples.ts). It uses `/o nom` to open or create any shared-FS text file, edits with the arrow keys, saves with `/s`, and writes files in the real bootloader disk format.
 

@@ -117,6 +117,8 @@ export function generate(program: Program): {
     "putchar",
     "print_num",
     "print",
+    "array_len",
+    "string_len",
     "console_clear",
     "color",
     "draw",
@@ -895,6 +897,28 @@ export function generate(program: Program): {
     storeVar(stmt.name, ctx, stmt.line, true);
   }
 
+  function emitPrintBuffer(baseAddr: number) {
+    const idxAddr = TEMP_BASE;
+    const chAddr = TEMP_BASE + 1;
+    const loopLabel = newLabel();
+    const endLabel = newLabel();
+
+    emit(`  LDA 0`);
+    emit(`  STA ${fmt(idxAddr)}`);
+    emit(`${loopLabel}:`);
+    emit(`  LDM ${fmt(idxAddr)}`);
+    emit(`  LDAI ${fmt(baseAddr)}`);
+    emit(`  STA ${fmt(chAddr)}`);
+    emit(`  CMP 0`);
+    emit(`  JZ ${endLabel}`);
+    emit(`  OUTA`);
+    emit(`  LDM ${fmt(idxAddr)}`);
+    emit(`  INC`);
+    emit(`  STA ${fmt(idxAddr)}`);
+    emit(`  JMP ${loopLabel}`);
+    emit(`${endLabel}:`);
+  }
+
   function emitVarDecl(stmt: VarDecl, ctx: FuncInfo) {
     if (stmt.initializer) {
       emitVarInitializer(stmt, ctx);
@@ -1653,11 +1677,89 @@ export function generate(program: Program): {
       return;
     }
 
-    // ── Built-in: print("string") ──
+    // ── Built-in: array_len(arr) — declared array capacity ──
+    if (expr.name === "array_len") {
+      if (expr.args.length >= 1) {
+        const arg = expr.args[0];
+        if (arg.kind !== "Identifier") {
+          errors.push({
+            line: expr.line,
+            message: "array_len() attend le nom d'un tableau déclaré",
+          });
+          emit(`  LDA 0`);
+          return;
+        }
+        const info = resolveArrayInfo(arg.name, ctx, arg.line);
+        if (!info) {
+          emit(`  LDA 0`);
+          return;
+        }
+        emit(`  LDA ${info.size}`);
+      }
+      return;
+    }
+
+    // ── Built-in: string_len(buf) — runtime scan until trailing 0 ──
+    if (expr.name === "string_len") {
+      if (expr.args.length >= 1) {
+        const arg = expr.args[0];
+        if (arg.kind !== "Identifier") {
+          errors.push({
+            line: expr.line,
+            message: "string_len() attend le nom d'un tableau déclaré",
+          });
+          emit(`  LDA 0`);
+          return;
+        }
+        const info = resolveArrayInfo(arg.name, ctx, arg.line);
+        if (!info) {
+          emit(`  LDA 0`);
+          return;
+        }
+
+        const loopLabel = newLabel();
+        const endLabel = newLabel();
+        const lenAddr = TEMP_BASE;
+        const chAddr = TEMP_BASE + 1;
+
+        emit(`  LDA 0`);
+        emit(`  STA ${fmt(lenAddr)}`);
+        emit(`${loopLabel}:`);
+        emit(`  LDM ${fmt(lenAddr)}`);
+        emit(`  LDAI ${fmt(info.baseAddr)}`);
+        emit(`  STA ${fmt(chAddr)}`);
+        emit(`  CMP 0`);
+        emit(`  JZ ${endLabel}`);
+        emit(`  LDM ${fmt(lenAddr)}`);
+        emit(`  INC`);
+        emit(`  STA ${fmt(lenAddr)}`);
+        emit(`  JMP ${loopLabel}`);
+        emit(`${endLabel}:`);
+        emit(`  LDM ${fmt(lenAddr)}`);
+      }
+      return;
+    }
+
+    // ── Built-in: print("string") / print(buffer) ──
     if (expr.name === "print") {
-      if (expr.args.length >= 1 && expr.args[0].kind === "StringLiteral") {
-        for (const ch of expr.args[0].value) {
-          emit(`  OUT ${ch.charCodeAt(0)}`);
+      if (expr.args.length >= 1) {
+        const arg = expr.args[0];
+        if (arg.kind === "StringLiteral") {
+          for (const ch of arg.value) {
+            emit(`  OUT ${ch.charCodeAt(0)}`);
+          }
+        } else if (arg.kind === "Identifier") {
+          const info = resolveArrayInfo(arg.name, ctx, arg.line);
+          if (!info) {
+            return;
+          }
+          emitPrintBuffer(info.baseAddr);
+        } else {
+          errors.push({
+            line: expr.line,
+            message:
+              'print() attend une chaine littérale ou le nom d\'un buffer zero-termine',
+          });
         }
       }
       return;

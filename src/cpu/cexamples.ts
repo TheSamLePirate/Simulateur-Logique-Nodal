@@ -4481,26 +4481,61 @@ int main() {
   },
   {
     name: "Const et String",
-    description: "Montre const global/local, initialisateurs de tableaux et string",
+    description: "Montre const, tableaux, strings, longueurs et modification par index",
     code: `// Donnees constantes globales
 const int digits[10] = {48,49,50,51,52,53,54,55,56,57};
 const int palette[3] = {0, 128, 255};
 const int msg_len = 5;
 
+void patch_text(int text[6]) {
+  text[string_len(text) - 1] = 'A';
+}
+
+int sum3(int values[3]) {
+  return values[0] + values[1] + values[2];
+}
+
 int main() {
   string msg = "hello";
-  const int local_mix[2] = {1, 2};
+  int buf[8] = "hi";
+  const int local_mix[3] = {1, 2, 3};
   int i;
 
-  for (i = 0; i < msg_len; i++) {
-    putchar(msg[i]);
-  }
+  print("Base: ");
+  print(msg);
   putchar(32);
+  print_num(string_len(msg));
+  putchar(47);
+  print_num(array_len(msg));
+  putchar(10);
+
+  patch_text(msg);
+  print("Patch: ");
+  print(msg);
+  putchar(32);
+  print_num(string_len(msg));
+  putchar(47);
+  print_num(array_len(msg));
+  putchar(10);
+
+  buf[2] = '!';
+  buf[3] = 0;
+  print("Buf: ");
+  print(buf);
+  putchar(32);
+  print_num(string_len(buf));
+  putchar(47);
+  print_num(array_len(buf));
+  putchar(10);
+
+  print("Data: ");
   print_num(palette[1]);
   putchar(32);
   putchar(digits[7]);
   putchar(32);
-  print_num(local_mix[0] + local_mix[1]);
+  print_num(array_len(digits));
+  putchar(32);
+  print_num(sum3(local_mix));
   putchar(10);
 
   return 0;

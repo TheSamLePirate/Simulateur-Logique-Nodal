@@ -144,6 +144,8 @@ const C_BUILTINS = new Set([
   "putchar",
   "print_num",
   "print",
+  "array_len",
+  "string_len",
   "console_clear",
   "draw",
   "clear",

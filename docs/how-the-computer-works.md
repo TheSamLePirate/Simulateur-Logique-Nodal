@@ -714,7 +714,7 @@ One important limitation: the compiler does **not** inject bounds checks for `ar
 | Assignment | `= += -=` | |
 | Unary | `! ~ ++ --` | Prefix and postfix |
 | Arrays | `int arr[10] = {1, 2, 3}; arr[i] = x; x = arr[i];` | Indexed via LDAI/STAI; array initializers and fixed-size function arguments are supported |
-| Output | `putchar(65)`, `print_num(42)`, `print("hello")`, `console_clear()` | Built-in functions |
+| Output | `putchar(65)`, `print_num(42)`, `print("hello")`, `print(msg)`, `array_len(arr)`, `string_len(buf)`, `console_clear()` | Built-in functions, including string/buffer printing and array/string length helpers |
 | Input | `getchar()`, `getKey(0)`, `get("...")`, `post("...", "...")`, `gethttpchar()` | Console, keyboard, and HTTP built-ins |
 | Plotter | `color(r, g, b)`, `draw(x, y)`, `clear()` | RGB drawing built-ins |
 | External drive | `drive_read(a)`, `drive_write(a, v)`, `drive_clear()`, `drive_set_page(p)`, `drive_read_at(p, a)`, `drive_write_at(p, a, v)` | 8 KB persistent storage |
@@ -1152,7 +1152,7 @@ Runs each program and checks exact output. Examples:
   "Horloge"         → 3600 lines from "00:00" to "59:59"
   "Nombres premiers" → "Total: 25", includes "2 " and "97 "
   "Test Mémoire"    → "PASS" with globals and reusable local frames validated
-  "Const et String" → "hello 128 7 3"
+  "Const et String" → "Base: hello 5/6" + "Patch: hellA 5/6" + "Buf: hi! 3/8" + "Data: 128 7 10 6"
   "Tableau (Nouvelles Fonctionnalites)" → "Avant: 42 7 19 " + "Trie: 7 19 42 " + "Somme: 68"
   "Tableau (Tri)"   → "Avant: 64 25 12 22 11 90 33 44" + "Apres: 11 12 22 25 33 44 64 90"
 ```
