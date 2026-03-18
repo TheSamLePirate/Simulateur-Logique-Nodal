@@ -2,6 +2,8 @@
 
 A complete guide to the hardware simulation layer: from basic logic gates to a working 8-bit computer.
 
+If you want the quick, beginner-friendly overview first, start with `docs/userguide.md`.
+
 ---
 
 ## Table of Contents

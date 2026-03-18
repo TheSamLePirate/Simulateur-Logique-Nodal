@@ -392,7 +392,7 @@ int main() {
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
 **Framework:** Vitest 4.1
-**Total:** 141 tests, all green
+**Status as of March 18, 2026:** `npm test` runs **314 tests across 4 suites**, all green
 
 ### Test Architecture
 
@@ -404,6 +404,15 @@ compileOnly(source)              // compile → assemble without running
 ```
 
 `compileAndRun` throws on compile or assembly failure with full error details, making tests fail-fast with clear diagnostics.
+
+The project now uses four coordinated Vitest suites:
+
+- `src/cpu/__tests__/cexamples.test.ts`
+- `src/cpu/__tests__/bootloader.test.ts`
+- `src/cpu/__tests__/examples.test.ts`
+- `src/components/software/runningKeyboard.test.ts`
+
+The C suite is still the largest compiler-focused suite, but the total `npm test` coverage also includes bootloader/userland behavior, ASM examples, and direct keyboard routing.
 
 ### Test Suites
 
@@ -527,6 +536,35 @@ Verifies runtime behavior:
 
 ---
 
+### 6.7 — Bootloader / Linux Userland (`bootloader.test.ts`)
+
+This suite covers the bootable disk image and Linux-like userland:
+
+- disk directory storage and entry parsing
+- shell commands such as `ls`, `cat`, `run`, `free`, and `help`
+- bundled userland programs including `wget`, `cp`, `mv`, `grep`, `jsonp`, `glxsh`, and `glxnano`
+- preinstalled binary assets such as `DIGITS` and `LETTERS`
+- `wget` fetching `https://jsonplaceholder.typicode.com/todos/1` and writing the response to `result`
+- `glxnano` render/save/edit/zoom behavior with plotter snapshots
+
+### 6.8 — ASM Examples (`examples.test.ts`)
+
+This suite validates the bundled ASM examples:
+
+- assembly success for shipped examples
+- bootloader-oriented programs stored and launched from the shared disk format
+- plotter-oriented ASM examples producing visible output frames
+
+### 6.9 — Immediate Keyboard Routing (`runningKeyboard.test.ts`)
+
+This suite verifies the UI-to-CPU live key path used by interactive software:
+
+- arrow keys update `cpu.keyState` immediately
+- Enter updates `keyState` and queues a newline byte
+- printable keys, Backspace, and Tab are forwarded immediately while a program is running
+
+---
+
 ## 7. Running Tests
 
 ```bash
@@ -546,18 +584,32 @@ npx vitest run -t "Horloge"
 npx vitest run --reporter verbose
 ```
 
-Expected output:
+Typical output:
 
 ```
- ✓ src/cpu/__tests__/cexamples.test.ts (141 tests) 12.0s
+ Test Files  4 passed (4)
+      Tests  314 passed (314)
+```
 
- Test Files  1 passed (1)
-      Tests  141 passed (141)
+After the run, the generated visual report lives in:
+
+```text
+report/index.html
 ```
 
 ### Plotter Snapshot Helper
 
-When a plotter regression is easier to inspect visually than through raw pixel counts, the helper `src/cpu/__tests__/plotterImage.ts` can export the framebuffer to a binary **PPM** image file. This is especially useful for debugging bootloader userland tools such as `glxnano`, where a frame may be "technically non-empty" but still visually wrong.
+When a plotter regression is easier to inspect visually than through raw pixel counts, the helper `src/cpu/__tests__/plotterImage.ts` exports the framebuffer to **PNG** images and builds a combined HTML dashboard.
+
+The generated report:
+
+- lives in the project at `report/index.html`
+- includes one dropdown per suite
+- groups output by program
+- embeds captured console output
+- shows animated viewers when a program has multiple frames
+
+This is especially useful for debugging bootloader userland tools such as `glxnano`, or animated C examples where a frame may be "technically non-empty" but still visually wrong.
 
 ---
 

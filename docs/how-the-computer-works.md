@@ -2,6 +2,8 @@
 
 A complete guide to the 8-bit computer built inside this simulator.
 
+If you want the quick, beginner-friendly overview first, start with `docs/userguide.md`.
+
 ---
 
 ## Table of Contents
@@ -924,7 +926,8 @@ src/cpu/
   __tests__/
     cexamples.test.ts Unit tests for C examples and compiler behavior
     bootloader.test.ts Disk bootloader and shared filesystem tests
-    plotterImage.ts   Test helper that exports plotter pixels as PPM images
+    examples.test.ts  Unit tests for bundled ASM examples
+    plotterImage.ts   Shared PNG snapshot + HTML report generator
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
@@ -1154,18 +1157,62 @@ The LDAI/STAI opcodes make array access efficient — each read or write is a si
 
 ## 9. Testing
 
-The compiler and CPU are covered by a comprehensive test suite using **Vitest**. The tests exercise the full pipeline: C source → compile → assemble → CPU execution → output verification.
+The compiler, bootloader, examples, and runtime input paths are covered by a shared **Vitest** suite. The tests exercise the real pipeline: source code → compile/assemble → CPU execution → console output, drive state, and plotter verification.
 
-**File:** `src/cpu/__tests__/cexamples.test.ts`
+As of **March 18, 2026**, `npm test` runs **314 tests across 4 test files**.
 
-Bootloader and shared-filesystem behavior live in `src/cpu/__tests__/bootloader.test.ts`, including:
+### Main Test Files
+
+- `src/cpu/__tests__/cexamples.test.ts`
+  C compiler coverage, bundled C examples, plotter examples, interactive programs, built-ins, arrays, strings, and compiler edge cases.
+- `src/cpu/__tests__/bootloader.test.ts`
+  Bootloader shell, disk format, Linux-like userland, `wget`, `glxsh`, `glxnano`, font files, and bundled disk program behavior.
+- `src/cpu/__tests__/examples.test.ts`
+  Bundled ASM examples, bootable plotter shell examples, and filesystem-oriented ASM samples.
+- `src/components/software/runningKeyboard.test.ts`
+  Immediate live-key routing for arrows, Enter, printable keys, Backspace, and the in-run keyboard path used by interactive software.
+
+### What The Suites Check
+
+#### `cexamples.test.ts`
+
+- every bundled C example compiles and assembles
+- memory-layout bounds stay valid
+- expected console output matches
+- plotter programs draw the right pixels
+- animated programs such as `Pong`, `Clavier`, and `Système Solaire 255` save multiple frames
+- compiler edge cases and unsupported syntax fail cleanly
+
+#### `bootloader.test.ts`
 
 - shell commands and disk launching
 - bundled Linux-like disk contents
 - immediate keyboard input for interactive tools
-- `glxnano` rendering, save flow, borders, and zoom/theme behavior
+- `glxnano` rendering, save flow, borders, zoom/theme behavior, and multi-frame visual snapshots
+- `wget` fetching `https://jsonplaceholder.typicode.com/todos/1` and writing the result to the shared `result` file
 
-For plotter-heavy debugging there is also a small helper at `src/cpu/__tests__/plotterImage.ts`. It can export the current plotter contents to a binary **PPM** image file, which is useful when a rendering bug is easier to inspect visually than through raw pixel counts.
+#### `examples.test.ts`
+
+- bundled ASM examples assemble and run
+- bootloader-oriented examples can be launched from disk
+- plotter examples save visual snapshots for the report
+
+#### `runningKeyboard.test.ts`
+
+- direct keydown/keyup updates `cpu.keyState`
+- Enter is queued immediately
+- printable keys, Backspace, and Tab are routed immediately while programs are running
+
+### Generated Report
+
+`src/cpu/__tests__/plotterImage.ts` is the shared report helper used by the plotter-oriented suites. It now:
+
+- exports plotter buffers as **PNG** images
+- writes per-suite JSON metadata
+- builds one combined HTML dashboard at `report/index.html`
+- groups results by program
+- shows console output captured per test
+- shows animated viewers when a program has multiple frames
 
 ### Running Tests
 
@@ -1180,9 +1227,23 @@ npm run test:watch
 npx vitest run -t "Fibonacci"
 ```
 
+After `npm test`, open:
+
+```text
+report/index.html
+```
+
+That report includes:
+
+- one dropdown per suite
+- grouped program cards
+- console output for tests that print to the console
+- embedded PNG snapshots for plotter programs
+- animated viewers for multi-frame programs such as `glxnano`, `Pong`, and `Système Solaire 255`
+
 ### What Is Tested
 
-The exact count changes over time, but the suite currently covers more than 150 end-to-end compiler/CPU checks.
+The exact count changes over time, but the current suite covers hundreds of end-to-end compiler, bootloader, and runtime checks.
 
 #### Compilation
 
