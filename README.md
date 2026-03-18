@@ -101,3 +101,111 @@ They will be welcomed, appreciated, and only laughed at **with affection** if th
 ## Repo
 
 [github.com/TheSamLePirate/Simulateur-Logique-Nodal](https://github.com/TheSamLePirate/Simulateur-Logique-Nodal)
+
+---
+
+# Version française
+
+# Simulateur Logique Nodal
+
+Créé par **TheSamLePirate**.
+
+Un petit laboratoire informatique compréhensible en TypeScript.
+
+Bienvenue dans cette salle de classe / laboratoire / catastrophe de garage où l'on commence avec de minuscules mensonges électriques appelés bits, on les câble en logique, on les brutalise jusqu'à ce qu'ils deviennent un ordinateur 8 bits, puis on force cet ordinateur à exécuter de l'ASM, du mini C, un bootloader et un minuscule disque façon Linux.
+
+Oui, c'est pédagogique.
+Oui, c'est un peu dérangé.
+Oui, c'est exactement la bonne quantité de dérangement.
+
+À l'intérieur de la machine :
+
+- on commence par les transistors
+- on monte jusqu'aux portes logiques
+- on arrive à un vrai ordinateur 8 bits
+- on écrit de l'ASM
+- on écrit du mini C
+- on démarre un petit disque façon Linux
+
+Si vous aimez le C, vous aimerez probablement mon mini C.
+Si vous avez peur du C, c'est peut-être l'endroit le plus sûr pour vous faire mordre par lui.
+
+C'est petit, un peu strict, un peu rétro, et juste assez dangereux pour vous rappeler pourquoi les buffer overflows ont eu une carrière aussi glorieuse.
+
+Vous vous souvenez de l'époque où afficher une seule lettre à l'écran ressemblait à une petite crise émotionnelle ?
+
+Vous vous souvenez quand votre plus grand nombre respectable était `255` ?
+
+Vous vous souvenez quand la division n'était qu'une soustraction répétée avec une fausse moustache ?
+
+Et qui utilise encore le modulo, franchement, à part absolument tout le monde dès qu'on parle de pixels, de boucles, de compteurs, d'horloges, de débordements ou de chaos ?
+
+## Pourquoi ce dépôt est amusant
+
+- la VM est lisible
+- l'ordinateur est visuel
+- le bootloader est réel
+- les outils disque sont réels
+- le compilateur mini C est réel
+- oui, il y a même du HTTP
+
+C'est en gros un ordinateur de 1983 qui a bu trop de café et appris le TypeScript.
+
+## Essayer en ligne
+
+[puter.com/app/1983-computer](https://puter.com/app/1983-computer)
+
+## Démarrage rapide
+
+**Pré-requis :** Node.js
+
+```bash
+npm install
+npm run dev
+```
+
+Ensuite :
+
+1. ouvrez la scène matérielle si vous voulez l'histoire transistor-vers-CPU
+2. ouvrez la partie logicielle si vous voulez coder tout de suite
+3. essayez un petit programme en C
+4. démarrez le bootloader
+5. installez le disque Linux
+6. lancez de petits programmes bizarres avec joie
+
+## Tests et rapport
+
+```bash
+npm test
+```
+
+Puis ouvrez :
+
+```text
+report/index.html
+```
+
+Vous obtenez un tableau de bord de test avec :
+
+- toutes les suites
+- la sortie console
+- les captures du plotter
+- des aperçus animés pour les programmes à plusieurs images
+
+## Documentation
+
+- [Guide utilisateur simple](docs/userguide.md)
+- [Comment le matériel fonctionne](docs/how-the-hardware-works.md)
+- [Comment l'ordinateur fonctionne](docs/how-the-computer-works.md)
+- [Guide du mini C](docs/c-language-guide.md)
+- [Bugs du compilateur et tests](docs/compiler-bugfixes-and-tests.md)
+
+## Petit avertissement
+
+Les issues ne seront pas moquées.
+
+Elles seront accueillies, appréciées, et seulement moquées **avec affection** si le bug est particulièrement créatif.
+
+## Dépôt
+
+[github.com/TheSamLePirate/Simulateur-Logique-Nodal](https://github.com/TheSamLePirate/Simulateur-Logique-Nodal)
