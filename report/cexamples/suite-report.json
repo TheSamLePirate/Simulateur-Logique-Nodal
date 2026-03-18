@@ -1,7 +1,7 @@
 {
   "suiteName": "C Example Plotter Tests",
   "suiteKey": "cexamples",
-  "generatedAt": "19 Mar 2026, 00:01:33",
+  "generatedAt": "19 Mar 2026, 00:13:47",
   "notes": [
     "Generated at the end of cexamples.test.ts during vitest.",
     "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."

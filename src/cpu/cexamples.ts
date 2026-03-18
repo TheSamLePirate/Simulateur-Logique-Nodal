@@ -4255,12 +4255,14 @@ void fetch_weather() {
     if (!in_string) {
       if (started) {
         if (feed_num(c)) {
-          if (field == 1) {
+          // Open-Meteo "current" now includes an "interval" field before
+          // the requested weather values, so we intentionally skip field 1.
+          if (field == 2) {
             temp_abs = num_value;
             temp_neg = num_sign;
           }
-          if (field == 2) { is_day_now = num_value; }
-          if (field == 3) {
+          if (field == 3) { is_day_now = num_value; }
+          if (field == 4) {
             weather_code = num_value;
             return;
           }

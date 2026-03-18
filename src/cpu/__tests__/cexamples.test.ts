@@ -1382,7 +1382,7 @@ describe("Compiler — Edge Cases", () => {
       httpFetch: async ({ method, url }) => {
         expect(method).toBe("GET");
         expect(url).toContain("api.open-meteo.com");
-        return '{"latitude":44.12,"longitude":4.08,"generationtime_ms":0.1,"utc_offset_seconds":3600,"timezone":"Europe/Paris","timezone_abbreviation":"GMT+1","elevation":130.0,"current_units":{"temperature_2m":"°C","is_day":"","weather_code":"wmo code"},"current":{"time":"2026-03-18T17:00","temperature_2m":11.4,"is_day":1,"weather_code":61}}';
+        return '{"latitude":44.12,"longitude":4.08,"generationtime_ms":0.1,"utc_offset_seconds":3600,"timezone":"Europe/Paris","timezone_abbreviation":"GMT+1","elevation":130.0,"current_units":{"time":"iso8601","interval":"seconds","temperature_2m":"°C","is_day":"","weather_code":"wmo code"},"current":{"time":"2026-03-18T17:00","interval":900,"temperature_2m":11.4,"is_day":1,"weather_code":61}}';
       },
     });
 
