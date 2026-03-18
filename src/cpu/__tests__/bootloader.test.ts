@@ -1,10 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { rmSync } from "node:fs";
+
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { assemble } from "../assembler";
 import { ASM_GLX_NANO_SOURCE } from "../asmGlxNano";
 import { readBootArgumentBlock } from "../bootArgs";
 import { compile } from "../compiler";
 import { CPU } from "../cpu";
+import {
+  PLOTTER_REPORT_ROOT,
+  writeCombinedPlotterHtmlReport,
+  writePlotterSuiteData,
+  type PlotterTestConsoleOutput,
+  writePlotterPng,
+  type PlotterSnapshotInfo,
+} from "./plotterImage";
 import { CODE_SIZE, DRIVE_SIZE } from "../isa";
 import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
 import {
@@ -33,8 +43,11 @@ function runBootCommand(disk: Uint8Array, command: string) {
     cpu.step();
   }
 
+  const output = cpu.consoleOutput.join("");
+  recordConsoleOutput(output, `command ${command}`);
+
   return {
-    output: cpu.consoleOutput.join(""),
+    output,
     cpu,
   };
 }
@@ -53,8 +66,12 @@ function runBootInput(disk: Uint8Array, input: string, maxSteps = 400000) {
     cpu.step();
   }
 
+  const output = cpu.consoleOutput.join("");
+  const commandLine = input.split("\n")[0] ?? input;
+  recordConsoleOutput(output, `input ${commandLine}`);
+
   return {
-    output: cpu.consoleOutput.join(""),
+    output,
     cpu,
   };
 }
@@ -88,6 +105,72 @@ function countPixelsInRect(
   }
   return count;
 }
+
+const GLXNANO_SNAPSHOT_DIR = `${PLOTTER_REPORT_ROOT}/bootloader`;
+const plotterSnapshots: Array<PlotterSnapshotInfo & { name: string }> = [];
+const suiteConsoleLines: string[] = [];
+const suiteTests: string[] = [];
+const testConsoleOutputMap = new Map<string, string[]>();
+
+beforeAll(() => {
+  rmSync(GLXNANO_SNAPSHOT_DIR, { recursive: true, force: true });
+});
+
+afterEach(() => {
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  suiteTests.push(testName);
+  suiteConsoleLines.push(`[test] ${testName}`);
+});
+
+function recordConsoleOutput(output: string, label?: string) {
+  const normalized = output.replaceAll("\0", "").trim();
+  if (!normalized) return;
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  const existing = testConsoleOutputMap.get(testName) ?? [];
+  existing.push(label ? `[${label}]\n${normalized}` : normalized);
+  testConsoleOutputMap.set(testName, existing);
+}
+
+function getRecordedConsoleOutputs(): PlotterTestConsoleOutput[] {
+  return suiteTests
+    .filter((testName, index, list) => list.indexOf(testName) === index)
+    .flatMap((testName) => {
+      const outputs = testConsoleOutputMap.get(testName);
+      if (!outputs || outputs.length === 0) return [];
+      return [{
+        testName,
+        output: outputs.join("\n\n---\n\n"),
+      }];
+    });
+}
+
+function savePlotterSnapshot(cpu: CPU, name: string, scale = 2) {
+  const snapshot = writePlotterPng(cpu.plotterPixels, `${GLXNANO_SNAPSHOT_DIR}/${name}.png`, {
+    scale,
+  });
+  plotterSnapshots.push({ name, ...snapshot });
+  suiteConsoleLines.push(
+    `[snapshot] ${name}: ${snapshot.outputPath} (${snapshot.width}x${snapshot.height}, scale ${snapshot.scale}, pixels ${snapshot.pixelCount})`,
+  );
+}
+
+afterAll(() => {
+  suiteConsoleLines.push(`[suite] ${suiteTests.length} tests recorded`);
+  writePlotterSuiteData({
+    suiteName: "Bootloader Plotter Tests",
+    suiteKey: "bootloader",
+    rootDir: PLOTTER_REPORT_ROOT,
+    snapshots: plotterSnapshots,
+    notes: [
+      "Generated at the end of bootloader.test.ts during vitest.",
+      "Includes bootloader shell plotter cases, glxsh, and glxnano interaction frames.",
+    ],
+    consoleLines: suiteConsoleLines,
+    tests: suiteTests,
+    testConsoleOutputs: getRecordedConsoleOutputs(),
+  });
+  writeCombinedPlotterHtmlReport(PLOTTER_REPORT_ROOT);
+});
 
 function bootToPrompt(disk: Uint8Array) {
   const boot = getBootloaderImage();
@@ -356,6 +439,7 @@ describe("bootloader shell", () => {
     expect(runCpuUntil(cpu, () => cpu.state.halted)).toBe(true);
 
     const output = cpu.consoleOutput.join("");
+    recordConsoleOutput(output, "bootarg sequence");
     expect(output).toContain("1:5");
     expect(output).toContain("0:0");
   });
@@ -407,6 +491,7 @@ describe("bootloader shell", () => {
 
     const beforeRun = sendShellCommand(cpu, "run calc");
     expect(runCpuUntil(cpu, () => cpu.state.halted)).toBe(true);
+    recordConsoleOutput(cpu.consoleOutput.join(""), "shell error recovery");
     expect(cpu.consoleOutput.join("").slice(beforeRun.length)).toContain("OK");
   });
 
@@ -415,6 +500,7 @@ describe("bootloader shell", () => {
     const result = runBootCommand(disk, "run calc");
     const resumed = bootCpuToShell(result.cpu, { preserveConsole: true });
     const output = result.cpu.consoleOutput.join("");
+    recordConsoleOutput(output, "shell resume after halt");
 
     expect(resumed).toBe(true);
     expect(result.cpu.state.halted).toBe(false);
@@ -454,6 +540,7 @@ describe("bootloader shell", () => {
     expect(resumed).toBe(true);
     expect(result.cpu.plotterPixels).toEqual(beforePixels);
     expect(result.cpu.plotterColor).toEqual(beforeColor);
+    savePlotterSnapshot(result.cpu, "bootloader-draw-preserved");
   });
 
   it("cats a text file from disk", () => {
@@ -564,6 +651,7 @@ describe("bootloader shell", () => {
     expect(cpu.state.halted).toBe(false);
     expect(cpu.consoleOutput.join("")).not.toContain("NEED LETTERS DIGITS");
     expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+    savePlotterSnapshot(cpu, "glxsh-start");
   });
 
   it("keeps glxnano under the 4K code limit", () => {
@@ -595,6 +683,7 @@ describe("bootloader shell", () => {
       ),
     ).toBe("Xabc");
     expect(result.cpu.plotterPixels.size).toBeGreaterThan(0);
+    savePlotterSnapshot(result.cpu, "glxnano-edit-save");
   });
 
   it("draws straight vertical frame borders in glxnano", () => {
@@ -617,6 +706,7 @@ describe("bootloader shell", () => {
 
     expect(cpu.plotterPixels.has(encodePlotterCoord(0, 100))).toBe(true);
     expect(cpu.plotterPixels.has(encodePlotterCoord(255, 100))).toBe(true);
+    savePlotterSnapshot(cpu, "glxnano-frame");
   });
 
   it("accepts immediate typed characters and Enter while glxnano is running", () => {
@@ -641,6 +731,7 @@ describe("bootloader shell", () => {
         ...Array.from(saved!.bytes.slice(0, saved!.sizeBytes)),
       ),
     ).toBe("X\nYabc");
+    savePlotterSnapshot(result.cpu, "glxnano-enter");
   });
 
   it("moves immediately on arrow key presses inside glxnano", () => {
@@ -681,6 +772,7 @@ describe("bootloader shell", () => {
         ...Array.from(saved!.bytes.slice(0, saved!.sizeBytes)),
       ),
     ).toBe("aZbc");
+    savePlotterSnapshot(cpu, "glxnano-arrows");
   });
 
   it("toggles zoom with Tab and theme with & inside glxnano", () => {
@@ -693,6 +785,7 @@ describe("bootloader shell", () => {
         600_000,
       ),
     ).toBe(true);
+    savePlotterSnapshot(cpu, "glxnano-readme-base");
 
     cpu.pushInput(9);
     let sawZoomRedraw = false;
@@ -716,11 +809,13 @@ describe("bootloader shell", () => {
     expect(cpu.state.memory[0x100A]).toBe(1);
     expect(countPixelsInRect(cpu, 8, 56, 250, 220)).toBeGreaterThan(0);
     expect(countPixelsInRect(cpu, 8, 8, 250, 24)).toBeGreaterThan(0);
+    savePlotterSnapshot(cpu, "glxnano-readme-zoom");
     cpu.pushInput("&".charCodeAt(0));
     expect(
       runCpuUntil(cpu, () => cpu.state.memory[0x100B] === 1 && cpu.state.memory[0x1009] === 0, 600_000),
     ).toBe(true);
     expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+    savePlotterSnapshot(cpu, "glxnano-readme-zoom-theme");
   });
 
   it("prints a helpful message when glxnano is launched without a file argument", () => {
@@ -734,10 +829,16 @@ describe("bootloader shell", () => {
     const disk = getLinuxBootDiskImage();
     const boot = getBootloaderImage();
     const cpu = new CPU();
+    const todoResponse = `{
+  "userId": 1,
+  "id": 1,
+  "title": "delectus aut autem",
+  "completed": false
+}`;
     cpu.httpFetch = async ({ method, url }) => {
       expect(method).toBe("GET");
       expect(url).toBe("https://jsonplaceholder.typicode.com/todos/1");
-      return "tiny fetch ok";
+      return todoResponse;
     };
     cpu.loadDriveData(disk);
     cpu.loadProgram(boot.bytes, boot.startAddr);
@@ -748,14 +849,15 @@ describe("bootloader shell", () => {
 
     await cpu.runAsync(500_000);
 
-    expect(cpu.consoleOutput.join("")).toContain("tiny fetch ok");
+    recordConsoleOutput(cpu.consoleOutput.join(""), "wget url");
+    expect(cpu.consoleOutput.join("")).toContain("\"title\": \"delectus aut autem\"");
     const resultEntry = readBootDiskEntries(cpu.driveData).find((entry) => entry.name === "result");
     expect(resultEntry).toBeDefined();
     expect(
       String.fromCharCode(
         ...Array.from(resultEntry!.bytes.slice(0, resultEntry!.sizeBytes)),
       ),
-    ).toContain("tiny fetch ok");
+    ).toContain("\"title\": \"delectus aut autem\"");
     expect(cpu.state.halted).toBe(true);
   });
 
@@ -785,6 +887,7 @@ describe("bootloader shell", () => {
     await cpu.runAsync(500_000);
 
     expect(cpu.httpLastUrl).toBe(longUrl);
+    recordConsoleOutput(cpu.consoleOutput.join(""), "wget long-url");
     expect(cpu.consoleOutput.join("")).toContain("{\"ok\":1}");
     const resultEntry = readBootDiskEntries(cpu.driveData).find((entry) => entry.name === "result");
     expect(resultEntry).toBeDefined();

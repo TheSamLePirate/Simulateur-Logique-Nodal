@@ -818,7 +818,47 @@ The software view now has an optional **bootloader mode**.
 - **Compile** still compiles the current ASM or C source, but in bootloader mode it prepares the program artifact without interrupting a shell that is already running
 - **Run** and **Step** automatically load the boot shell into high memory if needed
 - **Compile to Disk** stores the currently compiled program onto the external drive in the bootloader's disk format without stopping the live shell
+- **Install Linux Disk** replaces the external drive with a bundled Linux-like userland disk image
 - the boot shell can then `ls`, `run program [file]`, `cat x`, `clr`, `free`, and `help`
+
+The bundled Linux-like disk image is meant as a ready-to-run playground. It ships with text files plus small userland tools such as `hello`, `sysinfo`, `wget`, `nano`, `glxsh`, and `glxnano`.
+
+The bundled disk is a complete prefilled bootloader filesystem image:
+
+- sample text/data files such as `motd`, `readme`, `story`, `url`, and `result`
+- binary font files `DIGITS` and `LETTERS`, which are preinstalled so `glxsh` works immediately
+- console tools such as `hello`, `sysinfo`, `uname`, `pwd`, `wc`, `head`, `bootcat`, `grep`, `cp`, `mv`, and `jsonp`
+- interactive tools such as `nano`, `glxsh`, and `glxnano`
+- network/file workflow helpers such as `wget`, which reads the URL from a disk file and writes the HTTP response back to `result`
+
+In practice that means a fresh **Install Linux Disk** gives you a ready shell session with programs, sample content, fonts, and a default `url` file already on the drive.
+
+The boot shell command format is intentionally small:
+
+- `run program` launches a disk program
+- `run program file` launches a disk program and also resolves one existing filesystem file argument for it
+- the bootloader stores the resolved file metadata in `0x1018..0x101F`, so the launched program can open that file immediately
+
+Examples:
+
+- `run bootcat readme`
+- `run wget url`
+- `run glxnano readme`
+- `run grep story` and then type the pattern when that tool prompts for interactive input
+
+`glxnano` is the full-screen plotter editor on that disk:
+
+- launch it with `run glxnano filename`
+- it edits an existing filesystem file in place
+- typing, `Backspace`, `Enter`, and arrow keys are read as immediate live keys while the CPU is running
+- `Tab` toggles the larger text zoom
+- `&` cycles theme colors
+- `\` saves
+- `@` quits
+
+Because `glxnano` is stored on the disk image itself, source changes only appear in the app after you reinstall the bundled disk or otherwise replace the on-disk `glxnano` program.
+
+The same reinstall rule applies to any bundled Linux userland program or sample file. If you change `linuxUserland.ts`, `asmGlxNano.ts`, or another bundled disk source file, click **Install Linux Disk** again so the current generated image replaces the old one on the external drive.
 
 The bootloader lives in upper RAM and copies a selected disk program down to address `0x0000` before jumping to it. That means disk-loaded programs can use the normal code budget instead of a reduced boot-only limit.
 
@@ -874,6 +914,8 @@ src/cpu/
   examples.ts         Example ASM programs
   cexamples.ts        Example C programs
   bootloader.ts       Bootable disk format + Unix-like shell image
+  linuxUserland.ts    Bundled Linux-like disk programs and sample files
+  asmGlxNano.ts       Source for the disk-based plotter editor
   compiler/
     lexer.ts          Tokenizer (text → tokens)
     parser.ts         Parser (tokens → AST)
@@ -882,6 +924,7 @@ src/cpu/
   __tests__/
     cexamples.test.ts Unit tests for C examples and compiler behavior
     bootloader.test.ts Disk bootloader and shared filesystem tests
+    plotterImage.ts   Test helper that exports plotter pixels as PPM images
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
@@ -912,7 +955,7 @@ src/components/nodes/
      or "Run" to execute continuously
   11. CPU state (registers, memory, flags) updates in real time
   12. Output appears in the console panel
-  13. Input is typed in the console input field and submitted with Enter
+  13. Console programs can read text from the console input field, and running programs can also receive immediate live keys (letters, arrows, Enter, Backspace, Tab, etc.) from the main software view keyboard handler
   14. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
 ```
 
@@ -1114,6 +1157,15 @@ The LDAI/STAI opcodes make array access efficient — each read or write is a si
 The compiler and CPU are covered by a comprehensive test suite using **Vitest**. The tests exercise the full pipeline: C source → compile → assemble → CPU execution → output verification.
 
 **File:** `src/cpu/__tests__/cexamples.test.ts`
+
+Bootloader and shared-filesystem behavior live in `src/cpu/__tests__/bootloader.test.ts`, including:
+
+- shell commands and disk launching
+- bundled Linux-like disk contents
+- immediate keyboard input for interactive tools
+- `glxnano` rendering, save flow, borders, and zoom/theme behavior
+
+For plotter-heavy debugging there is also a small helper at `src/cpu/__tests__/plotterImage.ts`. It can export the current plotter contents to a binary **PPM** image file, which is useful when a rendering bug is easier to inspect visually than through raw pixel counts.
 
 ### Running Tests
 

@@ -1169,7 +1169,7 @@ export const LINUX_USERLAND_PROGRAMS: LinuxUserlandProgram[] = [
   {
     exampleName: "Linux - glxnano",
     name: "glxnano",
-    description: "Editeur texte plotter avec zoom, themes et sauvegarde directe du fichier argument",
+    description: "Editeur texte plotter avec touches directes, zoom Tab, themes &, et sauvegarde directe du fichier argument",
     code: ASM_GLX_NANO_SOURCE,
   },
   {

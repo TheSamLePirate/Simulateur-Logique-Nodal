@@ -1,10 +1,48 @@
-import { describe, expect, it } from "vitest";
+import { rmSync } from "node:fs";
+
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { CPU } from "../../cpu/cpu";
+import {
+  PLOTTER_REPORT_ROOT,
+  writeCombinedPlotterHtmlReport,
+  writePlotterSuiteData,
+} from "../../cpu/__tests__/plotterImage";
 import {
   handleRunningKeyboardDown,
   handleRunningKeyboardUp,
 } from "./runningKeyboard";
+
+const KEYBOARD_REPORT_DIR = `${PLOTTER_REPORT_ROOT}/running-keyboard`;
+const suiteConsoleLines: string[] = [];
+const suiteTests: string[] = [];
+
+beforeAll(() => {
+  rmSync(KEYBOARD_REPORT_DIR, { recursive: true, force: true });
+});
+
+afterEach(() => {
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  suiteTests.push(testName);
+  suiteConsoleLines.push(`[test] ${testName}`);
+});
+
+afterAll(() => {
+  suiteConsoleLines.push(`[suite] ${suiteTests.length} tests recorded`);
+  writePlotterSuiteData({
+    suiteName: "Running Keyboard Tests",
+    suiteKey: "running-keyboard",
+    rootDir: PLOTTER_REPORT_ROOT,
+    snapshots: [],
+    notes: [
+      "Generated at the end of runningKeyboard.test.ts during vitest.",
+      "This suite validates immediate key routing and intentionally has no plotter image snapshots.",
+    ],
+    consoleLines: suiteConsoleLines,
+    tests: suiteTests,
+  });
+  writeCombinedPlotterHtmlReport(PLOTTER_REPORT_ROOT);
+});
 
 describe("running keyboard handler", () => {
   it("applies arrow keys immediately through keyState", () => {

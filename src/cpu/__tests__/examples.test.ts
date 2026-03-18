@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { rmSync } from "node:fs";
+
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { assemble } from "../assembler";
 import {
@@ -12,6 +14,14 @@ import { CPU } from "../cpu";
 import { EXAMPLES } from "../examples";
 import { CODE_SIZE } from "../isa";
 import { encodePlotterCoord } from "../../plotter";
+import {
+  PLOTTER_REPORT_ROOT,
+  writeCombinedPlotterHtmlReport,
+  writePlotterSuiteData,
+  type PlotterTestConsoleOutput,
+  writePlotterPng,
+  type PlotterSnapshotInfo,
+} from "./plotterImage";
 
 function findEntry(cpu: CPU, name: string) {
   for (let base = 16; base < 16 + 64 * 12; base += 12) {
@@ -58,6 +68,72 @@ function runUntil(cpu: CPU, predicate: () => boolean, limit = 2_000_000) {
   expect(predicate()).toBe(true);
 }
 
+const PLOTTER_SNAPSHOT_DIR = `${PLOTTER_REPORT_ROOT}/examples`;
+const plotterSnapshots: Array<PlotterSnapshotInfo & { name: string }> = [];
+const suiteConsoleLines: string[] = [];
+const suiteTests: string[] = [];
+const testConsoleOutputMap = new Map<string, string[]>();
+
+beforeAll(() => {
+  rmSync(PLOTTER_SNAPSHOT_DIR, { recursive: true, force: true });
+});
+
+afterEach(() => {
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  suiteTests.push(testName);
+  suiteConsoleLines.push(`[test] ${testName}`);
+});
+
+function recordConsoleOutput(output: string, label?: string) {
+  const normalized = output.replaceAll("\0", "").trim();
+  if (!normalized) return;
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  const existing = testConsoleOutputMap.get(testName) ?? [];
+  existing.push(label ? `[${label}]\n${normalized}` : normalized);
+  testConsoleOutputMap.set(testName, existing);
+}
+
+function getRecordedConsoleOutputs(): PlotterTestConsoleOutput[] {
+  return suiteTests
+    .filter((testName, index, list) => list.indexOf(testName) === index)
+    .flatMap((testName) => {
+      const outputs = testConsoleOutputMap.get(testName);
+      if (!outputs || outputs.length === 0) return [];
+      return [{
+        testName,
+        output: outputs.join("\n\n---\n\n"),
+      }];
+    });
+}
+
+function savePlotterSnapshot(cpu: CPU, name: string, scale = 2) {
+  const snapshot = writePlotterPng(cpu.plotterPixels, `${PLOTTER_SNAPSHOT_DIR}/${name}.png`, {
+    scale,
+  });
+  plotterSnapshots.push({ name, ...snapshot });
+  suiteConsoleLines.push(
+    `[snapshot] ${name}: ${snapshot.outputPath} (${snapshot.width}x${snapshot.height}, scale ${snapshot.scale}, pixels ${snapshot.pixelCount})`,
+  );
+}
+
+afterAll(() => {
+  suiteConsoleLines.push(`[suite] ${suiteTests.length} tests recorded`);
+  writePlotterSuiteData({
+    suiteName: "ASM Example Plotter Tests",
+    suiteKey: "examples",
+    rootDir: PLOTTER_REPORT_ROOT,
+    snapshots: plotterSnapshots,
+    notes: [
+      "Generated at the end of examples.test.ts during vitest.",
+      "Covers Super Unix Shell Plotter visual states captured from the ASM example suite.",
+    ],
+    consoleLines: suiteConsoleLines,
+    tests: suiteTests,
+    testConsoleOutputs: getRecordedConsoleOutputs(),
+  });
+  writeCombinedPlotterHtmlReport(PLOTTER_REPORT_ROOT);
+});
+
 describe("ASM examples", () => {
   it('"Éditeur FS ASM" assembles and fits in code memory', () => {
     const example = EXAMPLES.find((e) => e.name === "Éditeur FS ASM");
@@ -103,6 +179,7 @@ describe("ASM examples", () => {
     expect(cpu.state.halted).toBe(false);
     expect(cpu.plotterPixels.size).toBeGreaterThan(0);
     expect(cpu.consoleOutput.join("")).toBe("");
+    savePlotterSnapshot(cpu, "super-unix-shell-plotter-boot");
   });
 
   it('"Super Unix Shell Plotter" draws one typed command character once on the last line', () => {
@@ -130,6 +207,7 @@ describe("ASM examples", () => {
     expect(cpu.state.memory[0x1006]).toBe(1);
     expect(cpu.state.memory[0x1040]).toBe("A".charCodeAt(0));
     expect(after - before).toBeLessThanOrEqual(15);
+    savePlotterSnapshot(cpu, "super-unix-shell-plotter-typed");
   });
 
   it('"Super Unix Shell Plotter" CAT updates the plotter preview for the selected file', () => {
@@ -164,6 +242,7 @@ describe("ASM examples", () => {
     expect(cpu.consoleOutput.join("")).toBe("");
     expect(cpu.state.memory[0x1002]).toBe(3);
     expect(after).toBeGreaterThan(before);
+    savePlotterSnapshot(cpu, "super-unix-shell-plotter-cat-preview");
   });
 
   it('"Super Unix Shell Plotter" finds late files in a long directory and switches between help/preview', () => {
@@ -208,6 +287,7 @@ describe("ASM examples", () => {
     }
     cpu.run(200_000);
     expect(cpu.state.memory[0x1016]).toBe(1);
+    savePlotterSnapshot(cpu, "super-unix-shell-plotter-help");
   });
 
   it('"Éditeur FS ASM" opens /o filename on the real FS and edits that file with arrow movement', () => {
@@ -395,6 +475,7 @@ describe("ASM examples", () => {
 
     cpu.run(500_000);
 
+    recordConsoleOutput(cpu.consoleOutput.join(""), "run bootcat notes");
     expect(cpu.consoleOutput.join("")).toContain("hello");
     expect(cpu.state.halted).toBe(true);
   });

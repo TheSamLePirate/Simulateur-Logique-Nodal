@@ -1,0 +1,250 @@
+{
+  "suiteName": "Bootloader Plotter Tests",
+  "suiteKey": "bootloader",
+  "generatedAt": "18 Mar 2026, 18:02:24",
+  "notes": [
+    "Generated at the end of bootloader.test.ts during vitest.",
+    "Includes bootloader shell plotter cases, glxsh, and glxnano interaction frames."
+  ],
+  "consoleLines": [
+    "[test] bootloader shell > stores programs on the boot disk directory",
+    "[test] bootloader shell > lists boot disk files and programs",
+    "[test] bootloader shell > clr clears both the shell console and the plotter",
+    "[test] bootloader shell > supports 64 directory entries across multiple directory pages",
+    "[test] bootloader shell > runs a program from disk",
+    "[test] bootloader shell > passes a resolved file entry to ASM programs",
+    "[test] bootloader shell > passes a resolved file entry to C programs",
+    "[test] bootloader shell > accepts extra spaces around bootloader command arguments",
+    "[test] bootloader shell > clears boot arguments before a later run without file arguments",
+    "[test] bootloader shell > keeps the shell usable after error paths in cat and run",
+    "[test] bootloader shell > can return to the shell prompt after a program halts",
+    "[snapshot] bootloader-draw-preserved: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/bootloader-draw-preserved.png (256x256, scale 2, pixels 1)",
+    "[test] bootloader shell > can return to the shell prompt without clearing the plotter",
+    "[test] bootloader shell > cats a text file from disk",
+    "[test] bootloader shell > builds a bundled Linux-like disk image with programs and files",
+    "[test] bootloader shell > runs bundled Linux-like userland programs from disk",
+    "[test] bootloader shell > copies a file with bundled cp",
+    "[test] bootloader shell > moves a file with bundled mv",
+    "[test] bootloader shell > searches text with bundled grep",
+    "[test] bootloader shell > extracts JSON values with bundled jsonp",
+    "[snapshot] glxsh-start: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxsh-start.png (256x256, scale 2, pixels 1297)",
+    "[test] bootloader shell > runs glxsh from the bundled disk with fonts already installed",
+    "[test] bootloader shell > keeps glxnano under the 4K code limit",
+    "[snapshot] glxnano-edit-save: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-edit-save.png (256x256, scale 2, pixels 2044)",
+    "[test] bootloader shell > runs glxnano from the bundled disk and saves edits back to the target file",
+    "[snapshot] glxnano-frame: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-frame.png (256x256, scale 2, pixels 2063)",
+    "[test] bootloader shell > draws straight vertical frame borders in glxnano",
+    "[snapshot] glxnano-enter: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-enter.png (256x256, scale 2, pixels 2049)",
+    "[test] bootloader shell > accepts immediate typed characters and Enter while glxnano is running",
+    "[snapshot] glxnano-arrows: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-arrows.png (256x256, scale 2, pixels 2043)",
+    "[test] bootloader shell > moves immediately on arrow key presses inside glxnano",
+    "[snapshot] glxnano-readme-base: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-base.png (256x256, scale 2, pixels 3397)",
+    "[snapshot] glxnano-readme-zoom: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom.png (256x256, scale 2, pixels 7540)",
+    "[snapshot] glxnano-readme-zoom-theme: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom-theme.png (256x256, scale 2, pixels 7540)",
+    "[test] bootloader shell > toggles zoom with Tab and theme with & inside glxnano",
+    "[test] bootloader shell > prints a helpful message when glxnano is launched without a file argument",
+    "[test] bootloader shell > runs bundled wget against a URL file",
+    "[test] bootloader shell > keeps long wget URLs intact before issuing HTTP GET",
+    "[suite] 29 tests recorded"
+  ],
+  "tests": [
+    "bootloader shell > stores programs on the boot disk directory",
+    "bootloader shell > lists boot disk files and programs",
+    "bootloader shell > clr clears both the shell console and the plotter",
+    "bootloader shell > supports 64 directory entries across multiple directory pages",
+    "bootloader shell > runs a program from disk",
+    "bootloader shell > passes a resolved file entry to ASM programs",
+    "bootloader shell > passes a resolved file entry to C programs",
+    "bootloader shell > accepts extra spaces around bootloader command arguments",
+    "bootloader shell > clears boot arguments before a later run without file arguments",
+    "bootloader shell > keeps the shell usable after error paths in cat and run",
+    "bootloader shell > can return to the shell prompt after a program halts",
+    "bootloader shell > can return to the shell prompt without clearing the plotter",
+    "bootloader shell > cats a text file from disk",
+    "bootloader shell > builds a bundled Linux-like disk image with programs and files",
+    "bootloader shell > runs bundled Linux-like userland programs from disk",
+    "bootloader shell > copies a file with bundled cp",
+    "bootloader shell > moves a file with bundled mv",
+    "bootloader shell > searches text with bundled grep",
+    "bootloader shell > extracts JSON values with bundled jsonp",
+    "bootloader shell > runs glxsh from the bundled disk with fonts already installed",
+    "bootloader shell > keeps glxnano under the 4K code limit",
+    "bootloader shell > runs glxnano from the bundled disk and saves edits back to the target file",
+    "bootloader shell > draws straight vertical frame borders in glxnano",
+    "bootloader shell > accepts immediate typed characters and Enter while glxnano is running",
+    "bootloader shell > moves immediately on arrow key presses inside glxnano",
+    "bootloader shell > toggles zoom with Tab and theme with & inside glxnano",
+    "bootloader shell > prints a helpful message when glxnano is launched without a file argument",
+    "bootloader shell > runs bundled wget against a URL file",
+    "bootloader shell > keeps long wget URLs intact before issuing HTTP GET"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "bootloader shell > lists boot disk files and programs",
+      "output": "[command ls]\nNodalLinux\nroot# \np calc 1p\nf notes 5b\nroot#"
+    },
+    {
+      "testName": "bootloader shell > supports 64 directory entries across multiple directory pages",
+      "output": "[command cat f3f]\nNodalLinux\nroot# \nZ\nroot#"
+    },
+    {
+      "testName": "bootloader shell > runs a program from disk",
+      "output": "[command run calc]\nNodalLinux\nroot# \nOK"
+    },
+    {
+      "testName": "bootloader shell > passes a resolved file entry to ASM programs",
+      "output": "[command run bootcat notes]\nNodalLinux\nroot# \nhello"
+    },
+    {
+      "testName": "bootloader shell > passes a resolved file entry to C programs",
+      "output": "[command run bootcat story]\nNodalLinux\nroot# \nabc"
+    },
+    {
+      "testName": "bootloader shell > accepts extra spaces around bootloader command arguments",
+      "output": "[command run   spaced   notes]\nNodalLinux\nroot# \n1:5"
+    },
+    {
+      "testName": "bootloader shell > clears boot arguments before a later run without file arguments",
+      "output": "[bootarg sequence]\nNodalLinux\nroot# \n1:5\nNodalLinux\nroot# \n0:0"
+    },
+    {
+      "testName": "bootloader shell > keeps the shell usable after error paths in cat and run",
+      "output": "[shell error recovery]\nNodalLinux\nroot# \nnot found\nroot# \nnot runnable\nroot# \nnot file\nroot# \nOK"
+    },
+    {
+      "testName": "bootloader shell > can return to the shell prompt after a program halts",
+      "output": "[command run calc]\nNodalLinux\nroot# \nOK\n\n---\n\n[shell resume after halt]\nNodalLinux\nroot# \nOK\nNodalLinux\nroot#"
+    },
+    {
+      "testName": "bootloader shell > can return to the shell prompt without clearing the plotter",
+      "output": "[command run draw]\nNodalLinux\nroot#"
+    },
+    {
+      "testName": "bootloader shell > cats a text file from disk",
+      "output": "[command cat notes]\nNodalLinux\nroot# \nhello\nroot#"
+    },
+    {
+      "testName": "bootloader shell > runs bundled Linux-like userland programs from disk",
+      "output": "[command run hello]\nNodalLinux\nroot# \nhello from /bin/hello\n\n---\n\n[command run bootcat readme]\nNodalLinux\nroot# \nThis is a tiny Linux-like environment for the simulator.\nPrograms live on the external drive and are launched with run NAME.\nUse run NAME FILE to pass one resolved file argument."
+    },
+    {
+      "testName": "bootloader shell > copies a file with bundled cp",
+      "output": "[input run cp readme]\nNodalLinux\nroot# \ndest> copied"
+    },
+    {
+      "testName": "bootloader shell > moves a file with bundled mv",
+      "output": "[input run mv story]\nNodalLinux\nroot# \ndest> moved"
+    },
+    {
+      "testName": "bootloader shell > searches text with bundled grep",
+      "output": "[input run grep story]\nNodalLinux\nroot# \npat> match 40"
+    },
+    {
+      "testName": "bootloader shell > extracts JSON values with bundled jsonp",
+      "output": "[input run jsonp samplejs]\nNodalLinux\nroot# \nkey> \"Hello\""
+    },
+    {
+      "testName": "bootloader shell > runs glxnano from the bundled disk and saves edits back to the target file",
+      "output": "[input run glxnano editme]\nNodalLinux\nroot#"
+    },
+    {
+      "testName": "bootloader shell > accepts immediate typed characters and Enter while glxnano is running",
+      "output": "[input run glxnano editln]\nNodalLinux\nroot#"
+    },
+    {
+      "testName": "bootloader shell > prints a helpful message when glxnano is launched without a file argument",
+      "output": "[command run glxnano]\nRUN GLXNANO FILE\\n"
+    },
+    {
+      "testName": "bootloader shell > runs bundled wget against a URL file",
+      "output": "[wget url]\nNodalLinux\nroot# \n{\n  \"userId\": 1,\n  \"id\": 1,\n  \"title\": \"delectus aut autem\",\n  \"completed\": false\n}"
+    },
+    {
+      "testName": "bootloader shell > keeps long wget URLs intact before issuing HTTP GET",
+      "output": "[wget long-url]\nNodalLinux\nroot# \n{\"ok\":1}"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "bootloader-draw-preserved",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/bootloader-draw-preserved.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1,
+      "href": "bootloader/bootloader-draw-preserved.png"
+    },
+    {
+      "name": "glxsh-start",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxsh-start.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1297,
+      "href": "bootloader/glxsh-start.png"
+    },
+    {
+      "name": "glxnano-edit-save",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-edit-save.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 2044,
+      "href": "bootloader/glxnano-edit-save.png"
+    },
+    {
+      "name": "glxnano-frame",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-frame.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 2063,
+      "href": "bootloader/glxnano-frame.png"
+    },
+    {
+      "name": "glxnano-enter",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-enter.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 2049,
+      "href": "bootloader/glxnano-enter.png"
+    },
+    {
+      "name": "glxnano-arrows",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-arrows.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 2043,
+      "href": "bootloader/glxnano-arrows.png"
+    },
+    {
+      "name": "glxnano-readme-base",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-base.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 3397,
+      "href": "bootloader/glxnano-readme-base.png"
+    },
+    {
+      "name": "glxnano-readme-zoom",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 7540,
+      "href": "bootloader/glxnano-readme-zoom.png"
+    },
+    {
+      "name": "glxnano-readme-zoom-theme",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/bootloader/glxnano-readme-zoom-theme.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 7540,
+      "href": "bootloader/glxnano-readme-zoom-theme.png"
+    }
+  ]
+}

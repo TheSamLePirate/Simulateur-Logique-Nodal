@@ -201,6 +201,8 @@ This is also how the hardware page mirrors the software bootloader flow:
 - console text, plotter pixels, registers, flags, RAM state, and external drive contents are mirrored live from the software CPU
 - if a disk program halts and the software view returns to `unix$ `, the hardware page follows that resumed bootloader state too
 
+That includes the bundled Linux-like userland disk installed from the software view. When you click **Install Linux Disk**, the mirrored external drive on the hardware page is replaced with the same prepared filesystem image, including its sample files, bundled userland programs, and `DIGITS` / `LETTERS` font files for `glxsh` and `glxnano`. If one of those bundled programs changes in source, reinstalling the Linux disk is what refreshes the hardware-side drive contents too.
+
 ### Step 2: Update Wire Colors
 
 The function `updateEdgeStyles(nodes, edges)` colors each wire based on the signal it carries:

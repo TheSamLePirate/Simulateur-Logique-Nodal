@@ -1,0 +1,82 @@
+{
+  "suiteName": "ASM Example Plotter Tests",
+  "suiteKey": "examples",
+  "generatedAt": "18 Mar 2026, 18:02:23",
+  "notes": [
+    "Generated at the end of examples.test.ts during vitest.",
+    "Covers Super Unix Shell Plotter visual states captured from the ASM example suite."
+  ],
+  "consoleLines": [
+    "[test] ASM examples > \"Éditeur FS ASM\" assembles and fits in code memory",
+    "[test] ASM examples > \"Super Unix Shell Plotter\" assembles and fits in code memory",
+    "[snapshot] super-unix-shell-plotter-boot: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-boot.png (256x256, scale 2, pixels 1507)",
+    "[test] ASM examples > \"Super Unix Shell Plotter\" boots from the shared FS fonts and draws on the plotter",
+    "[snapshot] super-unix-shell-plotter-typed: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-typed.png (256x256, scale 2, pixels 887)",
+    "[test] ASM examples > \"Super Unix Shell Plotter\" draws one typed command character once on the last line",
+    "[snapshot] super-unix-shell-plotter-cat-preview: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-cat-preview.png (256x256, scale 2, pixels 1627)",
+    "[test] ASM examples > \"Super Unix Shell Plotter\" CAT updates the plotter preview for the selected file",
+    "[snapshot] super-unix-shell-plotter-help: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-help.png (256x256, scale 2, pixels 1380)",
+    "[test] ASM examples > \"Super Unix Shell Plotter\" finds late files in a long directory and switches between help/preview",
+    "[test] ASM examples > \"Éditeur FS ASM\" opens /o filename on the real FS and edits that file with arrow movement",
+    "[test] ASM examples > \"Éditeur FS ASM\" creates a new file with /o filename and saves it in bootloader FS format",
+    "[test] ASM examples > \"Éditeur FS ASM\" switches between several files and preserves each one",
+    "[test] ASM examples > \"Boot Args - Cat\" reads the file chosen by the bootloader",
+    "[suite] 10 tests recorded"
+  ],
+  "tests": [
+    "ASM examples > \"Éditeur FS ASM\" assembles and fits in code memory",
+    "ASM examples > \"Super Unix Shell Plotter\" assembles and fits in code memory",
+    "ASM examples > \"Super Unix Shell Plotter\" boots from the shared FS fonts and draws on the plotter",
+    "ASM examples > \"Super Unix Shell Plotter\" draws one typed command character once on the last line",
+    "ASM examples > \"Super Unix Shell Plotter\" CAT updates the plotter preview for the selected file",
+    "ASM examples > \"Super Unix Shell Plotter\" finds late files in a long directory and switches between help/preview",
+    "ASM examples > \"Éditeur FS ASM\" opens /o filename on the real FS and edits that file with arrow movement",
+    "ASM examples > \"Éditeur FS ASM\" creates a new file with /o filename and saves it in bootloader FS format",
+    "ASM examples > \"Éditeur FS ASM\" switches between several files and preserves each one",
+    "ASM examples > \"Boot Args - Cat\" reads the file chosen by the bootloader"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "ASM examples > \"Boot Args - Cat\" reads the file chosen by the bootloader",
+      "output": "[run bootcat notes]\nNodalLinux\nroot# \nhello"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "super-unix-shell-plotter-boot",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-boot.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1507,
+      "href": "examples/super-unix-shell-plotter-boot.png"
+    },
+    {
+      "name": "super-unix-shell-plotter-typed",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-typed.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 887,
+      "href": "examples/super-unix-shell-plotter-typed.png"
+    },
+    {
+      "name": "super-unix-shell-plotter-cat-preview",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-cat-preview.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1627,
+      "href": "examples/super-unix-shell-plotter-cat-preview.png"
+    },
+    {
+      "name": "super-unix-shell-plotter-help",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/examples/super-unix-shell-plotter-help.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1380,
+      "href": "examples/super-unix-shell-plotter-help.png"
+    }
+  ]
+}

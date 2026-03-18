@@ -4274,7 +4274,7 @@ void fetch_weather() {
           object_hits = object_hits + 1;
           if (object_hits == 2) {
             started = 1;
-            field = 0;
+            field = 1;
             reset_num();
           }
         }

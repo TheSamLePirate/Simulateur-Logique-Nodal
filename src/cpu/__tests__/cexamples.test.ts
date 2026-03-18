@@ -5,7 +5,9 @@
  * Verifies: compilation, code size, memory layout, output, and halting.
  */
 
-import { describe, it, expect } from "vitest";
+import { rmSync } from "node:fs";
+
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { compile } from "../compiler";
 import { assemble } from "../assembler";
 import { CPU, type HttpFetchHandler } from "../cpu";
@@ -18,6 +20,14 @@ import {
 } from "../bootloader";
 import { CODE_SIZE, DRIVE_SIZE, MEMORY_SIZE } from "../isa";
 import { encodePlotterCoord, packPlotterColor } from "../../plotter";
+import {
+  PLOTTER_REPORT_ROOT,
+  writeCombinedPlotterHtmlReport,
+  writePlotterSuiteData,
+  type PlotterTestConsoleOutput,
+  writePlotterPng,
+  type PlotterSnapshotInfo,
+} from "./plotterImage";
 
 // ─── Test helpers ───
 
@@ -33,6 +43,30 @@ interface RunResult {
     locals: number;
     stackSize: number;
   };
+}
+
+const testConsoleOutputMap = new Map<string, string[]>();
+
+function recordConsoleOutput(output: string, label?: string) {
+  const normalized = output.replaceAll("\0", "").trim();
+  if (!normalized) return;
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  const existing = testConsoleOutputMap.get(testName) ?? [];
+  existing.push(label ? `[${label}]\n${normalized}` : normalized);
+  testConsoleOutputMap.set(testName, existing);
+}
+
+function getRecordedConsoleOutputs(testNames: string[]): PlotterTestConsoleOutput[] {
+  return testNames
+    .filter((testName, index, list) => list.indexOf(testName) === index)
+    .flatMap((testName) => {
+      const outputs = testConsoleOutputMap.get(testName);
+      if (!outputs || outputs.length === 0) return [];
+      return [{
+        testName,
+        output: outputs.join("\n\n---\n\n"),
+      }];
+    });
 }
 
 /**
@@ -91,8 +125,11 @@ function compileAndRun(
 
   cpu.run(maxCycles);
 
+  const output = cpu.consoleOutput.join("");
+  recordConsoleOutput(output, "compileAndRun");
+
   return {
-    output: cpu.consoleOutput.join(""),
+    output,
     halted: cpu.state.halted,
     cycles: cpu.state.cycles,
     cpu,
@@ -148,8 +185,11 @@ async function compileAndRunAsync(
 
   await cpu.runAsync(maxCycles);
 
+  const output = cpu.consoleOutput.join("");
+  recordConsoleOutput(output, "compileAndRunAsync");
+
   return {
-    output: cpu.consoleOutput.join(""),
+    output,
     halted: cpu.state.halted,
     cycles: cpu.state.cycles,
     cpu,
@@ -177,6 +217,66 @@ function hasPixel(cpu: CPU, x: number, y: number): boolean {
 function pixelColor(cpu: CPU, x: number, y: number): number | undefined {
   return cpu.plotterPixels.get(encodePlotterCoord(x, y));
 }
+
+const PLOTTER_SNAPSHOT_DIR = `${PLOTTER_REPORT_ROOT}/cexamples`;
+const plotterSnapshots: Array<PlotterSnapshotInfo & { name: string }> = [];
+const suiteConsoleLines: string[] = [];
+const suiteTests: string[] = [];
+
+beforeAll(() => {
+  rmSync(PLOTTER_SNAPSHOT_DIR, { recursive: true, force: true });
+});
+
+afterEach(() => {
+  const testName = expect.getState().currentTestName ?? "unknown test";
+  suiteTests.push(testName);
+  suiteConsoleLines.push(`[test] ${testName}`);
+});
+
+function savePlotterSnapshot(cpu: CPU, name: string, scale = 2) {
+  const snapshot = writePlotterPng(cpu.plotterPixels, `${PLOTTER_SNAPSHOT_DIR}/${name}.png`, {
+    scale,
+  });
+  plotterSnapshots.push({ name, ...snapshot });
+  suiteConsoleLines.push(
+    `[snapshot] ${name}: ${snapshot.outputPath} (${snapshot.width}x${snapshot.height}, scale ${snapshot.scale}, pixels ${snapshot.pixelCount})`,
+  );
+}
+
+function waitForVisibleFrame(cpu: CPU, burstCount = 12, stepPerBurst = 20_000) {
+  for (let burst = 0; burst < burstCount && !cpu.state.halted; burst++) {
+    if (cpu.plotterPixels.size > 0) return;
+    cpu.run(stepPerBurst);
+  }
+}
+
+function savePlotterSequence(cpu: CPU, baseName: string, frameCount: number, stepBetweenFrames: number) {
+  for (let frame = 1; frame <= frameCount; frame++) {
+    waitForVisibleFrame(cpu);
+    savePlotterSnapshot(cpu, `${baseName}-f${frame}`);
+    if (frame < frameCount && !cpu.state.halted) {
+      cpu.run(stepBetweenFrames);
+    }
+  }
+}
+
+afterAll(() => {
+  suiteConsoleLines.push(`[suite] ${suiteTests.length} tests recorded`);
+  writePlotterSuiteData({
+    suiteName: "C Example Plotter Tests",
+    suiteKey: "cexamples",
+    rootDir: PLOTTER_REPORT_ROOT,
+    snapshots: plotterSnapshots,
+    notes: [
+      "Generated at the end of cexamples.test.ts during vitest.",
+      "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels.",
+    ],
+    consoleLines: suiteConsoleLines,
+    tests: suiteTests,
+    testConsoleOutputs: getRecordedConsoleOutputs(suiteTests),
+  });
+  writeCombinedPlotterHtmlReport(PLOTTER_REPORT_ROOT);
+});
 
 // ═══════════════════════════════════════════════════════════
 //  Test suite: All C examples compile and run
@@ -290,6 +390,7 @@ describe("C Examples — Output Verification", () => {
     expect(hasPixel(r.cpu, 99, 0)).toBe(true); // top-right
     expect(hasPixel(r.cpu, 0, 99)).toBe(true); // bottom-left
     expect(hasPixel(r.cpu, 99, 99)).toBe(true); // bottom-right
+    savePlotterSnapshot(r.cpu, "c-plotter");
   });
 
   it('"Courbe" draws parabolic wave on plotter', () => {
@@ -315,6 +416,7 @@ describe("C Examples — Output Verification", () => {
       return x >= 128 && y > 156;
     });
     expect(hasLowerWave).toBe(true);
+    savePlotterSnapshot(r.cpu, "c-courbe");
   });
 
   it('"Echo" echoes input back', () => {
@@ -413,6 +515,7 @@ describe("C Examples — Output Verification", () => {
     // x=200: y = (2*200) mod 256 = 144 → draw(200, 144)
     // DDA wraps smoothly through 255→0 (no jump discontinuity at x=128)
     expect(hasPixel(r.cpu, 200, 144)).toBe(true);
+    savePlotterSnapshot(r.cpu, "c-traceur-droite");
   });
 
   it('"Traceur de droite" handles b=0 error', () => {
@@ -424,6 +527,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Err: b=0");
     // Should NOT have drawn any pixels (program exits before clear/draw)
     expect(r.cpu.plotterPixels.size).toBe(0);
+    savePlotterSnapshot(r.cpu, "c-traceur-droite-error");
   });
 
   it('"Cercle" draws a circle ring on plotter', () => {
@@ -433,6 +537,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(200);
     // Center area (128,128) should NOT be drawn (d ≈ 0, not in 12..20 range)
     expect(hasPixel(r.cpu, 128, 128)).toBe(false);
+    savePlotterSnapshot(r.cpu, "c-cercle");
   }, 15_000);
 
   it('"Clavier" draws triangle + laser with arrow keys', () => {
@@ -445,6 +550,20 @@ describe("C Examples — Output Verification", () => {
     expect(r.halted).toBe(false);
     // clear() each frame: triangle (4px) + laser (2px) = 6 max
     expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(6);
+    waitForVisibleFrame(r.cpu);
+    savePlotterSnapshot(r.cpu, "c-clavier-f1");
+    r.cpu.keyState = [1, 0, 0, 0, 0];
+    r.cpu.run(120_000);
+    waitForVisibleFrame(r.cpu);
+    savePlotterSnapshot(r.cpu, "c-clavier-f2");
+    r.cpu.keyState = [0, 0, 1, 0, 1];
+    r.cpu.run(120_000);
+    waitForVisibleFrame(r.cpu);
+    savePlotterSnapshot(r.cpu, "c-clavier-f3");
+    r.cpu.keyState = [0, 1, 0, 0, 0];
+    r.cpu.run(120_000);
+    waitForVisibleFrame(r.cpu);
+    savePlotterSnapshot(r.cpu, "c-clavier-f4");
   });
 
   it('"Horloge" starts at 00:00 and increments', () => {
@@ -466,6 +585,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
     // Starting point at (128, 128) should be drawn
     expect(hasPixel(r.cpu, 128, 128)).toBe(true);
+    savePlotterSnapshot(r.cpu, "c-spirale");
   });
 
   it('"Tableau de nombres premiers" finds 25 primes up to 100', () => {
@@ -486,6 +606,7 @@ describe("C Examples — Output Verification", () => {
     // Should have drawn pixels (random positions, some skipped by continue)
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
     expect(r.cpu.plotterPixels.size).toBeLessThanOrEqual(64);
+    savePlotterSnapshot(r.cpu, "c-etoiles");
   });
 
   it('"Test Mémoire" tests memory zones and passes', () => {
@@ -557,6 +678,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.halted).toBe(false);
     // Should have drawn pixels (paddles + ball)
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
+    savePlotterSequence(r.cpu, "c-pong", 4, 180_000);
   });
 
   it('"Démo Ultime" combines console, keyboard, arrays, recursion and plotter', () => {
@@ -577,6 +699,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.output).toContain("Checksum=");
     expect(r.output).toContain("FIN");
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(100);
+    savePlotterSnapshot(r.cpu, "c-demo-ultime");
   });
 
   it('"Calculatrice Graphique" draws a full-screen TI-style graph view', () => {
@@ -597,6 +720,7 @@ describe("C Examples — Output Verification", () => {
     expect(hasPixel(r.cpu, 255, 255)).toBe(true);
     expect(hasPixel(r.cpu, 128, 128)).toBe(true);
     expect(hasPixel(r.cpu, 128, 124)).toBe(true);
+    savePlotterSnapshot(r.cpu, "c-calculatrice-graphique");
   }, 10_000);
 
   it('"Mini Shell" supports vars, aggregates and RAM file redirection', () => {
@@ -929,6 +1053,7 @@ describe("C Examples — Output Verification", () => {
     }
 
     expect(notesBase).toBeGreaterThanOrEqual(0);
+    recordConsoleOutput(cpu.consoleOutput.join(""), "interactive multi-file editor");
     const page = cpu.driveData[notesBase + 9];
     const size = cpu.driveData[notesBase + 11];
     expect(size).toBe(2);
@@ -951,6 +1076,7 @@ describe("C Examples — Output Verification", () => {
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(10);
     expect(hasPixel(r.cpu, 128, 128)).toBe(true);
     expect(hasPixel(r.cpu, 212, 128)).toBe(true);
+    savePlotterSequence(r.cpu, "c-systeme-solaire-255", 5, 220_000);
   }, 10_000);
 });
 
@@ -1256,13 +1382,14 @@ describe("Compiler — Edge Cases", () => {
       httpFetch: async ({ method, url }) => {
         expect(method).toBe("GET");
         expect(url).toContain("api.open-meteo.com");
-        return '{"latitude":44.12,"longitude":4.08,"generationtime_ms":0.1,"utc_offset_seconds":3600,"timezone":"Europe/Paris","timezone_abbreviation":"GMT+1","elevation":130.0,"current_units":{"temperature_2m":"°C","is_day":"","weather_code":"wmo code"},"current":{"time":"2026-03-16T21:00","temperature_2m":11.4,"is_day":1,"weather_code":3}}';
+        return '{"latitude":44.12,"longitude":4.08,"generationtime_ms":0.1,"utc_offset_seconds":3600,"timezone":"Europe/Paris","timezone_abbreviation":"GMT+1","elevation":130.0,"current_units":{"temperature_2m":"°C","is_day":"","weather_code":"wmo code"},"current":{"time":"2026-03-18T17:00","temperature_2m":11.4,"is_day":1,"weather_code":61}}';
       },
     });
 
-    expect(r.output.startsWith(">")).toBe(true);
+    expect(r.output).toBe(">T+11 61\n");
     expect(r.halted).toBe(true);
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
+    savePlotterSnapshot(r.cpu, "c-meteo-ales");
   });
 
   it("getKey returns 0 when no key pressed", () => {
@@ -1315,6 +1442,7 @@ describe("Compiler — Edge Cases", () => {
     expect(pixelColor(r.cpu, 10, 20)).toBe(packPlotterColor(0, 128, 255));
     expect(pixelColor(r.cpu, 11, 20)).toBe(packPlotterColor(255, 64, 0));
     expect(pixelColor(r.cpu, 12, 20)).toBe(packPlotterColor(255, 64, 0));
+    savePlotterSnapshot(r.cpu, "c-color-built-in");
   });
 
   it("stack pointer is restored after function calls", () => {
@@ -2408,6 +2536,7 @@ describe("C Examples — Bootloader Args", () => {
 
     cpu.run(500_000);
 
+    recordConsoleOutput(cpu.consoleOutput.join(""), "run bootcat notes");
     expect(cpu.consoleOutput.join("")).toContain("hello");
     expect(cpu.state.halted).toBe(true);
   });

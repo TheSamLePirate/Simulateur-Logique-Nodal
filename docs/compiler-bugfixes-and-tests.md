@@ -536,6 +536,9 @@ npm test
 # Watch mode (re-run on file changes)
 npm run test:watch
 
+# Bootloader / disk / glxnano tests
+npm test -- --run src/cpu/__tests__/bootloader.test.ts
+
 # Run a specific test by name
 npx vitest run -t "Horloge"
 
@@ -551,6 +554,10 @@ Expected output:
  Test Files  1 passed (1)
       Tests  141 passed (141)
 ```
+
+### Plotter Snapshot Helper
+
+When a plotter regression is easier to inspect visually than through raw pixel counts, the helper `src/cpu/__tests__/plotterImage.ts` can export the framebuffer to a binary **PPM** image file. This is especially useful for debugging bootloader userland tools such as `glxnano`, where a frame may be "technically non-empty" but still visually wrong.
 
 ---
 

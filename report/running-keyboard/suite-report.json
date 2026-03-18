@@ -1,0 +1,26 @@
+{
+  "suiteName": "Running Keyboard Tests",
+  "suiteKey": "running-keyboard",
+  "generatedAt": "18 Mar 2026, 18:02:22",
+  "notes": [
+    "Generated at the end of runningKeyboard.test.ts during vitest.",
+    "This suite validates immediate key routing and intentionally has no plotter image snapshots."
+  ],
+  "consoleLines": [
+    "[test] running keyboard handler > applies arrow keys immediately through keyState",
+    "[test] running keyboard handler > queues Enter immediately and also updates enter key state",
+    "[test] running keyboard handler > queues printable keys and backspace immediately",
+    "[test] running keyboard handler > ignores modified shortcuts so browser/app shortcuts keep working",
+    "[test] running keyboard handler > does not hijack typing inside editable DOM targets",
+    "[suite] 5 tests recorded"
+  ],
+  "tests": [
+    "running keyboard handler > applies arrow keys immediately through keyState",
+    "running keyboard handler > queues Enter immediately and also updates enter key state",
+    "running keyboard handler > queues printable keys and backspace immediately",
+    "running keyboard handler > ignores modified shortcuts so browser/app shortcuts keep working",
+    "running keyboard handler > does not hijack typing inside editable DOM targets"
+  ],
+  "testConsoleOutputs": [],
+  "snapshots": []
+}

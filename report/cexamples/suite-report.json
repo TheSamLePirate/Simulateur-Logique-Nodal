@@ -1,0 +1,1314 @@
+{
+  "suiteName": "C Example Plotter Tests",
+  "suiteKey": "cexamples",
+  "generatedAt": "18 Mar 2026, 18:02:41",
+  "notes": [
+    "Generated at the end of cexamples.test.ts during vitest.",
+    "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."
+  ],
+  "consoleLines": [
+    "[test] C Examples — Compilation > \"Hello World\" compiles without errors",
+    "[test] C Examples — Compilation > \"Hello World\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Compteur\" compiles without errors",
+    "[test] C Examples — Compilation > \"Compteur\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Fibonacci\" compiles without errors",
+    "[test] C Examples — Compilation > \"Fibonacci\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Factorielle\" compiles without errors",
+    "[test] C Examples — Compilation > \"Factorielle\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Calcul\" compiles without errors",
+    "[test] C Examples — Compilation > \"Calcul\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Plotter\" compiles without errors",
+    "[test] C Examples — Compilation > \"Plotter\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Courbe\" compiles without errors",
+    "[test] C Examples — Compilation > \"Courbe\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Echo (Saisie)\" compiles without errors",
+    "[test] C Examples — Compilation > \"Echo (Saisie)\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Compteur de lettres\" compiles without errors",
+    "[test] C Examples — Compilation > \"Compteur de lettres\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Calculatrice\" compiles without errors",
+    "[test] C Examples — Compilation > \"Calculatrice\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Traceur de droite\" compiles without errors",
+    "[test] C Examples — Compilation > \"Traceur de droite\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Cercle\" compiles without errors",
+    "[test] C Examples — Compilation > \"Cercle\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Clavier\" compiles without errors",
+    "[test] C Examples — Compilation > \"Clavier\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Horloge\" compiles without errors",
+    "[test] C Examples — Compilation > \"Horloge\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Spirale\" compiles without errors",
+    "[test] C Examples — Compilation > \"Spirale\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Tableau de nombres premiers\" compiles without errors",
+    "[test] C Examples — Compilation > \"Tableau de nombres premiers\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Étoiles\" compiles without errors",
+    "[test] C Examples — Compilation > \"Étoiles\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Test Mémoire\" compiles without errors",
+    "[test] C Examples — Compilation > \"Test Mémoire\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Tableau (Fonction)\" compiles without errors",
+    "[test] C Examples — Compilation > \"Tableau (Fonction)\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Tableau (Tri)\" compiles without errors",
+    "[test] C Examples — Compilation > \"Tableau (Tri)\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Pong\" compiles without errors",
+    "[test] C Examples — Compilation > \"Pong\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Démo Ultime\" compiles without errors",
+    "[test] C Examples — Compilation > \"Démo Ultime\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Calculatrice Graphique\" compiles without errors",
+    "[test] C Examples — Compilation > \"Calculatrice Graphique\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Mini Shell\" compiles without errors",
+    "[test] C Examples — Compilation > \"Mini Shell\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"writeDigits\" compiles without errors",
+    "[test] C Examples — Compilation > \"writeDigits\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"writeLetters\" compiles without errors",
+    "[test] C Examples — Compilation > \"writeLetters\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"FS Disque Externe\" compiles without errors",
+    "[test] C Examples — Compilation > \"FS Disque Externe\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Éditeur Texte FS\" compiles without errors",
+    "[test] C Examples — Compilation > \"Éditeur Texte FS\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Éditeur Multi-fichier FS\" compiles without errors",
+    "[test] C Examples — Compilation > \"Éditeur Multi-fichier FS\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Système Solaire 255\" compiles without errors",
+    "[test] C Examples — Compilation > \"Système Solaire 255\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Paysage RGB\" compiles without errors",
+    "[test] C Examples — Compilation > \"Paysage RGB\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"HTTP JSONPlaceholder\" compiles without errors",
+    "[test] C Examples — Compilation > \"HTTP JSONPlaceholder\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Meteo Ales\" compiles without errors",
+    "[test] C Examples — Compilation > \"Meteo Ales\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Boot Args - Cat\" compiles without errors",
+    "[test] C Examples — Compilation > \"Boot Args - Cat\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Tableau (Nouvelles Fonctionnalites)\" compiles without errors",
+    "[test] C Examples — Compilation > \"Tableau (Nouvelles Fonctionnalites)\" code fits in 4096 bytes",
+    "[test] C Examples — Compilation > \"Const et String\" compiles without errors",
+    "[test] C Examples — Compilation > \"Const et String\" code fits in 4096 bytes",
+    "[test] C Examples — Memory Layout > \"Hello World\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Compteur\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Fibonacci\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Factorielle\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Calcul\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Plotter\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Courbe\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Echo (Saisie)\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Compteur de lettres\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Calculatrice\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Traceur de droite\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Cercle\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Clavier\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Horloge\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Spirale\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Tableau de nombres premiers\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Étoiles\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Test Mémoire\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Tableau (Fonction)\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Tableau (Tri)\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Pong\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Démo Ultime\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Calculatrice Graphique\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Mini Shell\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"writeDigits\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"writeLetters\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"FS Disque Externe\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Éditeur Texte FS\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Éditeur Multi-fichier FS\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Système Solaire 255\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Paysage RGB\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"HTTP JSONPlaceholder\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Meteo Ales\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Boot Args - Cat\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Tableau (Nouvelles Fonctionnalites)\" memory layout is valid",
+    "[test] C Examples — Memory Layout > \"Const et String\" memory layout is valid",
+    "[test] C Examples — Output Verification > \"Hello World\" outputs correct text",
+    "[test] C Examples — Output Verification > \"Compteur\" outputs digits 0-9",
+    "[test] C Examples — Output Verification > \"Fibonacci\" outputs first 10 Fibonacci numbers",
+    "[test] C Examples — Output Verification > \"Factorielle\" computes 5! = 120",
+    "[test] C Examples — Output Verification > \"Calcul\" shows correct arithmetic results",
+    "[snapshot] c-plotter: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-plotter.png (256x256, scale 2, pixels 475)",
+    "[test] C Examples — Output Verification > \"Plotter\" draws pixels and halts",
+    "[snapshot] c-courbe: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-courbe.png (256x256, scale 2, pixels 255)",
+    "[test] C Examples — Output Verification > \"Courbe\" draws parabolic wave on plotter",
+    "[test] C Examples — Output Verification > \"Echo\" echoes input back",
+    "[test] C Examples — Output Verification > \"Compteur de lettres\" counts characters",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 123+45=168",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 25*4=100",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 2.14+3.24=5.38",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 2.14*3.24=6.93",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 100/4=25",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 10/4=2.50",
+    "[test] C Examples — Output Verification > \"Calculatrice\" computes 10%3=1",
+    "[snapshot] c-traceur-droite: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-traceur-droite.png (256x256, scale 2, pixels 255)",
+    "[test] C Examples — Output Verification > \"Traceur de droite\" plots y=2x (a=2, b=1, c=0) with DDA",
+    "[snapshot] c-traceur-droite-error: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-traceur-droite-error.png (256x256, scale 2, pixels 0)",
+    "[test] C Examples — Output Verification > \"Traceur de droite\" handles b=0 error",
+    "[snapshot] c-cercle: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-cercle.png (256x256, scale 2, pixels 7104)",
+    "[test] C Examples — Output Verification > \"Cercle\" draws a circle ring on plotter",
+    "[snapshot] c-clavier-f1: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f1.png (256x256, scale 2, pixels 5)",
+    "[snapshot] c-clavier-f2: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f2.png (256x256, scale 2, pixels 4)",
+    "[snapshot] c-clavier-f3: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f3.png (256x256, scale 2, pixels 1)",
+    "[snapshot] c-clavier-f4: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f4.png (256x256, scale 2, pixels 4)",
+    "[test] C Examples — Output Verification > \"Clavier\" draws triangle + laser with arrow keys",
+    "[test] C Examples — Output Verification > \"Horloge\" starts at 00:00 and increments",
+    "[snapshot] c-spirale: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-spirale.png (256x256, scale 2, pixels 3720)",
+    "[test] C Examples — Output Verification > \"Spirale\" draws spiral pixels and halts",
+    "[test] C Examples — Output Verification > \"Tableau de nombres premiers\" finds 25 primes up to 100",
+    "[snapshot] c-etoiles: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-etoiles.png (256x256, scale 2, pixels 64)",
+    "[test] C Examples — Output Verification > \"Étoiles\" draws random stars with break",
+    "[test] C Examples — Output Verification > \"Test Mémoire\" tests memory zones and passes",
+    "[test] C Examples — Output Verification > \"Tableau (Tri)\" sorts 8 elements correctly",
+    "[test] C Examples — Output Verification > \"Tableau (Nouvelles Fonctionnalites)\" demonstrates array params and multi declarations",
+    "[test] C Examples — Output Verification > \"Const et String\" demonstrates const data, array initializers, and string declarations",
+    "[snapshot] c-pong-f1: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f1.png (256x256, scale 2, pixels 41)",
+    "[snapshot] c-pong-f2: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f2.png (256x256, scale 2, pixels 30)",
+    "[snapshot] c-pong-f3: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f3.png (256x256, scale 2, pixels 10)",
+    "[snapshot] c-pong-f4: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f4.png (256x256, scale 2, pixels 41)",
+    "[test] C Examples — Output Verification > \"Pong\" runs game loop with plotter output",
+    "[snapshot] c-demo-ultime: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-demo-ultime.png (256x256, scale 2, pixels 666)",
+    "[test] C Examples — Output Verification > \"Démo Ultime\" combines console, keyboard, arrays, recursion and plotter",
+    "[snapshot] c-calculatrice-graphique: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-calculatrice-graphique.png (256x256, scale 2, pixels 2250)",
+    "[test] C Examples — Output Verification > \"Calculatrice Graphique\" draws a full-screen TI-style graph view",
+    "[test] C Examples — Output Verification > \"Mini Shell\" supports vars, aggregates and RAM file redirection",
+    "[test] C Examples — Output Verification > \"Mini Shell\" reports missing files and capacity limits",
+    "[test] C Examples — Output Verification > \"FS Disque Externe\" formats, writes and reads files on the drive",
+    "[test] C Examples — Output Verification > \"FS Disque Externe\" preserves program entries and handles busy/not-file/disk-full cases",
+    "[test] C Examples — Output Verification > \"Éditeur Texte FS\" creates, edits, saves and reloads a disk file",
+    "[test] C Examples — Output Verification > \"Éditeur Texte FS\" reloads existing content, clears it, then saves new text",
+    "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" opens, creates and saves different files",
+    "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" clears one file without touching another",
+    "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" reports disk full but still reopens existing files",
+    "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" moves the cursor with arrow keys before deleting",
+    "[snapshot] c-systeme-solaire-255-f1: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f1.png (256x256, scale 2, pixels 48)",
+    "[snapshot] c-systeme-solaire-255-f2: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f2.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f3: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f3.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f4: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f4.png (256x256, scale 2, pixels 52)",
+    "[snapshot] c-systeme-solaire-255-f5: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f5.png (256x256, scale 2, pixels 38)",
+    "[test] C Examples — Output Verification > \"Système Solaire 255\" draws a sun and one orbiting planet",
+    "[test] Compiler — Edge Cases > empty main halts immediately",
+    "[test] Compiler — Edge Cases > global variable initialization",
+    "[test] Compiler — Edge Cases > function with multiple return paths",
+    "[test] Compiler — Edge Cases > nested function calls",
+    "[test] Compiler — Edge Cases > recursion works correctly",
+    "[test] Compiler — Edge Cases > while loop with break condition",
+    "[test] Compiler — Edge Cases > for loop counts correctly",
+    "[test] Compiler — Edge Cases > compound assignment operators",
+    "[test] Compiler — Edge Cases > postfix increment/decrement",
+    "[test] Compiler — Edge Cases > logical AND/OR operators",
+    "[test] Compiler — Edge Cases > >= and > comparison operators",
+    "[test] Compiler — Edge Cases > <= and < comparison operators",
+    "[test] Compiler — Edge Cases > multiply and divide",
+    "[test] Compiler — Edge Cases > unsigned division with large dividends (>= 128)",
+    "[test] Compiler — Edge Cases > #define preprocessor works",
+    "[test] Compiler — Edge Cases > char literals work",
+    "[test] Compiler — Edge Cases > getchar reads input correctly",
+    "[test] Compiler — Edge Cases > HTTP GET streams response bytes through gethttpchar()",
+    "[snapshot] c-meteo-ales: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-meteo-ales.png (256x256, scale 2, pixels 10964)",
+    "[test] Compiler — Edge Cases > \"Meteo Ales\" fetches weather and draws on the plotter",
+    "[test] Compiler — Edge Cases > getKey returns 0 when no key pressed",
+    "[test] Compiler — Edge Cases > getKey returns 1 when key is pressed",
+    "[snapshot] c-color-built-in: /Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-color-built-in.png (256x256, scale 2, pixels 3)",
+    "[test] Compiler — Edge Cases > color built-in latches RGB values for subsequent draw calls",
+    "[test] Compiler — Edge Cases > stack pointer is restored after function calls",
+    "[test] Compiler — Edge Cases > supports multiple local declarations in one statement",
+    "[test] Compiler — Edge Cases > supports multiple global declarations in one statement",
+    "[test] Compiler — Edge Cases > supports multiple declarations in for-loop init",
+    "[test] Compiler — Edge Cases > reuses frame memory across unrelated functions",
+    "[test] Compiler — Edge Cases > reuses block-local slots across branches",
+    "[test] Compiler — Edge Cases > bitwise expressions still work with shared lowering",
+    "[test] Compiler — Edge Cases > 16 globals are allowed",
+    "[test] Compiler — Edge Cases > 17th global produces an error",
+    "[test] Compiler — Edge Cases > break exits while loop early",
+    "[test] Compiler — Edge Cases > break exits for loop early",
+    "[test] Compiler — Edge Cases > continue skips to next iteration in while loop",
+    "[test] Compiler — Edge Cases > continue in for loop jumps to update",
+    "[test] Compiler — Edge Cases > nested break only exits inner loop",
+    "[test] Compiler — Edge Cases > break outside loop produces error",
+    "[test] Compiler — Edge Cases > continue outside loop produces error",
+    "[test] Compiler — Edge Cases > rand() returns pseudo-random values",
+    "[test] Compiler — Edge Cases > rand() values are in 0-255 range",
+    "[test] Compiler — Edge Cases > sleep() delays execution by N cycles",
+    "[test] Compiler — Edge Cases > external drive builtins read, write and clear bytes",
+    "[test] Compiler — Edge Cases > console_clear() clears prior console output",
+    "[test] Compiler — Edge Cases > external drive page builtins can access the full 64K disk",
+    "[test] Compiler — Edge Cases > code size overflow is detected",
+    "[test] Compiler — Arrays > basic array write and read",
+    "[test] Compiler — Arrays > array fill and read in loop",
+    "[test] Compiler — Arrays > complex index expression arr[j+1]",
+    "[test] Compiler — Arrays > global array",
+    "[test] Compiler — Arrays > local array in function",
+    "[test] Compiler — Arrays > global array accessed from function",
+    "[test] Compiler — Arrays > array parameter can be read inside a function",
+    "[test] Compiler — Arrays > array parameter writes are copied back to the caller array",
+    "[test] Compiler — Arrays > array parameter works from a recursive caller frame",
+    "[test] Compiler — Arrays > swap via array (bubble sort pattern)",
+    "[test] Compiler — Arrays > array size 0 is rejected",
+    "[test] Compiler — Arrays > global array too large is rejected",
+    "[test] Compiler — Arrays > array name without index is rejected",
+    "[test] Compiler — Arrays > index on non-array variable is rejected",
+    "[test] Compiler — Arrays > array initializer works for local arrays",
+    "[test] Compiler — Arrays > const global data and arrays initialize correctly",
+    "[test] Compiler — Arrays > global array initializer works",
+    "[test] Compiler — Arrays > string declaration stores a zero-terminated character array",
+    "[test] Compiler — Arrays > global string declaration stores a zero-terminated character array",
+    "[test] Compiler — Arrays > array_len returns the declared array capacity",
+    "[test] Compiler — Arrays > string_len returns the current zero-terminated string length",
+    "[test] Compiler — Arrays > print accepts a string variable",
+    "[test] Compiler — Arrays > print accepts a zero-terminated buffer",
+    "[test] Compiler — Arrays > string_len reflects manual append inside a larger buffer",
+    "[test] Compiler — Arrays > string can be modified by index when it is not const",
+    "[test] Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
+    "[test] Compiler — Arrays > const string cannot be modified by index",
+    "[test] Compiler — Arrays > writing to a const scalar is rejected",
+    "[test] Compiler — Arrays > const declaration without initializer is rejected",
+    "[test] Compiler — Arrays > string declaration without literal initializer is rejected",
+    "[test] Compiler — Arrays > string concatenation with + is not supported",
+    "[test] Compiler — Arrays > assigning a string literal to one array element is rejected",
+    "[test] Compiler — Arrays > reassigning a string variable is not supported",
+    "[test] Compiler — Arrays > out-of-bounds array access is not rejected by the compiler",
+    "[test] Compiler — Arrays > writing to a const array is rejected",
+    "[test] Compiler — Arrays > passing a scalar to an array parameter is rejected",
+    "[test] C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Compteur\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Fibonacci\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Factorielle\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Calcul\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Plotter\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Courbe\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Cercle\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Horloge\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Spirale\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Tableau de nombres premiers\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Étoiles\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Test Mémoire\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Tableau (Tri)\" halts within reasonable cycles",
+    "[test] C Examples — Execution Properties > \"Echo (Saisie)\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Compteur de lettres\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Calculatrice\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Traceur de droite\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Démo Ultime\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Calculatrice Graphique\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Mini Shell\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"FS Disque Externe\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Éditeur Texte FS\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Éditeur Multi-fichier FS\" waits for input (does not halt without it)",
+    "[test] C Examples — Execution Properties > \"Système Solaire 255\" waits for input (does not halt without it)",
+    "[test] C Examples — Interactive Halt > \"Echo (Saisie)\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Compteur de lettres\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Calculatrice\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Traceur de droite\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Clavier\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Pong\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Démo Ultime\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Calculatrice Graphique\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Mini Shell\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"FS Disque Externe\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Éditeur Texte FS\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
+    "[test] C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
+    "[test] C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader",
+    "[suite] 270 tests recorded"
+  ],
+  "tests": [
+    "C Examples — Compilation > \"Hello World\" compiles without errors",
+    "C Examples — Compilation > \"Hello World\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Compteur\" compiles without errors",
+    "C Examples — Compilation > \"Compteur\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Fibonacci\" compiles without errors",
+    "C Examples — Compilation > \"Fibonacci\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Factorielle\" compiles without errors",
+    "C Examples — Compilation > \"Factorielle\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Calcul\" compiles without errors",
+    "C Examples — Compilation > \"Calcul\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Plotter\" compiles without errors",
+    "C Examples — Compilation > \"Plotter\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Courbe\" compiles without errors",
+    "C Examples — Compilation > \"Courbe\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Echo (Saisie)\" compiles without errors",
+    "C Examples — Compilation > \"Echo (Saisie)\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Compteur de lettres\" compiles without errors",
+    "C Examples — Compilation > \"Compteur de lettres\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Calculatrice\" compiles without errors",
+    "C Examples — Compilation > \"Calculatrice\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Traceur de droite\" compiles without errors",
+    "C Examples — Compilation > \"Traceur de droite\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Cercle\" compiles without errors",
+    "C Examples — Compilation > \"Cercle\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Clavier\" compiles without errors",
+    "C Examples — Compilation > \"Clavier\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Horloge\" compiles without errors",
+    "C Examples — Compilation > \"Horloge\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Spirale\" compiles without errors",
+    "C Examples — Compilation > \"Spirale\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Tableau de nombres premiers\" compiles without errors",
+    "C Examples — Compilation > \"Tableau de nombres premiers\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Étoiles\" compiles without errors",
+    "C Examples — Compilation > \"Étoiles\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Test Mémoire\" compiles without errors",
+    "C Examples — Compilation > \"Test Mémoire\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Tableau (Fonction)\" compiles without errors",
+    "C Examples — Compilation > \"Tableau (Fonction)\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Tableau (Tri)\" compiles without errors",
+    "C Examples — Compilation > \"Tableau (Tri)\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Pong\" compiles without errors",
+    "C Examples — Compilation > \"Pong\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Démo Ultime\" compiles without errors",
+    "C Examples — Compilation > \"Démo Ultime\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Calculatrice Graphique\" compiles without errors",
+    "C Examples — Compilation > \"Calculatrice Graphique\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Mini Shell\" compiles without errors",
+    "C Examples — Compilation > \"Mini Shell\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"writeDigits\" compiles without errors",
+    "C Examples — Compilation > \"writeDigits\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"writeLetters\" compiles without errors",
+    "C Examples — Compilation > \"writeLetters\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"FS Disque Externe\" compiles without errors",
+    "C Examples — Compilation > \"FS Disque Externe\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Éditeur Texte FS\" compiles without errors",
+    "C Examples — Compilation > \"Éditeur Texte FS\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Éditeur Multi-fichier FS\" compiles without errors",
+    "C Examples — Compilation > \"Éditeur Multi-fichier FS\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Système Solaire 255\" compiles without errors",
+    "C Examples — Compilation > \"Système Solaire 255\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Paysage RGB\" compiles without errors",
+    "C Examples — Compilation > \"Paysage RGB\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"HTTP JSONPlaceholder\" compiles without errors",
+    "C Examples — Compilation > \"HTTP JSONPlaceholder\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Meteo Ales\" compiles without errors",
+    "C Examples — Compilation > \"Meteo Ales\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Boot Args - Cat\" compiles without errors",
+    "C Examples — Compilation > \"Boot Args - Cat\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Tableau (Nouvelles Fonctionnalites)\" compiles without errors",
+    "C Examples — Compilation > \"Tableau (Nouvelles Fonctionnalites)\" code fits in 4096 bytes",
+    "C Examples — Compilation > \"Const et String\" compiles without errors",
+    "C Examples — Compilation > \"Const et String\" code fits in 4096 bytes",
+    "C Examples — Memory Layout > \"Hello World\" memory layout is valid",
+    "C Examples — Memory Layout > \"Compteur\" memory layout is valid",
+    "C Examples — Memory Layout > \"Fibonacci\" memory layout is valid",
+    "C Examples — Memory Layout > \"Factorielle\" memory layout is valid",
+    "C Examples — Memory Layout > \"Calcul\" memory layout is valid",
+    "C Examples — Memory Layout > \"Plotter\" memory layout is valid",
+    "C Examples — Memory Layout > \"Courbe\" memory layout is valid",
+    "C Examples — Memory Layout > \"Echo (Saisie)\" memory layout is valid",
+    "C Examples — Memory Layout > \"Compteur de lettres\" memory layout is valid",
+    "C Examples — Memory Layout > \"Calculatrice\" memory layout is valid",
+    "C Examples — Memory Layout > \"Traceur de droite\" memory layout is valid",
+    "C Examples — Memory Layout > \"Cercle\" memory layout is valid",
+    "C Examples — Memory Layout > \"Clavier\" memory layout is valid",
+    "C Examples — Memory Layout > \"Horloge\" memory layout is valid",
+    "C Examples — Memory Layout > \"Spirale\" memory layout is valid",
+    "C Examples — Memory Layout > \"Tableau de nombres premiers\" memory layout is valid",
+    "C Examples — Memory Layout > \"Étoiles\" memory layout is valid",
+    "C Examples — Memory Layout > \"Test Mémoire\" memory layout is valid",
+    "C Examples — Memory Layout > \"Tableau (Fonction)\" memory layout is valid",
+    "C Examples — Memory Layout > \"Tableau (Tri)\" memory layout is valid",
+    "C Examples — Memory Layout > \"Pong\" memory layout is valid",
+    "C Examples — Memory Layout > \"Démo Ultime\" memory layout is valid",
+    "C Examples — Memory Layout > \"Calculatrice Graphique\" memory layout is valid",
+    "C Examples — Memory Layout > \"Mini Shell\" memory layout is valid",
+    "C Examples — Memory Layout > \"writeDigits\" memory layout is valid",
+    "C Examples — Memory Layout > \"writeLetters\" memory layout is valid",
+    "C Examples — Memory Layout > \"FS Disque Externe\" memory layout is valid",
+    "C Examples — Memory Layout > \"Éditeur Texte FS\" memory layout is valid",
+    "C Examples — Memory Layout > \"Éditeur Multi-fichier FS\" memory layout is valid",
+    "C Examples — Memory Layout > \"Système Solaire 255\" memory layout is valid",
+    "C Examples — Memory Layout > \"Paysage RGB\" memory layout is valid",
+    "C Examples — Memory Layout > \"HTTP JSONPlaceholder\" memory layout is valid",
+    "C Examples — Memory Layout > \"Meteo Ales\" memory layout is valid",
+    "C Examples — Memory Layout > \"Boot Args - Cat\" memory layout is valid",
+    "C Examples — Memory Layout > \"Tableau (Nouvelles Fonctionnalites)\" memory layout is valid",
+    "C Examples — Memory Layout > \"Const et String\" memory layout is valid",
+    "C Examples — Output Verification > \"Hello World\" outputs correct text",
+    "C Examples — Output Verification > \"Compteur\" outputs digits 0-9",
+    "C Examples — Output Verification > \"Fibonacci\" outputs first 10 Fibonacci numbers",
+    "C Examples — Output Verification > \"Factorielle\" computes 5! = 120",
+    "C Examples — Output Verification > \"Calcul\" shows correct arithmetic results",
+    "C Examples — Output Verification > \"Plotter\" draws pixels and halts",
+    "C Examples — Output Verification > \"Courbe\" draws parabolic wave on plotter",
+    "C Examples — Output Verification > \"Echo\" echoes input back",
+    "C Examples — Output Verification > \"Compteur de lettres\" counts characters",
+    "C Examples — Output Verification > \"Calculatrice\" computes 123+45=168",
+    "C Examples — Output Verification > \"Calculatrice\" computes 25*4=100",
+    "C Examples — Output Verification > \"Calculatrice\" computes 2.14+3.24=5.38",
+    "C Examples — Output Verification > \"Calculatrice\" computes 2.14*3.24=6.93",
+    "C Examples — Output Verification > \"Calculatrice\" computes 100/4=25",
+    "C Examples — Output Verification > \"Calculatrice\" computes 10/4=2.50",
+    "C Examples — Output Verification > \"Calculatrice\" computes 10%3=1",
+    "C Examples — Output Verification > \"Traceur de droite\" plots y=2x (a=2, b=1, c=0) with DDA",
+    "C Examples — Output Verification > \"Traceur de droite\" handles b=0 error",
+    "C Examples — Output Verification > \"Cercle\" draws a circle ring on plotter",
+    "C Examples — Output Verification > \"Clavier\" draws triangle + laser with arrow keys",
+    "C Examples — Output Verification > \"Horloge\" starts at 00:00 and increments",
+    "C Examples — Output Verification > \"Spirale\" draws spiral pixels and halts",
+    "C Examples — Output Verification > \"Tableau de nombres premiers\" finds 25 primes up to 100",
+    "C Examples — Output Verification > \"Étoiles\" draws random stars with break",
+    "C Examples — Output Verification > \"Test Mémoire\" tests memory zones and passes",
+    "C Examples — Output Verification > \"Tableau (Tri)\" sorts 8 elements correctly",
+    "C Examples — Output Verification > \"Tableau (Nouvelles Fonctionnalites)\" demonstrates array params and multi declarations",
+    "C Examples — Output Verification > \"Const et String\" demonstrates const data, array initializers, and string declarations",
+    "C Examples — Output Verification > \"Pong\" runs game loop with plotter output",
+    "C Examples — Output Verification > \"Démo Ultime\" combines console, keyboard, arrays, recursion and plotter",
+    "C Examples — Output Verification > \"Calculatrice Graphique\" draws a full-screen TI-style graph view",
+    "C Examples — Output Verification > \"Mini Shell\" supports vars, aggregates and RAM file redirection",
+    "C Examples — Output Verification > \"Mini Shell\" reports missing files and capacity limits",
+    "C Examples — Output Verification > \"FS Disque Externe\" formats, writes and reads files on the drive",
+    "C Examples — Output Verification > \"FS Disque Externe\" preserves program entries and handles busy/not-file/disk-full cases",
+    "C Examples — Output Verification > \"Éditeur Texte FS\" creates, edits, saves and reloads a disk file",
+    "C Examples — Output Verification > \"Éditeur Texte FS\" reloads existing content, clears it, then saves new text",
+    "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" opens, creates and saves different files",
+    "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" clears one file without touching another",
+    "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" reports disk full but still reopens existing files",
+    "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" moves the cursor with arrow keys before deleting",
+    "C Examples — Output Verification > \"Système Solaire 255\" draws a sun and one orbiting planet",
+    "Compiler — Edge Cases > empty main halts immediately",
+    "Compiler — Edge Cases > global variable initialization",
+    "Compiler — Edge Cases > function with multiple return paths",
+    "Compiler — Edge Cases > nested function calls",
+    "Compiler — Edge Cases > recursion works correctly",
+    "Compiler — Edge Cases > while loop with break condition",
+    "Compiler — Edge Cases > for loop counts correctly",
+    "Compiler — Edge Cases > compound assignment operators",
+    "Compiler — Edge Cases > postfix increment/decrement",
+    "Compiler — Edge Cases > logical AND/OR operators",
+    "Compiler — Edge Cases > >= and > comparison operators",
+    "Compiler — Edge Cases > <= and < comparison operators",
+    "Compiler — Edge Cases > multiply and divide",
+    "Compiler — Edge Cases > unsigned division with large dividends (>= 128)",
+    "Compiler — Edge Cases > #define preprocessor works",
+    "Compiler — Edge Cases > char literals work",
+    "Compiler — Edge Cases > getchar reads input correctly",
+    "Compiler — Edge Cases > HTTP GET streams response bytes through gethttpchar()",
+    "Compiler — Edge Cases > \"Meteo Ales\" fetches weather and draws on the plotter",
+    "Compiler — Edge Cases > getKey returns 0 when no key pressed",
+    "Compiler — Edge Cases > getKey returns 1 when key is pressed",
+    "Compiler — Edge Cases > color built-in latches RGB values for subsequent draw calls",
+    "Compiler — Edge Cases > stack pointer is restored after function calls",
+    "Compiler — Edge Cases > supports multiple local declarations in one statement",
+    "Compiler — Edge Cases > supports multiple global declarations in one statement",
+    "Compiler — Edge Cases > supports multiple declarations in for-loop init",
+    "Compiler — Edge Cases > reuses frame memory across unrelated functions",
+    "Compiler — Edge Cases > reuses block-local slots across branches",
+    "Compiler — Edge Cases > bitwise expressions still work with shared lowering",
+    "Compiler — Edge Cases > 16 globals are allowed",
+    "Compiler — Edge Cases > 17th global produces an error",
+    "Compiler — Edge Cases > break exits while loop early",
+    "Compiler — Edge Cases > break exits for loop early",
+    "Compiler — Edge Cases > continue skips to next iteration in while loop",
+    "Compiler — Edge Cases > continue in for loop jumps to update",
+    "Compiler — Edge Cases > nested break only exits inner loop",
+    "Compiler — Edge Cases > break outside loop produces error",
+    "Compiler — Edge Cases > continue outside loop produces error",
+    "Compiler — Edge Cases > rand() returns pseudo-random values",
+    "Compiler — Edge Cases > rand() values are in 0-255 range",
+    "Compiler — Edge Cases > sleep() delays execution by N cycles",
+    "Compiler — Edge Cases > external drive builtins read, write and clear bytes",
+    "Compiler — Edge Cases > console_clear() clears prior console output",
+    "Compiler — Edge Cases > external drive page builtins can access the full 64K disk",
+    "Compiler — Edge Cases > code size overflow is detected",
+    "Compiler — Arrays > basic array write and read",
+    "Compiler — Arrays > array fill and read in loop",
+    "Compiler — Arrays > complex index expression arr[j+1]",
+    "Compiler — Arrays > global array",
+    "Compiler — Arrays > local array in function",
+    "Compiler — Arrays > global array accessed from function",
+    "Compiler — Arrays > array parameter can be read inside a function",
+    "Compiler — Arrays > array parameter writes are copied back to the caller array",
+    "Compiler — Arrays > array parameter works from a recursive caller frame",
+    "Compiler — Arrays > swap via array (bubble sort pattern)",
+    "Compiler — Arrays > array size 0 is rejected",
+    "Compiler — Arrays > global array too large is rejected",
+    "Compiler — Arrays > array name without index is rejected",
+    "Compiler — Arrays > index on non-array variable is rejected",
+    "Compiler — Arrays > array initializer works for local arrays",
+    "Compiler — Arrays > const global data and arrays initialize correctly",
+    "Compiler — Arrays > global array initializer works",
+    "Compiler — Arrays > string declaration stores a zero-terminated character array",
+    "Compiler — Arrays > global string declaration stores a zero-terminated character array",
+    "Compiler — Arrays > array_len returns the declared array capacity",
+    "Compiler — Arrays > string_len returns the current zero-terminated string length",
+    "Compiler — Arrays > print accepts a string variable",
+    "Compiler — Arrays > print accepts a zero-terminated buffer",
+    "Compiler — Arrays > string_len reflects manual append inside a larger buffer",
+    "Compiler — Arrays > string can be modified by index when it is not const",
+    "Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
+    "Compiler — Arrays > const string cannot be modified by index",
+    "Compiler — Arrays > writing to a const scalar is rejected",
+    "Compiler — Arrays > const declaration without initializer is rejected",
+    "Compiler — Arrays > string declaration without literal initializer is rejected",
+    "Compiler — Arrays > string concatenation with + is not supported",
+    "Compiler — Arrays > assigning a string literal to one array element is rejected",
+    "Compiler — Arrays > reassigning a string variable is not supported",
+    "Compiler — Arrays > out-of-bounds array access is not rejected by the compiler",
+    "Compiler — Arrays > writing to a const array is rejected",
+    "Compiler — Arrays > passing a scalar to an array parameter is rejected",
+    "C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Compteur\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Fibonacci\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Factorielle\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Calcul\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Plotter\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Courbe\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Cercle\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Horloge\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Spirale\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Tableau de nombres premiers\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Étoiles\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Test Mémoire\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Tableau (Tri)\" halts within reasonable cycles",
+    "C Examples — Execution Properties > \"Echo (Saisie)\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Compteur de lettres\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Calculatrice\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Traceur de droite\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Démo Ultime\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Calculatrice Graphique\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Mini Shell\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"FS Disque Externe\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Éditeur Texte FS\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Éditeur Multi-fichier FS\" waits for input (does not halt without it)",
+    "C Examples — Execution Properties > \"Système Solaire 255\" waits for input (does not halt without it)",
+    "C Examples — Interactive Halt > \"Echo (Saisie)\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Compteur de lettres\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Calculatrice\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Traceur de droite\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Clavier\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Pong\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Démo Ultime\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Calculatrice Graphique\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Mini Shell\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"FS Disque Externe\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Éditeur Texte FS\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
+    "C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
+    "C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "C Examples — Output Verification > \"Hello World\" outputs correct text",
+      "output": "[compileAndRun]\nHello World!"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Compteur\" outputs digits 0-9",
+      "output": "[compileAndRun]\n0123456789"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Fibonacci\" outputs first 10 Fibonacci numbers",
+      "output": "[compileAndRun]\n0 1 1 2 3 5 8 13 21 34"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Factorielle\" computes 5! = 120",
+      "output": "[compileAndRun]\n5! = 120"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calcul\" shows correct arithmetic results",
+      "output": "[compileAndRun]\nx = 10\ny = 3\nx+y = 13\nx-y = 7\nx*y = 30\nx/y = 3\nx%y = 1"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Echo\" echoes input back",
+      "output": "[compileAndRun]\nTapez: Hi"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Compteur de lettres\" counts characters",
+      "output": "[compileAndRun]\n> abc\nLongueur: 3\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 123+45=168",
+      "output": "[compileAndRun]\n> 123+45\n= 168\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 25*4=100",
+      "output": "[compileAndRun]\n> 25*4\n= 100\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 2.14+3.24=5.38",
+      "output": "[compileAndRun]\n> 2.14+3.24\n= 5.38\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 2.14*3.24=6.93",
+      "output": "[compileAndRun]\n> 2.14*3.24\n= 6.93\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 100/4=25",
+      "output": "[compileAndRun]\n> 100/4\n= 25\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 10/4=2.50",
+      "output": "[compileAndRun]\n> 10/4\n= 2.50\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice\" computes 10%3=1",
+      "output": "[compileAndRun]\n> 10%3\n= 1\n>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Traceur de droite\" plots y=2x (a=2, b=1, c=0) with DDA",
+      "output": "[compileAndRun]\na=2\nb=1\nc=0"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Traceur de droite\" handles b=0 error",
+      "output": "[compileAndRun]\na=1\nb=0\nErr: b=0"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Cercle\" draws a circle ring on plotter",
+      "output": "[compileAndRun]\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Horloge\" starts at 00:00 and increments",
+      "output": "[compileAndRun]\n00:00\n00:01\n00:02\n00:03\n00:04\n00:05\n00:06\n00:07\n00:08\n00:09\n00:10\n00:11\n00:12\n00:13\n00:14\n00:15\n00:16\n00:17\n00:18\n00:19\n00:20\n00:21\n00:22\n00:23\n00:24\n00:25\n00:26\n00:27\n00:28\n00:29\n00:30\n00:31\n00:32\n00:33\n00:34\n00:35\n00:36\n00:37\n00:38\n00:39\n00:40\n00:41\n00:42\n00:43\n00:44\n00:45\n00:46\n00:47\n00:48\n00:49\n00:50\n00:51\n00:52\n00:53\n00:54\n00:55\n00:56\n00:57\n00:58\n00:59\n01:00\n01:01\n01:02\n01:03\n01:04\n01:05\n01:06\n01:07\n01:08\n01:09\n01:10\n01:11\n01:12\n01:13\n01:14\n01:15\n01:16\n01:17\n01:18\n01:19\n01:20\n01:21\n01:22\n01:23\n01:24\n01:25\n01:26\n01:27\n01:28\n01:29\n01:30\n01:31\n01:32\n01:33\n01:34\n01:35\n01:36\n01:37\n01:38\n01:39\n01:40\n01:41\n01:42\n01:43\n01:44\n01:45\n01:46\n01:47\n01:48\n01:49\n01:50\n01:51\n01:52\n01:53\n01:54\n01:55\n01:56\n01:57\n01:58\n01:59\n02:00\n02:01\n02:02\n02:03\n02:04\n02:05\n02:06\n02:07\n02:08\n02:09\n02:10\n02:11\n02:12\n02:13\n02:14\n02:15\n02:16\n02:17\n02:18\n02:19\n02:20\n02:21\n02:22\n02:23\n02:24\n02:25\n02:26\n02:27\n02:28\n02:29\n02:30\n02:31\n02:32\n02:33\n02:34\n02:35\n02:36\n02:37\n02:38\n02:39\n02:40\n02:41\n02:42\n02:43\n02:44\n02:45\n02:46\n02:47\n02:48\n02:49\n02:50\n02:51\n02:52\n02:53\n02:54\n02:55\n02:56\n02:57\n02:58\n02:59\n03:00\n03:01\n03:02\n03:03\n03:04\n03:05\n03:06\n03:07\n03:08\n03:09\n03:10\n03:11\n03:12\n03:13\n03:14\n03:15\n03:16\n03:17\n03:18\n03:19\n03:20\n03:21\n03:22\n03:23\n03:24\n03:25\n03:26\n03:27\n03:28\n03:29\n03:30\n03:31\n03:32\n03:33\n03:34\n03:35\n03:36\n03:37\n03:38\n03:39\n03:40\n03:41\n03:42\n03:43\n03:44\n03:45\n03:46\n03:47\n03:48\n03:49\n03:50\n03:51\n03:52\n03:53\n03:54\n03:55\n03:56\n03:57\n03:58\n03:59\n04:00\n04:01\n04:02\n04:03\n04:04\n04:05\n04:06\n04:07\n04:08\n04:09\n04:10\n04:11\n04:12\n04:13\n04:14\n04:15\n04:16\n04:17\n04:18\n04:19\n04:20\n04:21\n04:22\n04:23\n04:24\n04:25\n04:26\n04:27\n04:28\n04:29\n04:30\n04:31\n04:32\n04:33\n04:34\n04:35\n04:36\n04:37\n04:38\n04:39\n04:40\n04:41\n04:42\n04:43\n04:44\n04:45\n04:46\n04:47\n04:48\n04:49\n04:50\n04:51\n04:52\n04:53\n04:54\n04:55\n04:56\n04:57\n04:58\n04:59\n05:00\n05:01\n05:02\n05:03\n05:04\n05:05\n05:06\n05:07\n05:08\n05:09\n05:10\n05:11\n05:12\n05:13\n05:14\n05:15\n05:16\n05:17\n05:18\n05:19\n05:20\n05:21\n05:22\n05:23\n05:24\n05:25\n05:26\n05:27\n05:28\n05:29\n05:30\n05:31\n05:32\n05:33\n05:34\n05:35\n05:36\n05:37\n05:38\n05:39\n05:40\n05:41\n05:42\n05:43\n05:44\n05:45\n05:46\n05:47\n05:48\n05:49\n05:50\n05:51\n05:52\n05:53\n05:54\n05:55\n05:56\n05:57\n05:58\n05:59\n06:00\n06:01\n06:02\n06:03\n06:04\n06:05\n06:06\n06:07\n06:08\n06:09\n06:10\n06:11\n06:12\n06:13\n06:14\n06:15\n06:16\n06:17\n06:18\n06:19\n06:20\n06:21\n06:22\n06:23\n06:24\n06:25\n06:26\n06:27\n06:28\n06:29\n06:30\n06:31\n06:32\n06:33\n06:34\n06:35\n06:36\n06:37\n06:38\n06:39\n06:40\n06:41\n06:42\n06:43\n06:44\n06:45\n06:46\n06:47\n06:48\n06:49\n06:50\n06:51\n06:52\n06:53\n06:54\n06:55\n06:56\n06:57\n06:58\n06:59\n07:00\n07:01\n07:02\n07:03\n07:04\n07:05\n07:06\n07:07\n07:08\n07:09\n07:10\n07:11\n07:12\n07:13\n07:14\n07:15\n07:16\n07:17\n07:18\n07:19\n07:20\n07:21\n07:22\n07:23\n07:24\n07:25\n07:26\n07:27\n07:28\n07:29\n07:30\n07:31\n07:32\n07:33\n07:34\n07:35\n07:36\n07:37\n07:38\n07:39\n07:40\n07:41\n07:42\n07:43\n07:44\n07:45\n07:46\n07:47\n07:48\n07:49\n07:50\n07:51\n07:52\n07:53\n07:54\n07:55\n07:56\n07:57\n07:58\n07:59\n08:00\n08:01\n08:02\n08:03\n08:04\n08:05\n08:06\n08:07\n08:08\n08:09\n08:10\n08:11\n08:12\n08:13\n08:14\n08:15\n08:16\n08:17\n08:18\n08:19\n08:20\n08:21\n08:22\n08:23\n08:24\n08:25\n08:26\n08:27\n08:28\n08:29\n08:30\n08:31\n08:32\n08:33\n08:34\n08:35\n08:36\n08:37\n08:38\n08:39\n08:40\n08:41\n08:42\n08:43\n08:44\n08:45\n08:46\n08:47\n08:48\n08:49\n08:50\n08:51\n08:52\n08:53\n08:54\n08:55\n08:56\n08:57\n08:58\n08:59\n09:00\n09:01\n09:02\n09:03\n09:04\n09:05\n09:06\n09:07\n09:08\n09:09\n09:10\n09:11\n09:12\n09:13\n09:14\n09:15\n09:16\n09:17\n09:18\n09:19\n09:20\n09:21\n09:22\n09:23\n09:24\n09:25\n09:26\n09:27\n09:28\n09:29\n09:30\n09:31\n09:32\n09:33\n09:34\n09:35\n09:36\n09:37\n09:38\n09:39\n09:40\n09:41\n09:42\n09:43\n09:44\n09:45\n09:46\n09:47\n09:48\n09:49\n09:50\n09:51\n09:52\n09:53\n09:54\n09:55\n09:56\n09:57\n09:58\n09:59\n10:00\n10:01\n10:02\n10:03\n10:04\n10:05\n10:06\n10:07\n10:08\n10:09\n10:10\n10:11\n10:12\n10:13\n10:14\n10:15\n10:16\n10:17\n10:18\n10:19\n10:20\n10:21\n10:22\n10:23\n10:24\n10:25\n10:26\n10:27\n10:28\n10:29\n10:30\n10:31\n10:32\n10:33\n10:34\n10:35\n10:36\n10:37\n10:38\n10:39\n10:40\n10:41\n10:42\n10:43\n10:44\n10:45\n10:46\n10:47\n10:48\n10:49\n10:50\n10:51\n10:52\n10:53\n10:54\n10:55\n10:56\n10:57\n10:58\n10:59\n11:00\n11:01\n11:02\n11:03\n11:04\n11:05\n11:06\n11:07\n11:08\n11:09\n11:10\n11:11\n11:12\n11:13\n11:14\n11:15\n11:16\n11:17\n11:18\n11:19\n11:20\n11:21\n11:22\n11:23\n11:24\n11:25\n11:26\n11:27\n11:28\n11:29\n11:30\n11:31\n11:32\n11:33\n11:34\n11:35\n11:36\n11:37\n11:38\n11:39\n11:40\n11:41\n11:42\n11:43\n11:44\n11:45\n11:46\n11:47\n11:48\n11:49\n11:50\n11:51\n11:52\n11:53\n11:54\n11:55\n11:56\n11:57\n11:58\n11:59\n12:00\n12:01\n12:02\n12:03\n12:04\n12:05\n12:06\n12:07\n12:08\n12:09\n12:10\n12:11\n12:12\n12:13\n12:14\n12:15\n12:16\n12:17\n12:18\n12:19\n12:20\n12:21\n12:22\n12:23\n12:24\n12:25\n12:26\n12:27\n12:28\n12:29\n12:30\n12:31\n12:32\n12:33\n12:34\n12:35\n12:36\n12:37\n12:38\n12:39\n12:40\n12:41\n12:42\n12:43\n12:44\n12:45\n12:46\n12:47\n12:48\n12:49\n12:50\n12:51\n12:52\n12:53\n12:54\n12:55\n12:56\n12:57\n12:58\n12:59\n13:00\n13:01\n13:02\n13:03\n13:04\n13:05\n13:06\n13:07\n13:08\n13:09\n13:10\n13:11\n13:12\n13:13\n13:14\n13:15\n13:16\n13:17\n13:18\n13:19\n13:20\n13:21\n13:22\n13:23\n13:24\n13:25\n13:26\n13:27\n13:28\n13:29\n13:30\n13:31\n13:32\n13:33\n13:34\n13:35\n13:36\n13:37\n13:38\n13:39\n13:40\n13:41\n13:42\n13:43\n13:44\n13:45\n13:46\n13:47\n13:48\n13:49\n13:50\n13:51\n13:52\n13:53\n13:54\n13:55\n13:56\n13:57\n13:58\n13:59\n14:00\n14:01\n14:02\n14:03\n14:04\n14:05\n14:06\n14:07\n14:08\n14:09\n14:10\n14:11\n14:12\n14:13\n14:14\n14:15\n14:16\n14:17\n14:18\n14:19\n14:20\n14:21\n14:22\n14:23\n14:24\n14:25\n14:26\n14:27\n14:28\n14:29\n14:30\n14:31\n14:32\n14:33\n14:34\n14:35\n14:36\n14:37\n14:38\n14:39\n14:40\n14:41\n14:42\n14:43\n14:44\n14:45\n14:46\n14:47\n14:48\n14:49\n14:50\n14:51\n14:52\n14:53\n14:54\n14:55\n14:56\n14:57\n14:58\n14:59\n15:00\n15:01\n15:02\n15:03\n15:04\n15:05\n15:06\n15:07\n15:08\n15:09\n15:10\n15:11\n15:12\n15:13\n15:14\n15:15\n15:16\n15:17\n15:18\n15:19\n15:20\n15:21\n15:22\n15:23\n15:24\n15:25\n15:26\n15:27\n15:28\n15:29\n15:30\n15:31\n15:32\n15:33\n15:34\n15:35\n15:36\n15:37\n15:38\n15:39\n15:40\n15:41\n15:42\n15:43\n15:44\n15:45\n15:46\n15:47\n15:48\n15:49\n15:50\n15:51\n15:52\n15:53\n15:54\n15:55\n15:56\n15:57\n15:58\n15:59\n16:00\n16:01\n16:02\n16:03\n16:04\n16:05\n16:06\n16:07\n16:08\n16:09\n16:10\n16:11\n16:12\n16:13\n16:14\n16:15\n16:16\n16:17\n16:18\n16:19\n16:20\n16:21\n16:22\n16:23\n16:24\n16:25\n16:26\n16:27\n16:28\n16:29\n16:30\n16:31\n16:32\n16:33\n16:34\n16:35\n16:36\n16:37\n16:38\n16:39\n16:40\n16:41\n16:42\n16:43\n16:44\n16:45\n16:46\n16:47\n16:48\n16:49\n16:50\n16:51\n16:52\n16:53\n16:54\n16:55\n16:56\n16:57\n16:58\n16:59\n17:00\n17:01\n17:02\n17:03\n17:04\n17:05\n17:06\n17:07\n17:08\n17:09\n17:10\n17:11\n17:12\n17:13\n17:14\n17:15\n17:16\n17:17\n17:18\n17:19\n17:20\n17:21\n17:22\n17:23\n17:24\n17:25\n17:26\n17:27\n17:28\n17:29\n17:30\n17:31\n17:32\n17:33\n17:34\n17:35\n17:36\n17:37\n17:38\n17:39\n17:40\n17:41\n17:42\n17:43\n17:44\n17:45\n17:46\n17:47\n17:48\n17:49\n17:50\n17:51\n17:52\n17:53\n17:54\n17:55\n17:56\n17:57\n17:58\n17:59\n18:00\n18:01\n18:02\n18:03\n18:04\n18:05\n18:06\n18:07\n18:08\n18:09\n18:10\n18:11\n18:12\n18:13\n18:14\n18:15\n18:16\n18:17\n18:18\n18:19\n18:20\n18:21\n18:22\n18:23\n18:24\n18:25\n18:26\n18:27\n18:28\n18:29\n18:30\n18:31\n18:32\n18:33\n18:34\n18:35\n18:36\n18:37\n18:38\n18:39\n18:40\n18:41\n18:42\n18:43\n18:44\n18:45\n18:46\n18:47\n18:48\n18:49\n18:50\n18:51\n18:52\n18:53\n18:54\n18:55\n18:56\n18:57\n18:58\n18:59\n19:00\n19:01\n19:02\n19:03\n19:04\n19:05\n19:06\n19:07\n19:08\n19:09\n19:10\n19:11\n19:12\n19:13\n19:14\n19:15\n19:16\n19:17\n19:18\n19:19\n19:20\n19:21\n19:22\n19:23\n19:24\n19:25\n19:26\n19:27\n19:28\n19:29\n19:30\n19:31\n19:32\n19:33\n19:34\n19:35\n19:36\n19:37\n19:38\n19:39\n19:40\n19:41\n19:42\n19:43\n19:44\n19:45\n19:46\n19:47\n19:48\n19:49\n19:50\n19:51\n19:52\n19:53\n19:54\n19:55\n19:56\n19:57\n19:58\n19:59\n20:00\n20:01\n20:02\n20:03\n20:04\n20:05\n20:06\n20:07\n20:08\n20:09\n20:10\n20:11\n20:12\n20:13\n20:14\n20:15\n20:16\n20:17\n20:18\n20:19\n20:20\n20:21\n20:22\n20:23\n20:24\n20:25\n20:26\n20:27\n20:28\n20:29\n20:30\n20:31\n20:32\n20:33\n20:34\n20:35\n20:36\n20:37\n20:38\n20:39\n20:40\n20:41\n20:42\n20:43\n20:44\n20:45\n20:46\n20:47\n20:48\n20:49\n20:50\n20:51\n20:52\n20:53\n20:54\n20:55\n20:56\n20:57\n20:58\n20:59\n21:00\n21:01\n21:02\n21:03\n21:04\n21:05\n21:06\n21:07\n21:08\n21:09\n21:10\n21:11\n21:12\n21:13\n21:14\n21:15\n21:16\n21:17\n21:18\n21:19\n21:20\n21:21\n21:22\n21:23\n21:24\n21:25\n21:26\n21:27\n21:28\n21:29\n21:30\n21:31\n21:32\n21:33\n21:34\n21:35\n21:36\n21:37\n21:38\n21:39\n21:40\n21:41\n21:42\n21:43\n21:44\n21:45\n21:46\n21:47\n21:48\n21:49\n21:50\n21:51\n21:52\n21:53\n21:54\n21:55\n21:56\n21:57\n21:58\n21:59\n22:00\n22:01\n22:02\n22:03\n22:04\n22:05\n22:06\n22:07\n22:08\n22:09\n22:10\n22:11\n22:12\n22:13\n22:14\n22:15\n22:16\n22:17\n22:18\n22:19\n22:20\n22:21\n22:22\n22:23\n22:24\n22:25\n22:26\n22:27\n22:28\n22:29\n22:30\n22:31\n22:32\n22:33\n22:34\n22:35\n22:36\n22:37\n22:38\n22:39\n22:40\n22:41\n22:42\n22:43\n22:44\n22:45\n22:46\n22:47\n22:48\n22:49\n22:50\n22:51\n22:52\n22:53\n22:54\n22:55\n22:56\n22:57\n22:58\n22:59\n23:00\n23:01\n23:02\n23:03\n23:04\n23:05\n23:06\n23:07\n23:08\n23:09\n23:10\n23:11\n23:12\n23:13\n23:14\n23:15\n23:16\n23:17\n23:18\n23:19\n23:20\n23:21\n23:22\n23:23\n23:24\n23:25\n23:26\n23:27\n23:28\n23:29\n23:30\n23:31\n23:32\n23:33\n23:34\n23:35\n23:36\n23:37\n23:38\n23:39\n23:40\n23:41\n23:42\n23:43\n23:44\n23:45\n23:46\n23:47\n23:48\n23:49\n23:50\n23:51\n23:52\n23:53\n23:54\n23:55\n23:56\n23:57\n23:58\n23:59\n24:00\n24:01\n24:02\n24:03\n24:04\n24:05\n24:06\n24:07\n24:08\n24:09\n24:10\n24:11\n24:12\n24:13\n24:14\n24:15\n24:16\n24:17\n24:18\n24:19\n24:20\n24:21\n24:22\n24:23\n24:24\n24:25\n24:26\n24:27\n24:28\n24:29\n24:30\n24:31\n24:32\n24:33\n24:34\n24:35\n24:36\n24:37\n24:38\n24:39\n24:40\n24:41\n24:42\n24:43\n24:44\n24:45\n24:46\n24:47\n24:48\n24:49\n24:50\n24:51\n24:52\n24:53\n24:54\n24:55\n24:56\n24:57\n24:58\n24:59\n25:00\n25:01\n25:02\n25:03\n25:04\n25:05\n25:06\n25:07\n25:08\n25:09\n25:10\n25:11\n25:12\n25:13\n25:14\n25:15\n25:16\n25:17\n25:18\n25:19\n25:20\n25:21\n25:22\n25:23\n25:24\n25:25\n25:26\n25:27\n25:28\n25:29\n25:30\n25:31\n25:32\n25:33\n25:34\n25:35\n25:36\n25:37\n25:38\n25:39\n25:40\n25:41\n25:42\n25:43\n25:44\n25:45\n25:46\n25:47\n25:48\n25:49\n25:50\n25:51\n25:52\n25:53\n25:54\n25:55\n25:56\n25:57\n25:58\n25:59\n26:00\n26:01\n26:02\n26:03\n26:04\n26:05\n26:06\n26:07\n26:08\n26:09\n26:10\n26:11\n26:12\n26:13\n26:14\n26:15\n26:16\n26:17\n26:18\n26:19\n26:20\n26:21\n26:22\n26:23\n26:24\n26:25\n26:26\n26:27\n26:28\n26:29\n26:30\n26:31\n26:32\n26:33\n26:34\n26:35\n26:36\n26:37\n26:38\n26:39\n26:40\n26:41\n26:42\n26:43\n26:44\n26:45\n26:46\n26:47\n26:48\n26:49\n26:50\n26:51\n26:52\n26:53\n26:54\n26:55\n26:56\n26:57\n26:58\n26:59\n27:00\n27:01\n27:02\n27:03\n27:04\n27:05\n27:06\n27:07\n27:08\n27:09\n27:10\n27:11\n27:12\n27:13\n27:14\n27:15\n27:16\n27:17\n27:18\n27:19\n27:20\n27:21\n27:22\n27:23\n27:24\n27:25\n27:26\n27:27\n27:28\n27:29\n27:30\n27:31\n27:32\n27:33\n27:34\n27:35\n27:36\n27:37\n27:38\n27:39\n27:40\n27:41\n27:42\n27:43\n27:44\n27:45\n27:46\n27:47\n27:48\n27:49\n27:50\n27:51\n27:52\n27:53\n27:54\n27:55\n27:56\n27:57\n27:58\n27:59\n28:00\n28:01\n28:02\n28:03\n28:04\n28:05\n28:06\n28:07\n28:08\n28:09\n28:10\n28:11\n28:12\n28:13\n28:14\n28:15\n28:16\n28:17\n28:18\n28:19\n28:20\n28:21\n28:22\n28:23\n28:24\n28:25\n28:26\n28:27\n28:28\n28:29\n28:30\n28:31\n28:32\n28:33\n28:34\n28:35\n28:36\n28:37\n28:38\n28:39\n28:40\n28:41\n28:42\n28:43\n28:44\n28:45\n28:46\n28:47\n28:48\n28:49\n28:50\n28:51\n28:52\n28:53\n28:54\n28:55\n28:56\n28:57\n28:58\n28:59\n29:00\n29:01\n29:02\n29:03\n29:04\n29:05\n29:06\n29:07\n29:08\n29:09\n29:10\n29:11\n29:12\n29:13\n29:14\n29:15\n29:16\n29:17\n29:18\n29:19\n29:20\n29:21\n29:22\n29:23\n29:24\n29:25\n29:26\n29:27\n29:28\n29:29\n29:30\n29:31\n29:32\n29:33\n29:34\n29:35\n29:36\n29:37\n29:38\n29:39\n29:40\n29:41\n29:42\n29:43\n29:44\n29:45\n29:46\n29:47\n29:48\n29:49\n29:50\n29:51\n29:52\n29:53\n29:54\n29:55\n29:56\n29:57\n29:58\n29:59\n30:00\n30:01\n30:02\n30:03\n30:04\n30:05\n30:06\n30:07\n30:08\n30:09\n30:10\n30:11\n30:12\n30:13\n30:14\n30:15\n30:16\n30:17\n30:18\n30:19\n30:20\n30:21\n30:22\n30:23\n30:24\n30:25\n30:26\n30:27\n30:28\n30:29\n30:30\n30:31\n30:32\n30:33\n30:34\n30:35\n30:36\n30:37\n30:38\n30:39\n30:40\n30:41\n30:42\n30:43\n30:44\n30:45\n30:46\n30:47\n30:48\n30:49\n30:50\n30:51\n30:52\n30:53\n30:54\n30:55\n30:56\n30:57\n30:58\n30:59\n31:00\n31:01\n31:02\n31:03\n31:04\n31:05\n31:06\n31:07\n31:08\n31:09\n31:10\n31:11\n31:12\n31:13\n31:14\n31:15\n31:16\n31:17\n31:18\n31:19\n31:20\n31:21\n31:22\n31:23\n31:24\n31:25\n31:26\n31:27\n31:28\n31:29\n31:30\n31:31\n31:32\n31:33\n31:34\n31:35\n31:36\n31:37\n31:38\n31:39\n31:40\n31:41\n31:42\n31:43\n31:44\n31:45\n31:46\n31:47\n31:48\n31:49\n31:50\n31:51\n31:52\n31:53\n31:54\n31:55\n31:56\n31:57\n31:58\n31:59\n32:00\n32:01\n32:02\n32:03\n32:04\n32:05\n32:06\n32:07\n32:08\n32:09\n32:10\n32:11\n32:12\n32:13\n32:14\n32:15\n32:16\n32:17\n32:18\n32:19\n32:20\n32:21\n32:22\n32:23\n32:24\n32:25\n32:26\n32:27\n32:28\n32:29\n32:30\n32:31\n32:32\n32:33\n32:34\n32:35\n32:36\n32:37\n32:38\n32:39\n32:40\n32:41\n32:42\n32:43\n32:44\n32:45\n32:46\n32:47\n32:48\n32:49\n32:50\n32:51\n32:52\n32:53\n32:54\n32:55\n32:56\n32:57\n32:58\n32:59\n33:00\n33:01\n33:02\n33:03\n33:04\n33:05\n33:06\n33:07\n33:08\n33:09\n33:10\n33:11\n33:12\n33:13\n33:14\n33:15\n33:16\n33:17\n33:18\n33:19\n33:20\n33:21\n33:22\n33:23\n33:24\n33:25\n33:26\n33:27\n33:28\n33:29\n33:30\n33:31\n33:32\n33:33\n33:34\n33:35\n33:36\n33:37\n33:38\n33:39\n33:40\n33:41\n33:42\n33:43\n33:44\n33:45\n33:46\n33:47\n33:48\n33:49\n33:50\n33:51\n33:52\n33:53\n33:54\n33:55\n33:56\n33:57\n33:58\n33:59\n34:00\n34:01\n34:02\n34:03\n34:04\n34:05\n34:06\n34:07\n34:08\n34:09\n34:10\n34:11\n34:12\n34:13\n34:14\n34:15\n34:16\n34:17\n34:18\n34:19\n34:20\n34:21\n34:22\n34:23\n34:24\n34:25\n34:26\n34:27\n34:28\n34:29\n34:30\n34:31\n34:32\n34:33\n34:34\n34:35\n34:36\n34:37\n34:38\n34:39\n34:40\n34:41\n34:42\n34:43\n34:44\n34:45\n34:46\n34:47\n34:48\n34:49\n34:50\n34:51\n34:52\n34:53\n34:54\n34:55\n34:56\n34:57\n34:58\n34:59\n35:00\n35:01\n35:02\n35:03\n35:04\n35:05\n35:06\n35:07\n35:08\n35:09\n35:10\n35:11\n35:12\n35:13\n35:14\n35:15\n35:16\n35:17\n35:18\n35:19\n35:20\n35:21\n35:22\n35:23\n35:24\n35:25\n35:26\n35:27\n35:28\n35:29\n35:30\n35:31\n35:32\n35:33\n35:34\n35:35\n35:36\n35:37\n35:38\n35:39\n35:40\n35:41\n35:42\n35:43\n35:44\n35:45\n35:46\n35:47\n35:48\n35:49\n35:50\n35:51\n35:52\n35:53\n35:54\n35:55\n35:56\n35:57\n35:58\n35:59\n36:00\n36:01\n36:02\n36:03\n36:04\n36:05\n36:06\n36:07\n36:08\n36:09\n36:10\n36:11\n36:12\n36:13\n36:14\n36:15\n36:16\n36:17\n36:18\n36:19\n36:20\n36:21\n36:22\n36:23\n36:24\n36:25\n36:26\n36:27\n36:28\n36:29\n36:30\n36:31\n36:32\n36:33\n36:34\n36:35\n36:36\n36:37\n36:38\n36:39\n36:40\n36:41\n36:42\n36:43\n36:44\n36:45\n36:46\n36:47\n36:48\n36:49\n36:50\n36:51\n36:52\n36:53\n36:54\n36:55\n36:56\n36:57\n36:58\n36:59\n37:00\n37:01\n37:02\n37:03\n37:04\n37:05\n37:06\n37:07\n37:08\n37:09\n37:10\n37:11\n37:12\n37:13\n37:14\n37:15\n37:16\n37:17\n37:18\n37:19\n37:20\n37:21\n37:22\n37:23\n37:24\n37:25\n37:26\n37:27\n37:28\n37:29\n37:30\n37:31\n37:32\n37:33\n37:34\n37:35\n37:36\n37:37\n37:38\n37:39\n37:40\n37:41\n37:42\n37:43\n37:44\n37:45\n37:46\n37:47\n37:48\n37:49\n37:50\n37:51\n37:52\n37:53\n37:54\n37:55\n37:56\n37:57\n37:58\n37:59\n38:00\n38:01\n38:02\n38:03\n38:04\n38:05\n38:06\n38:07\n38:08\n38:09\n38:10\n38:11\n38:12\n38:13\n38:14\n38:15\n38:16\n38:17\n38:18\n38:19\n38:20\n38:21\n38:22\n38:23\n38:24\n38:25\n38:26\n38:27\n38:28\n38:29\n38:30\n38:31\n38:32\n38:33\n38:34\n38:35\n38:36\n38:37\n38:38\n38:39\n38:40\n38:41\n38:42\n38:43\n38:44\n38:45\n38:46\n38:47\n38:48\n38:49\n38:50\n38:51\n38:52\n38:53\n38:54\n38:55\n38:56\n38:57\n38:58\n38:59\n39:00\n39:01\n39:02\n39:03\n39:04\n39:05\n39:06\n39:07\n39:08\n39:09\n39:10\n39:11\n39:12\n39:13\n39:14\n39:15\n39:16\n39:17\n39:18\n39:19\n39:20\n39:21\n39:22\n39:23\n39:24\n39:25\n39:26\n39:27\n39:28\n39:29\n39:30\n39:31\n39:32\n39:33\n39:34\n39:35\n39:36\n39:37\n39:38\n39:39\n39:40\n39:41\n39:42\n39:43\n39:44\n39:45\n39:46\n39:47\n39:48\n39:49\n39:50\n39:51\n39:52\n39:53\n39:54\n39:55\n39:56\n39:57\n39:58\n39:59\n40:00\n40:01\n40:02\n40:03\n40:04\n40:05\n40:06\n40:07\n40:08\n40:09\n40:10\n40:11\n40:12\n40:13\n40:14\n40:15\n40:16\n40:17\n40:18\n40:19\n40:20\n40:21\n40:22\n40:23\n40:24\n40:25\n40:26\n40:27\n40:28\n40:29\n40:30\n40:31\n40:32\n40:33\n40:34\n40:35\n40:36\n40:37\n40:38\n40:39\n40:40\n40:41\n40:42\n40:43\n40:44\n40:45\n40:46\n40:47\n40:48\n40:49\n40:50\n40:51\n40:52\n40:53\n40:54\n40:55\n40:56\n40:57\n40:58\n40:59\n41:00\n41:01\n41:02\n41:03\n41:04\n41:05\n41:06\n41:07\n41:08\n41:09\n41:10\n41:11\n41:12\n41:13\n41:14\n41:15\n41:16\n41:17\n41:18\n41:19\n41:20\n41:21\n41:22\n41:23\n41:24\n41:25\n41:26\n41:27\n41:28\n41:29\n41:30\n41:31\n41:32\n41:33\n41:34\n41:35\n41:36\n41:37\n41:38\n41:39\n41:40\n41:41\n41:42\n41:43\n41:44\n41:45\n41:46\n41:47\n41:48\n41:49\n41:50\n41:51\n41:52\n41:53\n41:54\n41:55\n41:56\n41:57\n41:58\n41:59\n42:00\n42:01\n42:02\n42:03\n42:04\n42:05\n42:06\n42:07\n42:08\n42:09\n42:10\n42:11\n42:12\n42:13\n42:14\n42:15\n42:16\n42:17\n42:18\n42:19\n42:20\n42:21\n42:22\n42:23\n42:24\n42:25\n42:26\n42:27\n42:28\n42:29\n42:30\n42:31\n42:32\n42:33\n42:34\n42:35\n42:36\n42:37\n42:38\n42:39\n42:40\n42:41\n42:42\n42:43\n42:44\n42:45\n42:46\n42:47\n42:48\n42:49\n42:50\n42:51\n42:52\n42:53\n42:54\n42:55\n42:56\n42:57\n42:58\n42:59\n43:00\n43:01\n43:02\n43:03\n43:04\n43:05\n43:06\n43:07\n43:08\n43:09\n43:10\n43:11\n43:12\n43:13\n43:14\n43:15\n43:16\n43:17\n43:18\n43:19\n43:20\n43:21\n43:22\n43:23\n43:24\n43:25\n43:26\n43:27\n43:28\n43:29\n43:30\n43:31\n43:32\n43:33\n43:34\n43:35\n43:36\n43:37\n43:38\n43:39\n43:40\n43:41\n43:42\n43:43\n43:44\n43:45\n43:46\n43:47\n43:48\n43:49\n43:50\n43:51\n43:52\n43:53\n43:54\n43:55\n43:56\n43:57\n43:58\n43:59\n44:00\n44:01\n44:02\n44:03\n44:04\n44:05\n44:06\n44:07\n44:08\n44:09\n44:10\n44:11\n44:12\n44:13\n44:14\n44:15\n44:16\n44:17\n44:18\n44:19\n44:20\n44:21\n44:22\n44:23\n44:24\n44:25\n44:26\n44:27\n44:28\n44:29\n44:30\n44:31\n44:32\n44:33\n44:34\n44:35\n44:36\n44:37\n44:38\n44:39\n44:40\n44:41\n44:42\n44:43\n44:44\n44:45\n44:46\n44:47\n44:48\n44:49\n44:50\n44:51\n44:52\n44:53\n44:54\n44:55\n44:56\n44:57\n44:58\n44:59\n45:00\n45:01\n45:02\n45:03\n45:04\n45:05\n45:06\n45:07\n45:08\n45:09\n45:10\n45:11\n45:12\n45:13\n45:14\n45:15\n45:16\n45:17\n45:18\n45:19\n45:20\n45:21\n45:22\n45:23\n45:24\n45:25\n45:26\n45:27\n45:28\n45:29\n45:30\n45:31\n45:32\n45:33\n45:34\n45:35\n45:36\n45:37\n45:38\n45:39\n45:40\n45:41\n45:42\n45:43\n45:44\n45:45\n45:46\n45:47\n45:48\n45:49\n45:50\n45:51\n45:52\n45:53\n45:54\n45:55\n45:56\n45:57\n45:58\n45:59\n46:00\n46:01\n46:02\n46:03\n46:04\n46:05\n46:06\n46:07\n46:08\n46:09\n46:10\n46:11\n46:12\n46:13\n46:14\n46:15\n46:16\n46:17\n46:18\n46:19\n46:20\n46:21\n46:22\n46:23\n46:24\n46:25\n46:26\n46:27\n46:28\n46:29\n46:30\n46:31\n46:32\n46:33\n46:34\n46:35\n46:36\n46:37\n46:38\n46:39\n46:40\n46:41\n46:42\n46:43\n46:44\n46:45\n46:46\n46:47\n46:48\n46:49\n46:50\n46:51\n46:52\n46:53\n46:54\n46:55\n46:56\n46:57\n46:58\n46:59\n47:00\n47:01\n47:02\n47:03\n47:04\n47:05\n47:06\n47:07\n47:08\n47:09\n47:10\n47:11\n47:12\n47:13\n47:14\n47:15\n47:16\n47:17\n47:18\n47:19\n47:20\n47:21\n47:22\n47:23\n47:24\n47:25\n47:26\n47:27\n47:28\n47:29\n47:30\n47:31\n47:32\n47:33\n47:34\n47:35\n47:36\n47:37\n47:38\n47:39\n47:40\n47:41\n47:42\n47:43\n47:44\n47:45\n47:46\n47:47\n47:48\n47:49\n47:50\n47:51\n47:52\n47:53\n47:54\n47:55\n47:56\n47:57\n47:58\n47:59\n48:00\n48:01\n48:02\n48:03\n48:04\n48:05\n48:06\n48:07\n48:08\n48:09\n48:10\n48:11\n48:12\n48:13\n48:14\n48:15\n48:16\n48:17\n48:18\n48:19\n48:20\n48:21\n48:22\n48:23\n48:24\n48:25\n48:26\n48:27\n48:28\n48:29\n48:30\n48:31\n48:32\n48:33\n48:34\n48:35\n48:36\n48:37\n48:38\n48:39\n48:40\n48:41\n48:42\n48:43\n48:44\n48:45\n48:46\n48:47\n48:48\n48:49\n48:50\n48:51\n48:52\n48:53\n48:54\n48:55\n48:56\n48:57\n48:58\n48:59\n49:00\n49:01\n49:02\n49:03\n49:04\n49:05\n49:06\n49:07\n49:08\n49:09\n49:10\n49:11\n49:12\n49:13\n49:14\n49:15\n49:16\n49:17\n49:18\n49:19\n49:20\n49:21\n49:22\n49:23\n49:24\n49:25\n49:26\n49:27\n49:28\n49:29\n49:30\n49:31\n49:32\n49:33\n49:34\n49:35\n49:36\n49:37\n49:38\n49:39\n49:40\n49:41\n49:42\n49:43\n49:44\n49:45\n49:46\n49:47\n49:48\n49:49\n49:50\n49:51\n49:52\n49:53\n49:54\n49:55\n49:56\n49:57\n49:58\n49:59\n50:00\n50:01\n50:02\n50:03\n50:04\n50:05\n50:06\n50:07\n50:08\n50:09\n50:10\n50:11\n50:12\n50:13\n50:14\n50:15\n50:16\n50:17\n50:18\n50:19\n50:20\n50:21\n50:22\n50:23\n50:24\n50:25\n50:26\n50:27\n50:28\n50:29\n50:30\n50:31\n50:32\n50:33\n50:34\n50:35\n50:36\n50:37\n50:38\n50:39\n50:40\n50:41\n50:42\n50:43\n50:44\n50:45\n50:46\n50:47\n50:48\n50:49\n50:50\n50:51\n50:52\n50:53\n50:54\n50:55\n50:56\n50:57\n50:58\n50:59\n51:00\n51:01\n51:02\n51:03\n51:04\n51:05\n51:06\n51:07\n51:08\n51:09\n51:10\n51:11\n51:12\n51:13\n51:14\n51:15\n51:16\n51:17\n51:18\n51:19\n51:20\n51:21\n51:22\n51:23\n51:24\n51:25\n51:26\n51:27\n51:28\n51:29\n51:30\n51:31\n51:32\n51:33\n51:34\n51:35\n51:36\n51:37\n51:38\n51:39\n51:40\n51:41\n51:42\n51:43\n51:44\n51:45\n51:46\n51:47\n51:48\n51:49\n51:50\n51:51\n51:52\n51:53\n51:54\n51:55\n51:56\n51:57\n51:58\n51:59\n52:00\n52:01\n52:02\n52:03\n52:04\n52:05\n52:06\n52:07\n52:08\n52:09\n52:10\n52:11\n52:12\n52:13\n52:14\n52:15\n52:16\n52:17\n52:18\n52:19\n52:20\n52:21\n52:22\n52:23\n52:24\n52:25\n52:26\n52:27\n52:28\n52:29\n52:30\n52:31\n52:32\n52:33\n52:34\n52:35\n52:36\n52:37\n52:38\n52:39\n52:40\n52:41\n52:42\n52:43\n52:44\n52:45\n52:46\n52:47\n52:48\n52:49\n52:50\n52:51\n52:52\n52:53\n52:54\n52:55\n52:56\n52:57\n52:58\n52:59\n53:00\n53:01\n53:02\n53:03\n53:04\n53:05\n53:06\n53:07\n53:08\n53:09\n53:10\n53:11\n53:12\n53:13\n53:14\n53:15\n53:16\n53:17\n53:18\n53:19\n53:20\n53:21\n53:22\n53:23\n53:24\n53:25\n53:26\n53:27\n53:28\n53:29\n53:30\n53:31\n53:32\n53:33\n53:34\n53:35\n53:36\n53:37\n53:38\n53:39\n53:40\n53:41\n53:42\n53:43\n53:44\n53:45\n53:46\n53:47\n53:48\n53:49\n53:50\n53:51\n53:52\n53:53\n53:54\n53:55\n53:56\n53:57\n53:58\n53:59\n54:00\n54:01\n54:02\n54:03\n54:04\n54:05\n54:06\n54:07\n54:08\n54:09\n54:10\n54:11\n54:12\n54:13\n54:14\n54:15\n54:16\n54:17\n54:18\n54:19\n54:20\n54:21\n54:22\n54:23\n54:24\n54:25\n54:26\n54:27\n54:28\n54:29\n54:30\n54:31\n54:32\n54:33\n54:34\n54:35\n54:36\n54:37\n54:38\n54:39\n54:40\n54:41\n54:42\n54:43\n54:44\n54:45\n54:46\n54:47\n54:48\n54:49\n54:50\n54:51\n54:52\n54:53\n54:54\n54:55\n54:56\n54:57\n54:58\n54:59\n55:00\n55:01\n55:02\n55:03\n55:04\n55:05\n55:06\n55:07\n55:08\n55:09\n55:10\n55:11\n55:12\n55:13\n55:14\n55:15\n55:16\n55:17\n55:18\n55:19\n55:20\n55:21\n55:22\n55:23\n55:24\n55:25\n55:26\n55:27\n55:28\n55:29\n55:30\n55:31\n55:32\n55:33\n55:34\n55:35\n55:36\n55:37\n55:38\n55:39\n55:40\n55:41\n55:42\n55:43\n55:44\n55:45\n55:46\n55:47\n55:48\n55:49\n55:50\n55:51\n55:52\n55:53\n55:54\n55:55\n55:56\n55:57\n55:58\n55:59\n56:00\n56:01\n56:02\n56:03\n56:04\n56:05\n56:06\n56:07\n56:08\n56:09\n56:10\n56:11\n56:12\n56:13\n56:14\n56:15\n56:16\n56:17\n56:18\n56:19\n56:20\n56:21\n56:22\n56:23\n56:24\n56:25\n56:26\n56:27\n56:28\n56:29\n56:30\n56:31\n56:32\n56:33\n56:34\n56:35\n56:36\n56:37\n56:38\n56:39\n56:40\n56:41\n56:42\n56:43\n56:44\n56:45\n56:46\n56:47\n56:48\n56:49\n56:50\n56:51\n56:52\n56:53\n56:54\n56:55\n56:56\n56:57\n56:58\n56:59\n57:00\n57:01\n57:02\n57:03\n57:04\n57:05\n57:06\n57:07\n57:08\n57:09\n57:10\n57:11\n57:12\n57:13\n57:14\n57:15\n57:16\n57:17\n57:18\n57:19\n57:20\n57:21\n57:22\n57:23\n57:24\n57:25\n57:26\n57:27\n57:28\n57:29\n57:30\n57:31\n57:32\n57:33\n57:34\n57:35\n57:36\n57:37\n57:38\n57:39\n57:40\n57:41\n57:42\n57:43\n57:44\n57:45\n57:46\n57:47\n57:48\n57:49\n57:50\n57:51\n57:52\n57:53\n57:54\n57:55\n57:56\n57:57\n57:58\n57:59\n58:00\n58:01\n58:02\n58:03\n58:04\n58:05\n58:06\n58:07\n58:08\n58:09\n58:10\n58:11\n58:12\n58:13\n58:14\n58:15\n58:16\n58:17\n58:18\n58:19\n58:20\n58:21\n58:22\n58:23\n58:24\n58:25\n58:26\n58:27\n58:28\n58:29\n58:30\n58:31\n58:32\n58:33\n58:34\n58:35\n58:36\n58:37\n58:38\n58:39\n58:40\n58:41\n58:42\n58:43\n58:44\n58:45\n58:46\n58:47\n58:48\n58:49\n58:50\n58:51\n58:52\n58:53\n58:54\n58:55\n58:56\n58:57\n58:58\n58:59\n59:00\n59:01\n59:02\n59:03\n59:04\n59:05\n59:06\n59:07\n59:08\n59:09\n59:10\n59:11\n59:12\n59:13\n59:14\n59:15\n59:16\n59:17\n59:18\n59:19\n59:20\n59:21\n59:22\n59:23\n59:24\n59:25\n59:26\n59:27\n59:28\n59:29\n59:30\n59:31\n59:32\n59:33\n59:34\n59:35\n59:36\n59:37\n59:38\n59:39\n59:40\n59:41\n59:42\n59:43\n59:44\n59:45\n59:46\n59:47\n59:48\n59:49\n59:50\n59:51\n59:52\n59:53\n59:54\n59:55\n59:56\n59:57\n59:58\n59:59"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Tableau de nombres premiers\" finds 25 primes up to 100",
+      "output": "[compileAndRun]\nNombres premiers:\n2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 \nTotal: 25"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Étoiles\" draws random stars with break",
+      "output": "[compileAndRun]\nStars: 64"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Test Mémoire\" tests memory zones and passes",
+      "output": "[compileAndRun]\n=MEM 2K=\ng0=42 gf=15\nr1=57 r2=5\nPASS\n=CODE:1024=DATA:512=PILE:512=OK"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Tableau (Tri)\" sorts 8 elements correctly",
+      "output": "[compileAndRun]\nAvant: 64 25 12 22 11 90 33 44 \nApres: 11 12 22 25 33 44 64 90"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Tableau (Nouvelles Fonctionnalites)\" demonstrates array params and multi declarations",
+      "output": "[compileAndRun]\nAvant: 42 7 19 \nTrie: 7 19 42 \nSomme: 68"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Const et String\" demonstrates const data, array initializers, and string declarations",
+      "output": "[compileAndRun]\nBase: hello 5/6\nPatch: hellA 5/6\nBuf: hi! 3/8\nData: 128 7 10 6"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Démo Ultime\" combines console, keyboard, arrays, recursion and plotter",
+      "output": "[compileAndRun]\n=== DEMO ULTIME ===\nEntrez un chiffre 0-9: 7\nMode clavier=21\nSomme recursive=28\nBrut: 39 37 42 26 26 78 12 40 \nTrie: 12 26 26 37 39 40 42 78 \nMoy=5 R=4 Amp=66\nMix=7\nChecksum=82\nFIN"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Calculatrice Graphique\" draws a full-screen TI-style graph view",
+      "output": "[compileAndRun]\n=== TI GRAPH ===\nY1 = A*(X/8)^2 + B*X + C\nA=3\nB=2\nC=1\nTRACE L/R  ZOOM U/D  ENTER=STD"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Mini Shell\" supports vars, aggregates and RAM file redirection",
+      "output": "[compileAndRun]\n=== MINI SHELL RAM ===\nvars set add max min avg\n$ vars\n(no vars)\n$ set a=42\na=42\n$ set b=7\nb=7\n$ set c=9\nc=9\n$ add\n58\n$ max\n42\n$ min\n7\n$ avg\n19.33\n$ touch f\ncreated f\n$ hi>f\n$ cat f\nhi\n$ touch s\ncreated s\n$ avg>s\n$ cat s\n19.33\n$"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Mini Shell\" reports missing files and capacity limits",
+      "output": "[compileAndRun]\n=== MINI SHELL RAM ===\nvars set add max min avg\n$ cat z\nno file z\n$ x>z\nno file z\n$ touch a\ncreated a\n$ touch b\ncreated b\n$ touch c\ncreated c\n$ touch d\ncreated d\n$ touch e\nfile full\n$ touch a\nexists a\n$ set a=1\na=1\n$ set b=2\nb=2\n$ set c=3\nc=3\n$ set d=4\nd=4\n$ set e=5\nvar full\n$ vars\na=1\nb=2\nc=3\nd=4\n$"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"FS Disque Externe\" formats, writes and reads files on the drive",
+      "output": "[compileAndRun]\n=== FS DISQUE EXTERNE ===\nls | touch nom | cat nom | free | txt>nom\n# ls\np program 1p\n# touch notes\ncreated notes\n# hello>notes\nsaved notes\n# cat notes\nhello\n# ls\np program 1p\nf notes 5b\n# free\n253p\n#"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"FS Disque Externe\" preserves program entries and handles busy/not-file/disk-full cases",
+      "output": "[compileAndRun]\n=== FS DISQUE EXTERNE ===\nls | touch nom | cat nom | free | txt>nom\n# touch program\nbusy\n# cat program\nnot file\n# x>program\nnot file\n# touch a\ncreated a\n# touch b\ncreated b\n# touch c\ncreated c\n# touch d\ncreated d\n# touch e\ncreated e\n# touch f\ncreated f\n# touch g\ncreated g\n# touch h\ndisk full\n# ls\np program 1p\nf a 0b\nf b 0b\nf c 0b\nf d 0b\nf e 0b\nf f 0b\nf g 0b\n# free\n247p\n#"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Texte FS\" creates, edits, saves and reloads a disk file",
+      "output": "[compileAndRun]\n=== EDITEUR TEXTE FS ===\nnotes | vide=save | /show | /clear | @ quit\n(empty)\nnotes> hello\nappended\nnotes> world\nappended\nnotes> \nsaved notes\nnotes> /show\nhello\nworld\nnotes>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Texte FS\" reloads existing content, clears it, then saves new text",
+      "output": "[compileAndRun]\n=== EDITEUR TEXTE FS ===\nnotes | vide=save | /show | /clear | @ quit\nold\nnotes> /show\nold\nnotes> /clear\nbuffer cleared\nnotes> \nsaved notes\nnotes> /show\n(empty)\nnotes> new\nappended\nnotes> \nsaved notes\nnotes> /show\nnew\nnotes>"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" opens, creates and saves different files",
+      "output": "[compileAndRun]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)\ncreated notes\n[notes] 0/0\n||\ninserted\n[] 6/6\nhello\n|\nsaved notes\n[notes] 6/6\nhello\n|\ncreated todo\n[todo] 0/0\n||\ninserted\n[] 9/9\nbuy milk\n|\nsaved todo\n[todo] 9/9\nbuy milk\n|\nf program 7b\nf notes 6b\nf todo 9b\n[todo] 9/9\nbuy milk\n|\nopened notes\n[notes] 6/6\nhello\n|\n[notes] 6/6\nhello\n|"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" clears one file without touching another",
+      "output": "[compileAndRun]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)\ncreated alpha\n[alpha] 0/0\n||\ninserted\n[] 3/3\nAB\n|\nsaved alpha\n[alpha] 3/3\nAB\n|\ncreated beta\n[beta] 0/0\n||\ninserted\n[] 3/3\nCD\n|\nsaved beta\n[beta] 3/3\nCD\n|\nopened alpha\n[alpha] 3/3\nAB\n|\ncleared alpha\n[alpha] 0/0\n||\nsaved alpha\n[alpha] 0/0\n||\nopened beta\n[beta] 3/3\nCD\n|\n[beta] 3/3\nCD\n|"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" reports disk full but still reopens existing files",
+      "output": "[compileAndRun]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)\ndisk full\n(o nom pour ouvrir)\nopened f3\n[f3] 1/1\nD|\n[f3] 1/1\nD|"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Éditeur Multi-fichier FS\" moves the cursor with arrow keys before deleting",
+      "output": "[interactive multi-file editor]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)\ncreated notes\n[notes] 0/0\n||\ninserted\n[] 2/3\nab|\n\ndeleted\n[] 1/2\na|\n\nsaved notes\n[notes] 1/2\na|"
+    },
+    {
+      "testName": "C Examples — Output Verification > \"Système Solaire 255\" draws a sun and one orbiting planet",
+      "output": "[compileAndRun]\n=== SOLAR 255 ===\nsun + orbiting planet\n@ quit"
+    },
+    {
+      "testName": "Compiler — Edge Cases > global variable initialization",
+      "output": "[compileAndRun]\n42"
+    },
+    {
+      "testName": "Compiler — Edge Cases > function with multiple return paths",
+      "output": "[compileAndRun]\n5 6"
+    },
+    {
+      "testName": "Compiler — Edge Cases > nested function calls",
+      "output": "[compileAndRun]\n12"
+    },
+    {
+      "testName": "Compiler — Edge Cases > recursion works correctly",
+      "output": "[compileAndRun]\n55"
+    },
+    {
+      "testName": "Compiler — Edge Cases > while loop with break condition",
+      "output": "[compileAndRun]\n128"
+    },
+    {
+      "testName": "Compiler — Edge Cases > for loop counts correctly",
+      "output": "[compileAndRun]\n15"
+    },
+    {
+      "testName": "Compiler — Edge Cases > compound assignment operators",
+      "output": "[compileAndRun]\n15 12"
+    },
+    {
+      "testName": "Compiler — Edge Cases > postfix increment/decrement",
+      "output": "[compileAndRun]\n5 6 6 5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > logical AND/OR operators",
+      "output": "[compileAndRun]\nNYNY"
+    },
+    {
+      "testName": "Compiler — Edge Cases > >= and > comparison operators",
+      "output": "[compileAndRun]\nYYNYNN"
+    },
+    {
+      "testName": "Compiler — Edge Cases > <= and < comparison operators",
+      "output": "[compileAndRun]\nYYNYN"
+    },
+    {
+      "testName": "Compiler — Edge Cases > multiply and divide",
+      "output": "[compileAndRun]\n56 14 2"
+    },
+    {
+      "testName": "Compiler — Edge Cases > unsigned division with large dividends (>= 128)",
+      "output": "[compileAndRun]\n65 50 51 128 2"
+    },
+    {
+      "testName": "Compiler — Edge Cases > #define preprocessor works",
+      "output": "[compileAndRun]\n42 hello"
+    },
+    {
+      "testName": "Compiler — Edge Cases > char literals work",
+      "output": "[compileAndRun]\nABC"
+    },
+    {
+      "testName": "Compiler — Edge Cases > getchar reads input correctly",
+      "output": "[compileAndRun]\nXY"
+    },
+    {
+      "testName": "Compiler — Edge Cases > HTTP GET streams response bytes through gethttpchar()",
+      "output": "[compileAndRunAsync]\nOK"
+    },
+    {
+      "testName": "Compiler — Edge Cases > \"Meteo Ales\" fetches weather and draws on the plotter",
+      "output": "[compileAndRunAsync]\n>T+11 61"
+    },
+    {
+      "testName": "Compiler — Edge Cases > getKey returns 0 when no key pressed",
+      "output": "[compileAndRun]\n0 0"
+    },
+    {
+      "testName": "Compiler — Edge Cases > getKey returns 1 when key is pressed",
+      "output": "[compileAndRun]\n1 1"
+    },
+    {
+      "testName": "Compiler — Edge Cases > stack pointer is restored after function calls",
+      "output": "[compileAndRun]\n11"
+    },
+    {
+      "testName": "Compiler — Edge Cases > supports multiple local declarations in one statement",
+      "output": "[compileAndRun]\n5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > supports multiple global declarations in one statement",
+      "output": "[compileAndRun]\n11"
+    },
+    {
+      "testName": "Compiler — Edge Cases > supports multiple declarations in for-loop init",
+      "output": "[compileAndRun]\n9"
+    },
+    {
+      "testName": "Compiler — Edge Cases > bitwise expressions still work with shared lowering",
+      "output": "[compileAndRun]\n9 7"
+    },
+    {
+      "testName": "Compiler — Edge Cases > 16 globals are allowed",
+      "output": "[compileAndRun]\n17"
+    },
+    {
+      "testName": "Compiler — Edge Cases > break exits while loop early",
+      "output": "[compileAndRun]\n5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > break exits for loop early",
+      "output": "[compileAndRun]\n10 5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > continue skips to next iteration in while loop",
+      "output": "[compileAndRun]\n45"
+    },
+    {
+      "testName": "Compiler — Edge Cases > continue in for loop jumps to update",
+      "output": "[compileAndRun]\n35"
+    },
+    {
+      "testName": "Compiler — Edge Cases > nested break only exits inner loop",
+      "output": "[compileAndRun]\n6"
+    },
+    {
+      "testName": "Compiler — Edge Cases > rand() returns pseudo-random values",
+      "output": "[compileAndRun]\nYYY"
+    },
+    {
+      "testName": "Compiler — Edge Cases > rand() values are in 0-255 range",
+      "output": "[compileAndRun]\nY"
+    },
+    {
+      "testName": "Compiler — Edge Cases > external drive builtins read, write and clear bytes",
+      "output": "[compileAndRun]\nAB0"
+    },
+    {
+      "testName": "Compiler — Edge Cases > console_clear() clears prior console output",
+      "output": "[compileAndRun]\nZ"
+    },
+    {
+      "testName": "Compiler — Edge Cases > external drive page builtins can access the full 64K disk",
+      "output": "[compileAndRun]\nBABZ"
+    },
+    {
+      "testName": "Compiler — Arrays > basic array write and read",
+      "output": "[compileAndRun]\n10 20 30"
+    },
+    {
+      "testName": "Compiler — Arrays > array fill and read in loop",
+      "output": "[compileAndRun]\n0 3 6 9 12"
+    },
+    {
+      "testName": "Compiler — Arrays > complex index expression arr[j+1]",
+      "output": "[compileAndRun]\n20 30 40"
+    },
+    {
+      "testName": "Compiler — Arrays > global array",
+      "output": "[compileAndRun]\n100 200 50"
+    },
+    {
+      "testName": "Compiler — Arrays > local array in function",
+      "output": "[compileAndRun]\n60"
+    },
+    {
+      "testName": "Compiler — Arrays > global array accessed from function",
+      "output": "[compileAndRun]\n30"
+    },
+    {
+      "testName": "Compiler — Arrays > array parameter can be read inside a function",
+      "output": "[compileAndRun]\n16"
+    },
+    {
+      "testName": "Compiler — Arrays > array parameter writes are copied back to the caller array",
+      "output": "[compileAndRun]\n10 25 30"
+    },
+    {
+      "testName": "Compiler — Arrays > array parameter works from a recursive caller frame",
+      "output": "[compileAndRun]\n6"
+    },
+    {
+      "testName": "Compiler — Arrays > swap via array (bubble sort pattern)",
+      "output": "[compileAndRun]\n11 99"
+    },
+    {
+      "testName": "Compiler — Arrays > array initializer works for local arrays",
+      "output": "[compileAndRun]\n1 2 3 0"
+    },
+    {
+      "testName": "Compiler — Arrays > const global data and arrays initialize correctly",
+      "output": "[compileAndRun]\n48 57 128 5"
+    },
+    {
+      "testName": "Compiler — Arrays > global array initializer works",
+      "output": "[compileAndRun]\n9 6"
+    },
+    {
+      "testName": "Compiler — Arrays > string declaration stores a zero-terminated character array",
+      "output": "[compileAndRun]\nhello"
+    },
+    {
+      "testName": "Compiler — Arrays > global string declaration stores a zero-terminated character array",
+      "output": "[compileAndRun]\nabc"
+    },
+    {
+      "testName": "Compiler — Arrays > array_len returns the declared array capacity",
+      "output": "[compileAndRun]\n6 6"
+    },
+    {
+      "testName": "Compiler — Arrays > string_len returns the current zero-terminated string length",
+      "output": "[compileAndRun]\n5"
+    },
+    {
+      "testName": "Compiler — Arrays > print accepts a string variable",
+      "output": "[compileAndRun]\nhello"
+    },
+    {
+      "testName": "Compiler — Arrays > print accepts a zero-terminated buffer",
+      "output": "[compileAndRun]\nhi!"
+    },
+    {
+      "testName": "Compiler — Arrays > string_len reflects manual append inside a larger buffer",
+      "output": "[compileAndRun]\n3"
+    },
+    {
+      "testName": "Compiler — Arrays > string can be modified by index when it is not const",
+      "output": "[compileAndRun]\nHellO"
+    },
+    {
+      "testName": "Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
+      "output": "[compileAndRun]\nhi!"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",
+      "output": "[compileAndRun]\nHello World!"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Compteur\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n0123456789"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Fibonacci\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n0 1 1 2 3 5 8 13 21 34"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Factorielle\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n5! = 120"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Calcul\" halts within reasonable cycles",
+      "output": "[compileAndRun]\nx = 10\ny = 3\nx+y = 13\nx-y = 7\nx*y = 30\nx/y = 3\nx%y = 1"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Cercle\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Horloge\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n00:00\n00:01\n00:02\n00:03\n00:04\n00:05\n00:06\n00:07\n00:08\n00:09\n00:10\n00:11\n00:12\n00:13\n00:14\n00:15\n00:16\n00:17\n00:18\n00:19\n00:20\n00:21\n00:22\n00:23\n00:24\n00:25\n00:26\n00:27\n00:28\n00:29\n00:30\n00:31\n00:32\n00:33\n00:34\n00:35\n00:36\n00:37\n00:38\n00:39\n00:40\n00:41\n00:42\n00:43\n00:44\n00:45\n00:46\n00:47\n00:48\n00:49\n00:50\n00:51\n00:52\n00:53\n00:54\n00:55\n00:56\n00:57\n00:58\n00:59\n01:00\n01:01\n01:02\n01:03\n01:04\n01:05\n01:06\n01:07\n01:08\n01:09\n01:10\n01:11\n01:12\n01:13\n01:14\n01:15\n01:16\n01:17\n01:18\n01:19\n01:20\n01:21\n01:22\n01:23\n01:24\n01:25\n01:26\n01:27\n01:28\n01:29\n01:30\n01:31\n01:32\n01:33\n01:34\n01:35\n01:36\n01:37\n01:38\n01:39\n01:40\n01:41\n01:42\n01:43\n01:44\n01:45\n01:46\n01:47\n01:48\n01:49\n01:50\n01:51\n01:52\n01:53\n01:54\n01:55\n01:56\n01:57\n01:58\n01:59\n02:00\n02:01\n02:02\n02:03\n02:04\n02:05\n02:06\n02:07\n02:08\n02:09\n02:10\n02:11\n02:12\n02:13\n02:14\n02:15\n02:16\n02:17\n02:18\n02:19\n02:20\n02:21\n02:22\n02:23\n02:24\n02:25\n02:26\n02:27\n02:28\n02:29\n02:30\n02:31\n02:32\n02:33\n02:34\n02:35\n02:36\n02:37\n02:38\n02:39\n02:40\n02:41\n02:42\n02:43\n02:44\n02:45\n02:46\n02:47\n02:48\n02:49\n02:50\n02:51\n02:52\n02:53\n02:54\n02:55\n02:56\n02:57\n02:58\n02:59\n03:00\n03:01\n03:02\n03:03\n03:04\n03:05\n03:06\n03:07\n03:08\n03:09\n03:10\n03:11\n03:12\n03:13\n03:14\n03:15\n03:16\n03:17\n03:18\n03:19\n03:20\n03:21\n03:22\n03:23\n03:24\n03:25\n03:26\n03:27\n03:28\n03:29\n03:30\n03:31\n03:32\n03:33\n03:34\n03:35\n03:36\n03:37\n03:38\n03:39\n03:40\n03:41\n03:42\n03:43\n03:44\n03:45\n03:46\n03:47\n03:48\n03:49\n03:50\n03:51\n03:52\n03:53\n03:54\n03:55\n03:56\n03:57\n03:58\n03:59\n04:00\n04:01\n04:02\n04:03\n04:04\n04:05\n04:06\n04:07\n04:08\n04:09\n04:10\n04:11\n04:12\n04:13\n04:14\n04:15\n04:16\n04:17\n04:18\n04:19\n04:20\n04:21\n04:22\n04:23\n04:24\n04:25\n04:26\n04:27\n04:28\n04:29\n04:30\n04:31\n04:32\n04:33\n04:34\n04:35\n04:36\n04:37\n04:38\n04:39\n04:40\n04:41\n04:42\n04:43\n04:44\n04:45\n04:46\n04:47\n04:48\n04:49\n04:50\n04:51\n04:52\n04:53\n04:54\n04:55\n04:56\n04:57\n04:58\n04:59\n05:00\n05:01\n05:02\n05:03\n05:04\n05:05\n05:06\n05:07\n05:08\n05:09\n05:10\n05:11\n05:12\n05:13\n05:14\n05:15\n05:16\n05:17\n05:18\n05:19\n05:20\n05:21\n05:22\n05:23\n05:24\n05:25\n05:26\n05:27\n05:28\n05:29\n05:30\n05:31\n05:32\n05:33\n05:34\n05:35\n05:36\n05:37\n05:38\n05:39\n05:40\n05:41\n05:42\n05:43\n05:44\n05:45\n05:46\n05:47\n05:48\n05:49\n05:50\n05:51\n05:52\n05:53\n05:54\n05:55\n05:56\n05:57\n05:58\n05:59\n06:00\n06:01\n06:02\n06:03\n06:04\n06:05\n06:06\n06:07\n06:08\n06:09\n06:10\n06:11\n06:12\n06:13\n06:14\n06:15\n06:16\n06:17\n06:18\n06:19\n06:20\n06:21\n06:22\n06:23\n06:24\n06:25\n06:26\n06:27\n06:28\n06:29\n06:30\n06:31\n06:32\n06:33\n06:34\n06:35\n06:36\n06:37\n06:38\n06:39\n06:40\n06:41\n06:42\n06:43\n06:44\n06:45\n06:46\n06:47\n06:48\n06:49\n06:50\n06:51\n06:52\n06:53\n06:54\n06:55\n06:56\n06:57\n06:58\n06:59\n07:00\n07:01\n07:02\n07:03\n07:04\n07:05\n07:06\n07:07\n07:08\n07:09\n07:10\n07:11\n07:12\n07:13\n07:14\n07:15\n07:16\n07:17\n07:18\n07:19\n07:20\n07:21\n07:22\n07:23\n07:24\n07:25\n07:26\n07:27\n07:28\n07:29\n07:30\n07:31\n07:32\n07:33\n07:34\n07:35\n07:36\n07:37\n07:38\n07:39\n07:40\n07:41\n07:42\n07:43\n07:44\n07:45\n07:46\n07:47\n07:48\n07:49\n07:50\n07:51\n07:52\n07:53\n07:54\n07:55\n07:56\n07:57\n07:58\n07:59\n08:00\n08:01\n08:02\n08:03\n08:04\n08:05\n08:06\n08:07\n08:08\n08:09\n08:10\n08:11\n08:12\n08:13\n08:14\n08:15\n08:16\n08:17\n08:18\n08:19\n08:20\n08:21\n08:22\n08:23\n08:24\n08:25\n08:26\n08:27\n08:28\n08:29\n08:30\n08:31\n08:32\n08:33\n08:34\n08:35\n08:36\n08:37\n08:38\n08:39\n08:40\n08:41\n08:42\n08:43\n08:44\n08:45\n08:46\n08:47\n08:48\n08:49\n08:50\n08:51\n08:52\n08:53\n08:54\n08:55\n08:56\n08:57\n08:58\n08:59\n09:00\n09:01\n09:02\n09:03\n09:04\n09:05\n09:06\n09:07\n09:08\n09:09\n09:10\n09:11\n09:12\n09:13\n09:14\n09:15\n09:16\n09:17\n09:18\n09:19\n09:20\n09:21\n09:22\n09:23\n09:24\n09:25\n09:26\n09:27\n09:28\n09:29\n09:30\n09:31\n09:32\n09:33\n09:34\n09:35\n09:36\n09:37\n09:38\n09:39\n09:40\n09:41\n09:42\n09:43\n09:44\n09:45\n09:46\n09:47\n09:48\n09:49\n09:50\n09:51\n09:52\n09:53\n09:54\n09:55\n09:56\n09:57\n09:58\n09:59\n10:00\n10:01\n10:02\n10:03\n10:04\n10:05\n10:06\n10:07\n10:08\n10:09\n10:10\n10:11\n10:12\n10:13\n10:14\n10:15\n10:16\n10:17\n10:18\n10:19\n10:20\n10:21\n10:22\n10:23\n10:24\n10:25\n10:26\n10:27\n10:28\n10:29\n10:30\n10:31\n10:32\n10:33\n10:34\n10:35\n10:36\n10:37\n10:38\n10:39\n10:40\n10:41\n10:42\n10:43\n10:44\n10:45\n10:46\n10:47\n10:48\n10:49\n10:50\n10:51\n10:52\n10:53\n10:54\n10:55\n10:56\n10:57\n10:58\n10:59\n11:00\n11:01\n11:02\n11:03\n11:04\n11:05\n11:06\n11:07\n11:08\n11:09\n11:10\n11:11\n11:12\n11:13\n11:14\n11:15\n11:16\n11:17\n11:18\n11:19\n11:20\n11:21\n11:22\n11:23\n11:24\n11:25\n11:26\n11:27\n11:28\n11:29\n11:30\n11:31\n11:32\n11:33\n11:34\n11:35\n11:36\n11:37\n11:38\n11:39\n11:40\n11:41\n11:42\n11:43\n11:44\n11:45\n11:46\n11:47\n11:48\n11:49\n11:50\n11:51\n11:52\n11:53\n11:54\n11:55\n11:56\n11:57\n11:58\n11:59\n12:00\n12:01\n12:02\n12:03\n12:04\n12:05\n12:06\n12:07\n12:08\n12:09\n12:10\n12:11\n12:12\n12:13\n12:14\n12:15\n12:16\n12:17\n12:18\n12:19\n12:20\n12:21\n12:22\n12:23\n12:24\n12:25\n12:26\n12:27\n12:28\n12:29\n12:30\n12:31\n12:32\n12:33\n12:34\n12:35\n12:36\n12:37\n12:38\n12:39\n12:40\n12:41\n12:42\n12:43\n12:44\n12:45\n12:46\n12:47\n12:48\n12:49\n12:50\n12:51\n12:52\n12:53\n12:54\n12:55\n12:56\n12:57\n12:58\n12:59\n13:00\n13:01\n13:02\n13:03\n13:04\n13:05\n13:06\n13:07\n13:08\n13:09\n13:10\n13:11\n13:12\n13:13\n13:14\n13:15\n13:16\n13:17\n13:18\n13:19\n13:20\n13:21\n13:22\n13:23\n13:24\n13:25\n13:26\n13:27\n13:28\n13:29\n13:30\n13:31\n13:32\n13:33\n13:34\n13:35\n13:36\n13:37\n13:38\n13:39\n13:40\n13:41\n13:42\n13:43\n13:44\n13:45\n13:46\n13:47\n13:48\n13:49\n13:50\n13:51\n13:52\n13:53\n13:54\n13:55\n13:56\n13:57\n13:58\n13:59\n14:00\n14:01\n14:02\n14:03\n14:04\n14:05\n14:06\n14:07\n14:08\n14:09\n14:10\n14:11\n14:12\n14:13\n14:14\n14:15\n14:16\n14:17\n14:18\n14:19\n14:20\n14:21\n14:22\n14:23\n14:24\n14:25\n14:26\n14:27\n14:28\n14:29\n14:30\n14:31\n14:32\n14:33\n14:34\n14:35\n14:36\n14:37\n14:38\n14:39\n14:40\n14:41\n14:42\n14:43\n14:44\n14:45\n14:46\n14:47\n14:48\n14:49\n14:50\n14:51\n14:52\n14:53\n14:54\n14:55\n14:56\n14:57\n14:58\n14:59\n15:00\n15:01\n15:02\n15:03\n15:04\n15:05\n15:06\n15:07\n15:08\n15:09\n15:10\n15:11\n15:12\n15:13\n15:14\n15:15\n15:16\n15:17\n15:18\n15:19\n15:20\n15:21\n15:22\n15:23\n15:24\n15:25\n15:26\n15:27\n15:28\n15:29\n15:30\n15:31\n15:32\n15:33\n15:34\n15:35\n15:36\n15:37\n15:38\n15:39\n15:40\n15:41\n15:42\n15:43\n15:44\n15:45\n15:46\n15:47\n15:48\n15:49\n15:50\n15:51\n15:52\n15:53\n15:54\n15:55\n15:56\n15:57\n15:58\n15:59\n16:00\n16:01\n16:02\n16:03\n16:04\n16:05\n16:06\n16:07\n16:08\n16:09\n16:10\n16:11\n16:12\n16:13\n16:14\n16:15\n16:16\n16:17\n16:18\n16:19\n16:20\n16:21\n16:22\n16:23\n16:24\n16:25\n16:26\n16:27\n16:28\n16:29\n16:30\n16:31\n16:32\n16:33\n16:34\n16:35\n16:36\n16:37\n16:38\n16:39\n16:40\n16:41\n16:42\n16:43\n16:44\n16:45\n16:46\n16:47\n16:48\n16:49\n16:50\n16:51\n16:52\n16:53\n16:54\n16:55\n16:56\n16:57\n16:58\n16:59\n17:00\n17:01\n17:02\n17:03\n17:04\n17:05\n17:06\n17:07\n17:08\n17:09\n17:10\n17:11\n17:12\n17:13\n17:14\n17:15\n17:16\n17:17\n17:18\n17:19\n17:20\n17:21\n17:22\n17:23\n17:24\n17:25\n17:26\n17:27\n17:28\n17:29\n17:30\n17:31\n17:32\n17:33\n17:34\n17:35\n17:36\n17:37\n17:38\n17:39\n17:40\n17:41\n17:42\n17:43\n17:44\n17:45\n17:46\n17:47\n17:48\n17:49\n17:50\n17:51\n17:52\n17:53\n17:54\n17:55\n17:56\n17:57\n17:58\n17:59\n18:00\n18:01\n18:02\n18:03\n18:04\n18:05\n18:06\n18:07\n18:08\n18:09\n18:10\n18:11\n18:12\n18:13\n18:14\n18:15\n18:16\n18:17\n18:18\n18:19\n18:20\n18:21\n18:22\n18:23\n18:24\n18:25\n18:26\n18:27\n18:28\n18:29\n18:30\n18:31\n18:32\n18:33\n18:34\n18:35\n18:36\n18:37\n18:38\n18:39\n18:40\n18:41\n18:42\n18:43\n18:44\n18:45\n18:46\n18:47\n18:48\n18:49\n18:50\n18:51\n18:52\n18:53\n18:54\n18:55\n18:56\n18:57\n18:58\n18:59\n19:00\n19:01\n19:02\n19:03\n19:04\n19:05\n19:06\n19:07\n19:08\n19:09\n19:10\n19:11\n19:12\n19:13\n19:14\n19:15\n19:16\n19:17\n19:18\n19:19\n19:20\n19:21\n19:22\n19:23\n19:24\n19:25\n19:26\n19:27\n19:28\n19:29\n19:30\n19:31\n19:32\n19:33\n19:34\n19:35\n19:36\n19:37\n19:38\n19:39\n19:40\n19:41\n19:42\n19:43\n19:44\n19:45\n19:46\n19:47\n19:48\n19:49\n19:50\n19:51\n19:52\n19:53\n19:54\n19:55\n19:56\n19:57\n19:58\n19:59\n20:00\n20:01\n20:02\n20:03\n20:04\n20:05\n20:06\n20:07\n20:08\n20:09\n20:10\n20:11\n20:12\n20:13\n20:14\n20:15\n20:16\n20:17\n20:18\n20:19\n20:20\n20:21\n20:22\n20:23\n20:24\n20:25\n20:26\n20:27\n20:28\n20:29\n20:30\n20:31\n20:32\n20:33\n20:34\n20:35\n20:36\n20:37\n20:38\n20:39\n20:40\n20:41\n20:42\n20:43\n20:44\n20:45\n20:46\n20:47\n20:48\n20:49\n20:50\n20:51\n20:52\n20:53\n20:54\n20:55\n20:56\n20:57\n20:58\n20:59\n21:00\n21:01\n21:02\n21:03\n21:04\n21:05\n21:06\n21:07\n21:08\n21:09\n21:10\n21:11\n21:12\n21:13\n21:14\n21:15\n21:16\n21:17\n21:18\n21:19\n21:20\n21:21\n21:22\n21:23\n21:24\n21:25\n21:26\n21:27\n21:28\n21:29\n21:30\n21:31\n21:32\n21:33\n21:34\n21:35\n21:36\n21:37\n21:38\n21:39\n21:40\n21:41\n21:42\n21:43\n21:44\n21:45\n21:46\n21:47\n21:48\n21:49\n21:50\n21:51\n21:52\n21:53\n21:54\n21:55\n21:56\n21:57\n21:58\n21:59\n22:00\n22:01\n22:02\n22:03\n22:04\n22:05\n22:06\n22:07\n22:08\n22:09\n22:10\n22:11\n22:12\n22:13\n22:14\n22:15\n22:16\n22:17\n22:18\n22:19\n22:20\n22:21\n22:22\n22:23\n22:24\n22:25\n22:26\n22:27\n22:28\n22:29\n22:30\n22:31\n22:32\n22:33\n22:34\n22:35\n22:36\n22:37\n22:38\n22:39\n22:40\n22:41\n22:42\n22:43\n22:44\n22:45\n22:46\n22:47\n22:48\n22:49\n22:50\n22:51\n22:52\n22:53\n22:54\n22:55\n22:56\n22:57\n22:58\n22:59\n23:00\n23:01\n23:02\n23:03\n23:04\n23:05\n23:06\n23:07\n23:08\n23:09\n23:10\n23:11\n23:12\n23:13\n23:14\n23:15\n23:16\n23:17\n23:18\n23:19\n23:20\n23:21\n23:22\n23:23\n23:24\n23:25\n23:26\n23:27\n23:28\n23:29\n23:30\n23:31\n23:32\n23:33\n23:34\n23:35\n23:36\n23:37\n23:38\n23:39\n23:40\n23:41\n23:42\n23:43\n23:44\n23:45\n23:46\n23:47\n23:48\n23:49\n23:50\n23:51\n23:52\n23:53\n23:54\n23:55\n23:56\n23:57\n23:58\n23:59\n24:00\n24:01\n24:02\n24:03\n24:04\n24:05\n24:06\n24:07\n24:08\n24:09\n24:10\n24:11\n24:12\n24:13\n24:14\n24:15\n24:16\n24:17\n24:18\n24:19\n24:20\n24:21\n24:22\n24:23\n24:24\n24:25\n24:26\n24:27\n24:28\n24:29\n24:30\n24:31\n24:32\n24:33\n24:34\n24:35\n24:36\n24:37\n24:38\n24:39\n24:40\n24:41\n24:42\n24:43\n24:44\n24:45\n24:46\n24:47\n24:48\n24:49\n24:50\n24:51\n24:52\n24:53\n24:54\n24:55\n24:56\n24:57\n24:58\n24:59\n25:00\n25:01\n25:02\n25:03\n25:04\n25:05\n25:06\n25:07\n25:08\n25:09\n25:10\n25:11\n25:12\n25:13\n25:14\n25:15\n25:16\n25:17\n25:18\n25:19\n25:20\n25:21\n25:22\n25:23\n25:24\n25:25\n25:26\n25:27\n25:28\n25:29\n25:30\n25:31\n25:32\n25:33\n25:34\n25:35\n25:36\n25:37\n25:38\n25:39\n25:40\n25:41\n25:42\n25:43\n25:44\n25:45\n25:46\n25:47\n25:48\n25:49\n25:50\n25:51\n25:52\n25:53\n25:54\n25:55\n25:56\n25:57\n25:58\n25:59\n26:00\n26:01\n26:02\n26:03\n26:04\n26:05\n26:06\n26:07\n26:08\n26:09\n26:10\n26:11\n26:12\n26:13\n26:14\n26:15\n26:16\n26:17\n26:18\n26:19\n26:20\n26:21\n26:22\n26:23\n26:24\n26:25\n26:26\n26:27\n26:28\n26:29\n26:30\n26:31\n26:32\n26:33\n26:34\n26:35\n26:36\n26:37\n26:38\n26:39\n26:40\n26:41\n26:42\n26:43\n26:44\n26:45\n26:46\n26:47\n26:48\n26:49\n26:50\n26:51\n26:52\n26:53\n26:54\n26:55\n26:56\n26:57\n26:58\n26:59\n27:00\n27:01\n27:02\n27:03\n27:04\n27:05\n27:06\n27:07\n27:08\n27:09\n27:10\n27:11\n27:12\n27:13\n27:14\n27:15\n27:16\n27:17\n27:18\n27:19\n27:20\n27:21\n27:22\n27:23\n27:24\n27:25\n27:26\n27:27\n27:28\n27:29\n27:30\n27:31\n27:32\n27:33\n27:34\n27:35\n27:36\n27:37\n27:38\n27:39\n27:40\n27:41\n27:42\n27:43\n27:44\n27:45\n27:46\n27:47\n27:48\n27:49\n27:50\n27:51\n27:52\n27:53\n27:54\n27:55\n27:56\n27:57\n27:58\n27:59\n28:00\n28:01\n28:02\n28:03\n28:04\n28:05\n28:06\n28:07\n28:08\n28:09\n28:10\n28:11\n28:12\n28:13\n28:14\n28:15\n28:16\n28:17\n28:18\n28:19\n28:20\n28:21\n28:22\n28:23\n28:24\n28:25\n28:26\n28:27\n28:28\n28:29\n28:30\n28:31\n28:32\n28:33\n28:34\n28:35\n28:36\n28:37\n28:38\n28:39\n28:40\n28:41\n28:42\n28:43\n28:44\n28:45\n28:46\n28:47\n28:48\n28:49\n28:50\n28:51\n28:52\n28:53\n28:54\n28:55\n28:56\n28:57\n28:58\n28:59\n29:00\n29:01\n29:02\n29:03\n29:04\n29:05\n29:06\n29:07\n29:08\n29:09\n29:10\n29:11\n29:12\n29:13\n29:14\n29:15\n29:16\n29:17\n29:18\n29:19\n29:20\n29:21\n29:22\n29:23\n29:24\n29:25\n29:26\n29:27\n29:28\n29:29\n29:30\n29:31\n29:32\n29:33\n29:34\n29:35\n29:36\n29:37\n29:38\n29:39\n29:40\n29:41\n29:42\n29:43\n29:44\n29:45\n29:46\n29:47\n29:48\n29:49\n29:50\n29:51\n29:52\n29:53\n29:54\n29:55\n29:56\n29:57\n29:58\n29:59\n30:00\n30:01\n30:02\n30:03\n30:04\n30:05\n30:06\n30:07\n30:08\n30:09\n30:10\n30:11\n30:12\n30:13\n30:14\n30:15\n30:16\n30:17\n30:18\n30:19\n30:20\n30:21\n30:22\n30:23\n30:24\n30:25\n30:26\n30:27\n30:28\n30:29\n30:30\n30:31\n30:32\n30:33\n30:34\n30:35\n30:36\n30:37\n30:38\n30:39\n30:40\n30:41\n30:42\n30:43\n30:44\n30:45\n30:46\n30:47\n30:48\n30:49\n30:50\n30:51\n30:52\n30:53\n30:54\n30:55\n30:56\n30:57\n30:58\n30:59\n31:00\n31:01\n31:02\n31:03\n31:04\n31:05\n31:06\n31:07\n31:08\n31:09\n31:10\n31:11\n31:12\n31:13\n31:14\n31:15\n31:16\n31:17\n31:18\n31:19\n31:20\n31:21\n31:22\n31:23\n31:24\n31:25\n31:26\n31:27\n31:28\n31:29\n31:30\n31:31\n31:32\n31:33\n31:34\n31:35\n31:36\n31:37\n31:38\n31:39\n31:40\n31:41\n31:42\n31:43\n31:44\n31:45\n31:46\n31:47\n31:48\n31:49\n31:50\n31:51\n31:52\n31:53\n31:54\n31:55\n31:56\n31:57\n31:58\n31:59\n32:00\n32:01\n32:02\n32:03\n32:04\n32:05\n32:06\n32:07\n32:08\n32:09\n32:10\n32:11\n32:12\n32:13\n32:14\n32:15\n32:16\n32:17\n32:18\n32:19\n32:20\n32:21\n32:22\n32:23\n32:24\n32:25\n32:26\n32:27\n32:28\n32:29\n32:30\n32:31\n32:32\n32:33\n32:34\n32:35\n32:36\n32:37\n32:38\n32:39\n32:40\n32:41\n32:42\n32:43\n32:44\n32:45\n32:46\n32:47\n32:48\n32:49\n32:50\n32:51\n32:52\n32:53\n32:54\n32:55\n32:56\n32:57\n32:58\n32:59\n33:00\n33:01\n33:02\n33:03\n33:04\n33:05\n33:06\n33:07\n33:08\n33:09\n33:10\n33:11\n33:12\n33:13\n33:14\n33:15\n33:16\n33:17\n33:18\n33:19\n33:20\n33:21\n33:22\n33:23\n33:24\n33:25\n33:26\n33:27\n33:28\n33:29\n33:30\n33:31\n33:32\n33:33\n33:34\n33:35\n33:36\n33:37\n33:38\n33:39\n33:40\n33:41\n33:42\n33:43\n33:44\n33:45\n33:46\n33:47\n33:48\n33:49\n33:50\n33:51\n33:52\n33:53\n33:54\n33:55\n33:56\n33:57\n33:58\n33:59\n34:00\n34:01\n34:02\n34:03\n34:04\n34:05\n34:06\n34:07\n34:08\n34:09\n34:10\n34:11\n34:12\n34:13\n34:14\n34:15\n34:16\n34:17\n34:18\n34:19\n34:20\n34:21\n34:22\n34:23\n34:24\n34:25\n34:26\n34:27\n34:28\n34:29\n34:30\n34:31\n34:32\n34:33\n34:34\n34:35\n34:36\n34:37\n34:38\n34:39\n34:40\n34:41\n34:42\n34:43\n34:44\n34:45\n34:46\n34:47\n34:48\n34:49\n34:50\n34:51\n34:52\n34:53\n34:54\n34:55\n34:56\n34:57\n34:58\n34:59\n35:00\n35:01\n35:02\n35:03\n35:04\n35:05\n35:06\n35:07\n35:08\n35:09\n35:10\n35:11\n35:12\n35:13\n35:14\n35:15\n35:16\n35:17\n35:18\n35:19\n35:20\n35:21\n35:22\n35:23\n35:24\n35:25\n35:26\n35:27\n35:28\n35:29\n35:30\n35:31\n35:32\n35:33\n35:34\n35:35\n35:36\n35:37\n35:38\n35:39\n35:40\n35:41\n35:42\n35:43\n35:44\n35:45\n35:46\n35:47\n35:48\n35:49\n35:50\n35:51\n35:52\n35:53\n35:54\n35:55\n35:56\n35:57\n35:58\n35:59\n36:00\n36:01\n36:02\n36:03\n36:04\n36:05\n36:06\n36:07\n36:08\n36:09\n36:10\n36:11\n36:12\n36:13\n36:14\n36:15\n36:16\n36:17\n36:18\n36:19\n36:20\n36:21\n36:22\n36:23\n36:24\n36:25\n36:26\n36:27\n36:28\n36:29\n36:30\n36:31\n36:32\n36:33\n36:34\n36:35\n36:36\n36:37\n36:38\n36:39\n36:40\n36:41\n36:42\n36:43\n36:44\n36:45\n36:46\n36:47\n36:48\n36:49\n36:50\n36:51\n36:52\n36:53\n36:54\n36:55\n36:56\n36:57\n36:58\n36:59\n37:00\n37:01\n37:02\n37:03\n37:04\n37:05\n37:06\n37:07\n37:08\n37:09\n37:10\n37:11\n37:12\n37:13\n37:14\n37:15\n37:16\n37:17\n37:18\n37:19\n37:20\n37:21\n37:22\n37:23\n37:24\n37:25\n37:26\n37:27\n37:28\n37:29\n37:30\n37:31\n37:32\n37:33\n37:34\n37:35\n37:36\n37:37\n37:38\n37:39\n37:40\n37:41\n37:42\n37:43\n37:44\n37:45\n37:46\n37:47\n37:48\n37:49\n37:50\n37:51\n37:52\n37:53\n37:54\n37:55\n37:56\n37:57\n37:58\n37:59\n38:00\n38:01\n38:02\n38:03\n38:04\n38:05\n38:06\n38:07\n38:08\n38:09\n38:10\n38:11\n38:12\n38:13\n38:14\n38:15\n38:16\n38:17\n38:18\n38:19\n38:20\n38:21\n38:22\n38:23\n38:24\n38:25\n38:26\n38:27\n38:28\n38:29\n38:30\n38:31\n38:32\n38:33\n38:34\n38:35\n38:36\n38:37\n38:38\n38:39\n38:40\n38:41\n38:42\n38:43\n38:44\n38:45\n38:46\n38:47\n38:48\n38:49\n38:50\n38:51\n38:52\n38:53\n38:54\n38:55\n38:56\n38:57\n38:58\n38:59\n39:00\n39:01\n39:02\n39:03\n39:04\n39:05\n39:06\n39:07\n39:08\n39:09\n39:10\n39:11\n39:12\n39:13\n39:14\n39:15\n39:16\n39:17\n39:18\n39:19\n39:20\n39:21\n39:22\n39:23\n39:24\n39:25\n39:26\n39:27\n39:28\n39:29\n39:30\n39:31\n39:32\n39:33\n39:34\n39:35\n39:36\n39:37\n39:38\n39:39\n39:40\n39:41\n39:42\n39:43\n39:44\n39:45\n39:46\n39:47\n39:48\n39:49\n39:50\n39:51\n39:52\n39:53\n39:54\n39:55\n39:56\n39:57\n39:58\n39:59\n40:00\n40:01\n40:02\n40:03\n40:04\n40:05\n40:06\n40:07\n40:08\n40:09\n40:10\n40:11\n40:12\n40:13\n40:14\n40:15\n40:16\n40:17\n40:18\n40:19\n40:20\n40:21\n40:22\n40:23\n40:24\n40:25\n40:26\n40:27\n40:28\n40:29\n40:30\n40:31\n40:32\n40:33\n40:34\n40:35\n40:36\n40:37\n40:38\n40:39\n40:40\n40:41\n40:42\n40:43\n40:44\n40:45\n40:46\n40:47\n40:48\n40:49\n40:50\n40:51\n40:52\n40:53\n40:54\n40:55\n40:56\n40:57\n40:58\n40:59\n41:00\n41:01\n41:02\n41:03\n41:04\n41:05\n41:06\n41:07\n41:08\n41:09\n41:10\n41:11\n41:12\n41:13\n41:14\n41:15\n41:16\n41:17\n41:18\n41:19\n41:20\n41:21\n41:22\n41:23\n41:24\n41:25\n41:26\n41:27\n41:28\n41:29\n41:30\n41:31\n41:32\n41:33\n41:34\n41:35\n41:36\n41:37\n41:38\n41:39\n41:40\n41:41\n41:42\n41:43\n41:44\n41:45\n41:46\n41:47\n41:48\n41:49\n41:50\n41:51\n41:52\n41:53\n41:54\n41:55\n41:56\n41:57\n41:58\n41:59\n42:00\n42:01\n42:02\n42:03\n42:04\n42:05\n42:06\n42:07\n42:08\n42:09\n42:10\n42:11\n42:12\n42:13\n42:14\n42:15\n42:16\n42:17\n42:18\n42:19\n42:20\n42:21\n42:22\n42:23\n42:24\n42:25\n42:26\n42:27\n42:28\n42:29\n42:30\n42:31\n42:32\n42:33\n42:34\n42:35\n42:36\n42:37\n42:38\n42:39\n42:40\n42:41\n42:42\n42:43\n42:44\n42:45\n42:46\n42:47\n42:48\n42:49\n42:50\n42:51\n42:52\n42:53\n42:54\n42:55\n42:56\n42:57\n42:58\n42:59\n43:00\n43:01\n43:02\n43:03\n43:04\n43:05\n43:06\n43:07\n43:08\n43:09\n43:10\n43:11\n43:12\n43:13\n43:14\n43:15\n43:16\n43:17\n43:18\n43:19\n43:20\n43:21\n43:22\n43:23\n43:24\n43:25\n43:26\n43:27\n43:28\n43:29\n43:30\n43:31\n43:32\n43:33\n43:34\n43:35\n43:36\n43:37\n43:38\n43:39\n43:40\n43:41\n43:42\n43:43\n43:44\n43:45\n43:46\n43:47\n43:48\n43:49\n43:50\n43:51\n43:52\n43:53\n43:54\n43:55\n43:56\n43:57\n43:58\n43:59\n44:00\n44:01\n44:02\n44:03\n44:04\n44:05\n44:06\n44:07\n44:08\n44:09\n44:10\n44:11\n44:12\n44:13\n44:14\n44:15\n44:16\n44:17\n44:18\n44:19\n44:20\n44:21\n44:22\n44:23\n44:24\n44:25\n44:26\n44:27\n44:28\n44:29\n44:30\n44:31\n44:32\n44:33\n44:34\n44:35\n44:36\n44:37\n44:38\n44:39\n44:40\n44:41\n44:42\n44:43\n44:44\n44:45\n44:46\n44:47\n44:48\n44:49\n44:50\n44:51\n44:52\n44:53\n44:54\n44:55\n44:56\n44:57\n44:58\n44:59\n45:00\n45:01\n45:02\n45:03\n45:04\n45:05\n45:06\n45:07\n45:08\n45:09\n45:10\n45:11\n45:12\n45:13\n45:14\n45:15\n45:16\n45:17\n45:18\n45:19\n45:20\n45:21\n45:22\n45:23\n45:24\n45:25\n45:26\n45:27\n45:28\n45:29\n45:30\n45:31\n45:32\n45:33\n45:34\n45:35\n45:36\n45:37\n45:38\n45:39\n45:40\n45:41\n45:42\n45:43\n45:44\n45:45\n45:46\n45:47\n45:48\n45:49\n45:50\n45:51\n45:52\n45:53\n45:54\n45:55\n45:56\n45:57\n45:58\n45:59\n46:00\n46:01\n46:02\n46:03\n46:04\n46:05\n46:06\n46:07\n46:08\n46:09\n46:10\n46:11\n46:12\n46:13\n46:14\n46:15\n46:16\n46:17\n46:18\n46:19\n46:20\n46:21\n46:22\n46:23\n46:24\n46:25\n46:26\n46:27\n46:28\n46:29\n46:30\n46:31\n46:32\n46:33\n46:34\n46:35\n46:36\n46:37\n46:38\n46:39\n46:40\n46:41\n46:42\n46:43\n46:44\n46:45\n46:46\n46:47\n46:48\n46:49\n46:50\n46:51\n46:52\n46:53\n46:54\n46:55\n46:56\n46:57\n46:58\n46:59\n47:00\n47:01\n47:02\n47:03\n47:04\n47:05\n47:06\n47:07\n47:08\n47:09\n47:10\n47:11\n47:12\n47:13\n47:14\n47:15\n47:16\n47:17\n47:18\n47:19\n47:20\n47:21\n47:22\n47:23\n47:24\n47:25\n47:26\n47:27\n47:28\n47:29\n47:30\n47:31\n47:32\n47:33\n47:34\n47:35\n47:36\n47:37\n47:38\n47:39\n47:40\n47:41\n47:42\n47:43\n47:44\n47:45\n47:46\n47:47\n47:48\n47:49\n47:50\n47:51\n47:52\n47:53\n47:54\n47:55\n47:56\n47:57\n47:58\n47:59\n48:00\n48:01\n48:02\n48:03\n48:04\n48:05\n48:06\n48:07\n48:08\n48:09\n48:10\n48:11\n48:12\n48:13\n48:14\n48:15\n48:16\n48:17\n48:18\n48:19\n48:20\n48:21\n48:22\n48:23\n48:24\n48:25\n48:26\n48:27\n48:28\n48:29\n48:30\n48:31\n48:32\n48:33\n48:34\n48:35\n48:36\n48:37\n48:38\n48:39\n48:40\n48:41\n48:42\n48:43\n48:44\n48:45\n48:46\n48:47\n48:48\n48:49\n48:50\n48:51\n48:52\n48:53\n48:54\n48:55\n48:56\n48:57\n48:58\n48:59\n49:00\n49:01\n49:02\n49:03\n49:04\n49:05\n49:06\n49:07\n49:08\n49:09\n49:10\n49:11\n49:12\n49:13\n49:14\n49:15\n49:16\n49:17\n49:18\n49:19\n49:20\n49:21\n49:22\n49:23\n49:24\n49:25\n49:26\n49:27\n49:28\n49:29\n49:30\n49:31\n49:32\n49:33\n49:34\n49:35\n49:36\n49:37\n49:38\n49:39\n49:40\n49:41\n49:42\n49:43\n49:44\n49:45\n49:46\n49:47\n49:48\n49:49\n49:50\n49:51\n49:52\n49:53\n49:54\n49:55\n49:56\n49:57\n49:58\n49:59\n50:00\n50:01\n50:02\n50:03\n50:04\n50:05\n50:06\n50:07\n50:08\n50:09\n50:10\n50:11\n50:12\n50:13\n50:14\n50:15\n50:16\n50:17\n50:18\n50:19\n50:20\n50:21\n50:22\n50:23\n50:24\n50:25\n50:26\n50:27\n50:28\n50:29\n50:30\n50:31\n50:32\n50:33\n50:34\n50:35\n50:36\n50:37\n50:38\n50:39\n50:40\n50:41\n50:42\n50:43\n50:44\n50:45\n50:46\n50:47\n50:48\n50:49\n50:50\n50:51\n50:52\n50:53\n50:54\n50:55\n50:56\n50:57\n50:58\n50:59\n51:00\n51:01\n51:02\n51:03\n51:04\n51:05\n51:06\n51:07\n51:08\n51:09\n51:10\n51:11\n51:12\n51:13\n51:14\n51:15\n51:16\n51:17\n51:18\n51:19\n51:20\n51:21\n51:22\n51:23\n51:24\n51:25\n51:26\n51:27\n51:28\n51:29\n51:30\n51:31\n51:32\n51:33\n51:34\n51:35\n51:36\n51:37\n51:38\n51:39\n51:40\n51:41\n51:42\n51:43\n51:44\n51:45\n51:46\n51:47\n51:48\n51:49\n51:50\n51:51\n51:52\n51:53\n51:54\n51:55\n51:56\n51:57\n51:58\n51:59\n52:00\n52:01\n52:02\n52:03\n52:04\n52:05\n52:06\n52:07\n52:08\n52:09\n52:10\n52:11\n52:12\n52:13\n52:14\n52:15\n52:16\n52:17\n52:18\n52:19\n52:20\n52:21\n52:22\n52:23\n52:24\n52:25\n52:26\n52:27\n52:28\n52:29\n52:30\n52:31\n52:32\n52:33\n52:34\n52:35\n52:36\n52:37\n52:38\n52:39\n52:40\n52:41\n52:42\n52:43\n52:44\n52:45\n52:46\n52:47\n52:48\n52:49\n52:50\n52:51\n52:52\n52:53\n52:54\n52:55\n52:56\n52:57\n52:58\n52:59\n53:00\n53:01\n53:02\n53:03\n53:04\n53:05\n53:06\n53:07\n53:08\n53:09\n53:10\n53:11\n53:12\n53:13\n53:14\n53:15\n53:16\n53:17\n53:18\n53:19\n53:20\n53:21\n53:22\n53:23\n53:24\n53:25\n53:26\n53:27\n53:28\n53:29\n53:30\n53:31\n53:32\n53:33\n53:34\n53:35\n53:36\n53:37\n53:38\n53:39\n53:40\n53:41\n53:42\n53:43\n53:44\n53:45\n53:46\n53:47\n53:48\n53:49\n53:50\n53:51\n53:52\n53:53\n53:54\n53:55\n53:56\n53:57\n53:58\n53:59\n54:00\n54:01\n54:02\n54:03\n54:04\n54:05\n54:06\n54:07\n54:08\n54:09\n54:10\n54:11\n54:12\n54:13\n54:14\n54:15\n54:16\n54:17\n54:18\n54:19\n54:20\n54:21\n54:22\n54:23\n54:24\n54:25\n54:26\n54:27\n54:28\n54:29\n54:30\n54:31\n54:32\n54:33\n54:34\n54:35\n54:36\n54:37\n54:38\n54:39\n54:40\n54:41\n54:42\n54:43\n54:44\n54:45\n54:46\n54:47\n54:48\n54:49\n54:50\n54:51\n54:52\n54:53\n54:54\n54:55\n54:56\n54:57\n54:58\n54:59\n55:00\n55:01\n55:02\n55:03\n55:04\n55:05\n55:06\n55:07\n55:08\n55:09\n55:10\n55:11\n55:12\n55:13\n55:14\n55:15\n55:16\n55:17\n55:18\n55:19\n55:20\n55:21\n55:22\n55:23\n55:24\n55:25\n55:26\n55:27\n55:28\n55:29\n55:30\n55:31\n55:32\n55:33\n55:34\n55:35\n55:36\n55:37\n55:38\n55:39\n55:40\n55:41\n55:42\n55:43\n55:44\n55:45\n55:46\n55:47\n55:48\n55:49\n55:50\n55:51\n55:52\n55:53\n55:54\n55:55\n55:56\n55:57\n55:58\n55:59\n56:00\n56:01\n56:02\n56:03\n56:04\n56:05\n56:06\n56:07\n56:08\n56:09\n56:10\n56:11\n56:12\n56:13\n56:14\n56:15\n56:16\n56:17\n56:18\n56:19\n56:20\n56:21\n56:22\n56:23\n56:24\n56:25\n56:26\n56:27\n56:28\n56:29\n56:30\n56:31\n56:32\n56:33\n56:34\n56:35\n56:36\n56:37\n56:38\n56:39\n56:40\n56:41\n56:42\n56:43\n56:44\n56:45\n56:46\n56:47\n56:48\n56:49\n56:50\n56:51\n56:52\n56:53\n56:54\n56:55\n56:56\n56:57\n56:58\n56:59\n57:00\n57:01\n57:02\n57:03\n57:04\n57:05\n57:06\n57:07\n57:08\n57:09\n57:10\n57:11\n57:12\n57:13\n57:14\n57:15\n57:16\n57:17\n57:18\n57:19\n57:20\n57:21\n57:22\n57:23\n57:24\n57:25\n57:26\n57:27\n57:28\n57:29\n57:30\n57:31\n57:32\n57:33\n57:34\n57:35\n57:36\n57:37\n57:38\n57:39\n57:40\n57:41\n57:42\n57:43\n57:44\n57:45\n57:46\n57:47\n57:48\n57:49\n57:50\n57:51\n57:52\n57:53\n57:54\n57:55\n57:56\n57:57\n57:58\n57:59\n58:00\n58:01\n58:02\n58:03\n58:04\n58:05\n58:06\n58:07\n58:08\n58:09\n58:10\n58:11\n58:12\n58:13\n58:14\n58:15\n58:16\n58:17\n58:18\n58:19\n58:20\n58:21\n58:22\n58:23\n58:24\n58:25\n58:26\n58:27\n58:28\n58:29\n58:30\n58:31\n58:32\n58:33\n58:34\n58:35\n58:36\n58:37\n58:38\n58:39\n58:40\n58:41\n58:42\n58:43\n58:44\n58:45\n58:46\n58:47\n58:48\n58:49\n58:50\n58:51\n58:52\n58:53\n58:54\n58:55\n58:56\n58:57\n58:58\n58:59\n59:00\n59:01\n59:02\n59:03\n59:04\n59:05\n59:06\n59:07\n59:08\n59:09\n59:10\n59:11\n59:12\n59:13\n59:14\n59:15\n59:16\n59:17\n59:18\n59:19\n59:20\n59:21\n59:22\n59:23\n59:24\n59:25\n59:26\n59:27\n59:28\n59:29\n59:30\n59:31\n59:32\n59:33\n59:34\n59:35\n59:36\n59:37\n59:38\n59:39\n59:40\n59:41\n59:42\n59:43\n59:44\n59:45\n59:46\n59:47\n59:48\n59:49\n59:50\n59:51\n59:52\n59:53\n59:54\n59:55\n59:56\n59:57\n59:58\n59:59"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Tableau de nombres premiers\" halts within reasonable cycles",
+      "output": "[compileAndRun]\nNombres premiers:\n2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 \nTotal: 25"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Étoiles\" halts within reasonable cycles",
+      "output": "[compileAndRun]\nStars: 64"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Test Mémoire\" halts within reasonable cycles",
+      "output": "[compileAndRun]\n=MEM 2K=\ng0=42 gf=15\nr1=57 r2=5\nPASS\n=CODE:1024=DATA:512=PILE:512=OK"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Tableau (Tri)\" halts within reasonable cycles",
+      "output": "[compileAndRun]\nAvant: 64 25 12 22 11 90 33 44 \nApres: 11 12 22 25 33 44 64 90"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Echo (Saisie)\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\nTapez:"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Compteur de lettres\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n>"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Calculatrice\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n>"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Traceur de droite\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\na="
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Démo Ultime\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== DEMO ULTIME ===\nEntrez un chiffre 0-9:"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Calculatrice Graphique\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== TI GRAPH ===\nY1 = A*(X/8)^2 + B*X + C\nA="
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Mini Shell\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== MINI SHELL RAM ===\nvars set add max min avg\n$"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"FS Disque Externe\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== FS DISQUE EXTERNE ===\nls | touch nom | cat nom | free | txt>nom\n#"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Éditeur Texte FS\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== EDITEUR TEXTE FS ===\nnotes | vide=save | /show | /clear | @ quit\n(empty)\nnotes>"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Éditeur Multi-fichier FS\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)"
+    },
+    {
+      "testName": "C Examples — Execution Properties > \"Système Solaire 255\" waits for input (does not halt without it)",
+      "output": "[compileAndRun]\n=== SOLAR 255 ===\nsun + orbiting planet\n@ quit"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Echo (Saisie)\" halts when @ is entered",
+      "output": "[compileAndRun]\nTapez:"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Compteur de lettres\" halts when @ is entered",
+      "output": "[compileAndRun]\n>"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Calculatrice\" halts when @ is entered",
+      "output": "[compileAndRun]\n>"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Traceur de droite\" halts when @ is entered",
+      "output": "[compileAndRun]\na="
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Démo Ultime\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== DEMO ULTIME ===\nEntrez un chiffre 0-9:"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Calculatrice Graphique\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== TI GRAPH ===\nY1 = A*(X/8)^2 + B*X + C\nA="
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Mini Shell\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== MINI SHELL RAM ===\nvars set add max min avg\n$"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"FS Disque Externe\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== FS DISQUE EXTERNE ===\nls | touch nom | cat nom | free | txt>nom\n#"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Éditeur Texte FS\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== EDITEUR TEXTE FS ===\nnotes | vide=save | /show | /clear | @ quit\n(empty)\nnotes>"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte"
+    },
+    {
+      "testName": "C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
+      "output": "[compileAndRun]\n=== SOLAR 255 ===\nsun + orbiting planet\n@ quit"
+    },
+    {
+      "testName": "C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader",
+      "output": "[run bootcat notes]\nNodalLinux\nroot# \nhello"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "c-plotter",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-plotter.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 475,
+      "href": "cexamples/c-plotter.png"
+    },
+    {
+      "name": "c-courbe",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-courbe.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 255,
+      "href": "cexamples/c-courbe.png"
+    },
+    {
+      "name": "c-traceur-droite",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-traceur-droite.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 255,
+      "href": "cexamples/c-traceur-droite.png"
+    },
+    {
+      "name": "c-traceur-droite-error",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-traceur-droite-error.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 0,
+      "href": "cexamples/c-traceur-droite-error.png"
+    },
+    {
+      "name": "c-cercle",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-cercle.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 7104,
+      "href": "cexamples/c-cercle.png"
+    },
+    {
+      "name": "c-clavier-f1",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f1.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 5,
+      "href": "cexamples/c-clavier-f1.png"
+    },
+    {
+      "name": "c-clavier-f2",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f2.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 4,
+      "href": "cexamples/c-clavier-f2.png"
+    },
+    {
+      "name": "c-clavier-f3",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f3.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1,
+      "href": "cexamples/c-clavier-f3.png"
+    },
+    {
+      "name": "c-clavier-f4",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-clavier-f4.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 4,
+      "href": "cexamples/c-clavier-f4.png"
+    },
+    {
+      "name": "c-spirale",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-spirale.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 3720,
+      "href": "cexamples/c-spirale.png"
+    },
+    {
+      "name": "c-etoiles",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-etoiles.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 64,
+      "href": "cexamples/c-etoiles.png"
+    },
+    {
+      "name": "c-pong-f1",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f1.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 41,
+      "href": "cexamples/c-pong-f1.png"
+    },
+    {
+      "name": "c-pong-f2",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f2.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 30,
+      "href": "cexamples/c-pong-f2.png"
+    },
+    {
+      "name": "c-pong-f3",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f3.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 10,
+      "href": "cexamples/c-pong-f3.png"
+    },
+    {
+      "name": "c-pong-f4",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-pong-f4.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 41,
+      "href": "cexamples/c-pong-f4.png"
+    },
+    {
+      "name": "c-demo-ultime",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-demo-ultime.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 666,
+      "href": "cexamples/c-demo-ultime.png"
+    },
+    {
+      "name": "c-calculatrice-graphique",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-calculatrice-graphique.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 2250,
+      "href": "cexamples/c-calculatrice-graphique.png"
+    },
+    {
+      "name": "c-systeme-solaire-255-f1",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f1.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 48,
+      "href": "cexamples/c-systeme-solaire-255-f1.png"
+    },
+    {
+      "name": "c-systeme-solaire-255-f2",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f2.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 53,
+      "href": "cexamples/c-systeme-solaire-255-f2.png"
+    },
+    {
+      "name": "c-systeme-solaire-255-f3",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f3.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 53,
+      "href": "cexamples/c-systeme-solaire-255-f3.png"
+    },
+    {
+      "name": "c-systeme-solaire-255-f4",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f4.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 52,
+      "href": "cexamples/c-systeme-solaire-255-f4.png"
+    },
+    {
+      "name": "c-systeme-solaire-255-f5",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-systeme-solaire-255-f5.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 38,
+      "href": "cexamples/c-systeme-solaire-255-f5.png"
+    },
+    {
+      "name": "c-meteo-ales",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-meteo-ales.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 10964,
+      "href": "cexamples/c-meteo-ales.png"
+    },
+    {
+      "name": "c-color-built-in",
+      "outputPath": "/Users/olivierveinand/Downloads/Simulateur Logique Nodal (1)/report/cexamples/c-color-built-in.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 3,
+      "href": "cexamples/c-color-built-in.png"
+    }
+  ]
+}
