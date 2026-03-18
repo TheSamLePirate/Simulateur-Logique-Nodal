@@ -53,6 +53,10 @@ import { MemoryView } from "./MemoryView";
 import { ConsolePanel } from "./ConsolePanel";
 import { PlotterPanel } from "./PlotterPanel";
 import { ResizablePanel } from "./ResizablePanel";
+import {
+  handleRunningKeyboardDown,
+  handleRunningKeyboardUp,
+} from "./runningKeyboard";
 
 interface EditorError {
   line: number;
@@ -442,26 +446,27 @@ export function SoftwareView({
     if (!isRunning) return;
 
     const cpu = cpuRef.current;
-    const keyMap: Record<string, number> = {
-      ArrowLeft: 0,
-      ArrowRight: 1,
-      ArrowUp: 2,
-      ArrowDown: 3,
-      Enter: 4,
-    };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      const index = keyMap[e.key];
-      if (index !== undefined) {
+      if (
+        handleRunningKeyboardDown(cpu, {
+          key: e.key,
+          altKey: e.altKey,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          target: e.target as EventTarget & {
+            tagName?: string;
+            isContentEditable?: boolean;
+          },
+        })
+      ) {
         e.preventDefault();
-        cpu.keyState[index] = 1;
       }
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
-      const index = keyMap[e.key];
-      if (index !== undefined) {
-        cpu.keyState[index] = 0;
+      if (handleRunningKeyboardUp(cpu, { key: e.key })) {
+        e.preventDefault();
       }
     };
 
@@ -538,7 +543,7 @@ export function SoftwareView({
     if (!confirmed) return;
 
     const cpu = cpuRef.current;
-    cpu.loadDriveData(getLinuxBootDiskImage());
+    cpu.loadDriveData(getLinuxBootDiskImage(true));
     syncCpuView(cpu);
   }, [syncCpuView]);
 

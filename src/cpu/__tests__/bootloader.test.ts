@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { assemble } from "../assembler";
+import { ASM_GLX_NANO_SOURCE } from "../asmGlxNano";
 import { readBootArgumentBlock } from "../bootArgs";
 import { compile } from "../compiler";
 import { CPU } from "../cpu";
-import { DRIVE_SIZE } from "../isa";
+import { CODE_SIZE, DRIVE_SIZE } from "../isa";
 import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
 import {
   BOOT_DISK_MAX_ENTRIES,
@@ -68,6 +69,24 @@ function runCpuUntil(
     cpu.step();
   }
   return predicate();
+}
+
+function countPixelsInRect(
+  cpu: CPU,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+) {
+  let count = 0;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (cpu.plotterPixels.has(encodePlotterCoord(x, y))) {
+        count++;
+      }
+    }
+  }
+  return count;
 }
 
 function bootToPrompt(disk: Uint8Array) {
@@ -545,6 +564,166 @@ describe("bootloader shell", () => {
     expect(cpu.state.halted).toBe(false);
     expect(cpu.consoleOutput.join("")).not.toContain("NEED LETTERS DIGITS");
     expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+  });
+
+  it("keeps glxnano under the 4K code limit", () => {
+    const asm = assemble(ASM_GLX_NANO_SOURCE);
+    expect(asm.success).toBe(true);
+    expect(asm.bytes.length).toBeLessThan(CODE_SIZE);
+  });
+
+  it("runs glxnano from the bundled disk and saves edits back to the target file", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "editme",
+      Uint8Array.from(Array.from("abc").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const result = runBootInput(
+      disk,
+      `run glxnano editme\nX${String.fromCharCode(92)}@`,
+      600_000,
+    );
+    const saved = readBootDiskEntries(result.cpu.driveData).find((entry) => entry.name === "editme");
+
+    expect(result.cpu.state.halted).toBe(true);
+    expect(saved).toBeDefined();
+    expect(
+      String.fromCharCode(
+        ...Array.from(saved!.bytes.slice(0, saved!.sizeBytes)),
+      ),
+    ).toBe("Xabc");
+    expect(result.cpu.plotterPixels.size).toBeGreaterThan(0);
+  });
+
+  it("draws straight vertical frame borders in glxnano", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "frameui",
+      Uint8Array.from(Array.from("hello").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = bootToPrompt(disk);
+    sendShellCommand(cpu, "run glxnano frameui");
+    expect(
+      runCpuUntil(
+        cpu,
+        () => cpu.plotterPixels.size > 0 && cpu.state.memory[0x1009] === 0,
+        600_000,
+      ),
+    ).toBe(true);
+
+    expect(cpu.plotterPixels.has(encodePlotterCoord(0, 100))).toBe(true);
+    expect(cpu.plotterPixels.has(encodePlotterCoord(255, 100))).toBe(true);
+  });
+
+  it("accepts immediate typed characters and Enter while glxnano is running", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "editln",
+      Uint8Array.from(Array.from("abc").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const result = runBootInput(
+      disk,
+      `run glxnano editln\nX\nY${String.fromCharCode(92)}@`,
+      800_000,
+    );
+    const saved = readBootDiskEntries(result.cpu.driveData).find((entry) => entry.name === "editln");
+
+    expect(result.cpu.state.halted).toBe(true);
+    expect(saved).toBeDefined();
+    expect(
+      String.fromCharCode(
+        ...Array.from(saved!.bytes.slice(0, saved!.sizeBytes)),
+      ),
+    ).toBe("X\nYabc");
+  });
+
+  it("moves immediately on arrow key presses inside glxnano", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "editmv",
+      Uint8Array.from(Array.from("abc").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = bootToPrompt(disk);
+    sendShellCommand(cpu, "run glxnano editmv");
+    expect(
+      runCpuUntil(
+        cpu,
+        () => cpu.plotterPixels.size > 0 && cpu.state.memory[0x1009] === 0,
+        600_000,
+      ),
+    ).toBe(true);
+
+    cpu.keyState[1] = 1;
+    cpu.run(5_000);
+    cpu.keyState[1] = 0;
+    cpu.keyState[1] = 1;
+    cpu.run(5_000);
+    cpu.keyState[1] = 0;
+
+    for (const ch of `Z${String.fromCharCode(92)}@`) {
+      cpu.pushInput(ch.charCodeAt(0));
+    }
+    cpu.run(800_000);
+
+    const saved = readBootDiskEntries(cpu.driveData).find((entry) => entry.name === "editmv");
+    expect(cpu.state.halted).toBe(true);
+    expect(saved).toBeDefined();
+    expect(
+      String.fromCharCode(
+        ...Array.from(saved!.bytes.slice(0, saved!.sizeBytes)),
+      ),
+    ).toBe("aZbc");
+  });
+
+  it("toggles zoom with Tab and theme with & inside glxnano", () => {
+    let disk = getLinuxBootDiskImage();
+    disk = writeFileToBootDisk(
+      disk,
+      "editui",
+      Uint8Array.from(Array.from("hello").map((ch) => ch.charCodeAt(0))),
+    );
+
+    const cpu = bootToPrompt(disk);
+    sendShellCommand(cpu, "run glxnano editui");
+    expect(
+      runCpuUntil(
+        cpu,
+        () => cpu.plotterPixels.size > 0 && cpu.state.memory[0x1009] === 0,
+        600_000,
+      ),
+    ).toBe(true);
+
+    cpu.pushInput(9);
+    expect(
+      runCpuUntil(
+        cpu,
+        () =>
+          cpu.state.memory[0x100A] === 1 && cpu.state.memory[0x1009] === 0,
+        1_200_000,
+      ),
+    ).toBe(true);
+    expect(countPixelsInRect(cpu, 8, 52, 250, 220)).toBeGreaterThan(0);
+
+    cpu.pushInput("&".charCodeAt(0));
+    expect(
+      runCpuUntil(cpu, () => cpu.state.memory[0x100B] === 1 && cpu.state.memory[0x1009] === 0, 600_000),
+    ).toBe(true);
+    expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+  });
+
+  it("prints a helpful message when glxnano is launched without a file argument", () => {
+    const result = runBootCommand(getLinuxBootDiskImage(), "run glxnano");
+
+    expect(result.output).toContain("RUN GLXNANO FILE");
+    expect(result.cpu.state.halted).toBe(true);
   });
 
   it("runs bundled wget against a URL file", async () => {

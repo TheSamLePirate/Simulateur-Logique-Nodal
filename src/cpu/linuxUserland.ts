@@ -5,6 +5,7 @@ import {
   BOOT_ARG0_TYPE_ADDR,
 } from "./bootArgs";
 import { ASM_FS_EDITOR_SOURCE } from "./asmFsEditor";
+import { ASM_GLX_NANO_SOURCE } from "./asmGlxNano";
 import { ASM_PLOTTER_SHELL_SOURCE } from "./asmPlotterShell";
 
 export interface LinuxUserlandProgram {
@@ -1164,6 +1165,12 @@ export const LINUX_USERLAND_PROGRAMS: LinuxUserlandProgram[] = [
     name: "nano",
     description: "Editeur texte plein ecran ASM pour les fichiers du disque partage",
     code: ASM_FS_EDITOR_SOURCE,
+  },
+  {
+    exampleName: "Linux - glxnano",
+    name: "glxnano",
+    description: "Editeur texte plotter avec zoom, themes et sauvegarde directe du fichier argument",
+    code: ASM_GLX_NANO_SOURCE,
   },
   {
     exampleName: "Linux - glxsh",

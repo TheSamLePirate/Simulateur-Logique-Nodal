@@ -867,8 +867,8 @@ export function getBootloaderImage(): BootloaderImage {
   return bootloaderCache;
 }
 
-export function getLinuxBootDiskImage(): Uint8Array {
-  if (linuxDiskCache) return Uint8Array.from(linuxDiskCache);
+export function getLinuxBootDiskImage(forceRebuild = false): Uint8Array {
+  if (!forceRebuild && linuxDiskCache) return Uint8Array.from(linuxDiskCache);
 
   let disk = formatBootDisk();
 
