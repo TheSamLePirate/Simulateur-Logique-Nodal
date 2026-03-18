@@ -106,12 +106,14 @@ You can use variables, functions, loops, conditions, arrays, and some built-ins.
 
 You cannot use pointers, structs, floats, or the standard C library.
 
-### Rule 4: `print` only prints string literals
+### Rule 4: `print` prints text, not numbers
 
 This works:
 
 ```c
 print("Score: ");
+string msg = "OK";
+print(msg);
 ```
 
 Use `print_num(x)` to print numbers.
@@ -499,6 +501,9 @@ for (i = 0; i < 8; i++) {
 - Array initializers are supported and fill any missing trailing elements with `0`
 - Use `arr[index]`, not just `arr`
 - Arrays cannot be used like pointer values
+- Array sizes must be constant integers
+- Fixed-size array parameters require a declared array name as the argument
+- Array parameters are copied into the callee and copied back on return
 - `string name = "hello";` creates a zero-terminated array, so `name[0]` is `'h'`
 - There is no automatic bounds checking: `arr[99]` will compile and may corrupt nearby memory
 
@@ -563,7 +568,8 @@ Important string limits:
 - `string name = "text";` must be initialized immediately with a string literal
 - `string` storage size is exactly the literal length plus the final `0`
 - `string msg = "hello"; msg = "bye";` is not supported
-- there is no automatic concatenation, copy helper, or length helper
+- there is no automatic concatenation or copy helper
+- use `array_len(...)` for capacity and `string_len(...)` for current runtime length
 - index operations are not bounds-checked
 
 ---
@@ -1047,19 +1053,26 @@ The language runs on a very small machine, so programs must fit inside its memor
 
 - Every `int` is `0..255`
 - Arithmetic wraps around at 8 bits
+- Comparisons are unsigned
+- Character data is also stored as 8-bit integers
 
 ### Memory limits
 
-- Code area: about `1024` bytes of assembled code
+- Code area: about `4096` bytes of assembled code
 - Global storage: `16` bytes total
   This includes both normal global variables and global arrays.
-- Local variables and parameters: fixed addresses in RAM
-- Stack: `512` bytes total
+- Compiler scratch: `0x1010-0x1017`
+- Boot argument block: `0x1018-0x101F`
+- Function frame area: `0x1020-0x17FF`
+- Stack: `2048` bytes total (`0x1800-0x1FFF`)
 
 ### Practical consequences
 
 - Large programs may fail to compile or assemble if they are too big
 - Large global arrays quickly fill the global area
+- Arrays and strings are not bounds-checked, so invalid indexes can overwrite nearby variables
+- `print(buf)` and `string_len(buf)` stop only at the first `0`, so unterminated buffers may print garbage
+- Array parameters are fixed-size copies, so passing large arrays to helper functions costs time and frame space
 - Deep recursion can overflow the stack
 - Expensive operations like `*`, `/`, `%`, `&`, `|`, `^`, `<<`, `>>` may be slower than on a normal CPU
 
@@ -1074,15 +1087,20 @@ The following features are not part of this language:
 - floats
 - `char`, `short`, `long`
 - the standard C library
+- dynamic allocation (`malloc`, `free`)
 - `switch`
 - `sizeof`
 - function pointer syntax
 - multi-dimensional arrays
 Also keep in mind:
 
-- `print` is only for string literals
+- `print` only handles string literals and zero-terminated buffers
 - array sizes must be constant integers
 - arrays are not general pointer values; only declared arrays can be passed to fixed-size array parameters
+- `string` variables must be initialized from a string literal at declaration time
+- whole-array and whole-string assignment are not supported
+- string concatenation is not built in
+- string literals are not general expression values, so use `'A'` for one character and `print("text")` for direct text output
 
 ---
 

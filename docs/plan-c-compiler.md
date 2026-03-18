@@ -61,6 +61,17 @@ The existing assembler, CPU, and hardware simulator are **untouched** — the C 
 ### NOT Supported
 - Pointers, structs, full pointer-style strings, switch/case, float, 2D arrays
 
+### Known Limitations
+- `int` is always an unsigned 8-bit value, so arithmetic wraps at `255`
+- Arrays and strings have no automatic bounds checking
+- `string` must be initialized from a string literal at declaration time
+- Whole-string and whole-array assignment are not supported
+- String concatenation is not built in
+- `print(buf)` and `string_len(buf)` rely on a terminating `0`
+- Fixed-size array parameters are implemented as copy-in/copy-out, not raw pointer passing
+- Global data is limited to `16` bytes total at `0x1000-0x100F`
+- Deep recursion can still overflow the stack even though ordinary helper calls are lighter now
+
 ---
 
 ## Files Created (5 files)

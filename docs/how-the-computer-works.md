@@ -758,6 +758,22 @@ int main() {
 
 Right now these functions only accept string literals, because this tiny C dialect does not yet support normal pointer-based strings.
 
+### Current C Language Limitations
+
+The simulator C compiler is intentionally small, so a few constraints matter in practice:
+
+- all `int` values are unsigned 8-bit values (`0..255`) with wraparound
+- arrays and strings are not bounds-checked, so `arr[i]` and `msg[i]` can overwrite nearby memory
+- strings are fixed-size zero-terminated arrays; they must be initialized from a string literal at declaration time
+- whole-string and whole-array assignment are not supported
+- string concatenation is not built in; you must append manually into a buffer with spare capacity and write the final `0` yourself
+- `print(buf)` and `string_len(buf)` read until the first `0`, so malformed or unterminated buffers may print garbage
+- fixed-size array parameters use copy-in/copy-out semantics rather than pointer passing, which costs both time and frame space
+- globals are limited to the `0x1000-0x100F` region, so large global arrays quickly exhaust available global RAM
+- recursion is supported, but deep recursion can still overflow the `0x1800-0x1FFF` stack
+
+Features still outside the language include pointers, structs, `switch`, `sizeof`, dynamic allocation, and multi-dimensional arrays.
+
 Under the hood, `getchar()` compiles to a busy-wait loop:
 
 ```asm
