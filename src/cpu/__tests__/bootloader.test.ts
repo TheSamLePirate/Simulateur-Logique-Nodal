@@ -684,15 +684,8 @@ describe("bootloader shell", () => {
   });
 
   it("toggles zoom with Tab and theme with & inside glxnano", () => {
-    let disk = getLinuxBootDiskImage();
-    disk = writeFileToBootDisk(
-      disk,
-      "editui",
-      Uint8Array.from(Array.from("hello").map((ch) => ch.charCodeAt(0))),
-    );
-
-    const cpu = bootToPrompt(disk);
-    sendShellCommand(cpu, "run glxnano editui");
+    const cpu = bootToPrompt(getLinuxBootDiskImage());
+    sendShellCommand(cpu, "run glxnano readme");
     expect(
       runCpuUntil(
         cpu,
@@ -702,16 +695,27 @@ describe("bootloader shell", () => {
     ).toBe(true);
 
     cpu.pushInput(9);
-    expect(
-      runCpuUntil(
-        cpu,
-        () =>
-          cpu.state.memory[0x100A] === 1 && cpu.state.memory[0x1009] === 0,
-        1_200_000,
-      ),
-    ).toBe(true);
-    expect(countPixelsInRect(cpu, 8, 52, 250, 220)).toBeGreaterThan(0);
+    let sawZoomRedraw = false;
+    let zoomSettled = false;
+    for (let i = 0; i < 1_200_000 && !cpu.state.halted; i++) {
+      if (cpu.state.memory[0x100A] === 1 && cpu.state.memory[0x1009] === 1) {
+        sawZoomRedraw = true;
+      }
+      if (
+        sawZoomRedraw
+        && cpu.state.memory[0x100A] === 1
+        && cpu.state.memory[0x1009] === 0
+      ) {
+        zoomSettled = true;
+        break;
+      }
+      cpu.step();
+    }
 
+    expect(zoomSettled).toBe(true);
+    expect(cpu.state.memory[0x100A]).toBe(1);
+    expect(countPixelsInRect(cpu, 8, 56, 250, 220)).toBeGreaterThan(0);
+    expect(countPixelsInRect(cpu, 8, 8, 250, 24)).toBeGreaterThan(0);
     cpu.pushInput("&".charCodeAt(0));
     expect(
       runCpuUntil(cpu, () => cpu.state.memory[0x100B] === 1 && cpu.state.memory[0x1009] === 0, 600_000),

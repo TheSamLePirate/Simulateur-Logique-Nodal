@@ -70,6 +70,8 @@ export const ASM_GLX_NANO_SOURCE = `; glxnano - editeur plotter compact
 ; 0x1034 = scaled base / punct x
 ; 0x1035 = scaled off / punct y
 ; 0x1036 = scaled result
+; 0x1038 = scaled base temp
+; 0x1039 = scaled off temp
 ; 0x1040 = buffer insertion
 ; 0x1100 = buffer texte
 
@@ -894,13 +896,13 @@ load_done:
 
 redraw:
   CLR
+  CALL set_metrics
+  CALL draw_text_area
   CALL draw_frame
   CALL set_ui_scale
   CALL draw_title
   CALL draw_file_bar
   CALL draw_status_bar
-  CALL set_metrics
-  CALL draw_text_area
   CALL draw_help_bar
   CALL set_metrics
   RET
@@ -1527,12 +1529,14 @@ punct_one:
   LDM 0x1010
   LBM 0x1033
   CALL scaled_add
-  PUSH
+  STA 0x101A
   LDM 0x1011
   LBM 0x1034
   CALL scaled_add
+  STA 0x101B
+  LDM 0x101B
   TAB
-  POP
+  LDM 0x101A
   CALL plot_scaled_pixel
   RET
 
@@ -1578,12 +1582,14 @@ glyph_check:
   LDM 0x1010
   LBM 0x1033
   CALL scaled_add
-  PUSH
+  STA 0x101A
   LDM 0x1011
   LBM 0x1031
   CALL scaled_add
+  STA 0x101B
+  LDM 0x101B
   TAB
-  POP
+  LDM 0x101A
   CALL plot_scaled_pixel
 glyph_skip_pixel:
   LDM 0x1033
@@ -1640,19 +1646,20 @@ mul5:
   RET
 
 scaled_add:
-  STA 0x1034
+  STA 0x1038
   TBA
-  STA 0x1035
-  LDM 0x1034
+  STA 0x1039
+  LDM 0x1038
   TAB
-  LDM 0x1035
+  LDM 0x1039
   ADDB
   STA 0x1036
   LDM 0x1025
   CMP 1
   JZ scaled_add_done
+  LDM 0x1036
   TAB
-  LDM 0x1035
+  LDM 0x1039
   ADDB
   STA 0x1036
 scaled_add_done:
