@@ -110,13 +110,13 @@ They will be welcomed, appreciated, and only laughed at **with affection** if th
 
 Créé par **TheSamLePirate**.
 
-Un petit laboratoire informatique compréhensible en TypeScript.
+Un petit laboratoire d'informatique compréhensible écrit en TypeScript.
 
-Bienvenue dans cette salle de classe / laboratoire / catastrophe de garage où l'on commence avec de minuscules mensonges électriques appelés bits, on les câble en logique, on les brutalise jusqu'à ce qu'ils deviennent un ordinateur 8 bits, puis on force cet ordinateur à exécuter de l'ASM, du mini C, un bootloader et un minuscule disque façon Linux.
+Bienvenue dans ce cours de sciences un peu douteux où l'on part de petits mensonges électriques appelés bits, on les visse ensemble à coups de logique, on les menace gentiment jusqu'à ce qu'ils deviennent un vrai petit ordinateur 8 bits, puis on lui fait exécuter de l'ASM, du mini C, un bootloader et un petit disque façon Linux.
 
 Oui, c'est pédagogique.
-Oui, c'est un peu dérangé.
-Oui, c'est exactement la bonne quantité de dérangement.
+Oui, c'est légèrement inquiétant.
+Oui, c'est exactement le bon niveau d'inquiétude.
 
 À l'intérieur de la machine :
 
@@ -128,17 +128,17 @@ Oui, c'est exactement la bonne quantité de dérangement.
 - on démarre un petit disque façon Linux
 
 Si vous aimez le C, vous aimerez probablement mon mini C.
-Si vous avez peur du C, c'est peut-être l'endroit le plus sûr pour vous faire mordre par lui.
+Si vous avez peur du C, c'est probablement l'endroit le plus sûr pour vous faire mordre par lui.
 
-C'est petit, un peu strict, un peu rétro, et juste assez dangereux pour vous rappeler pourquoi les buffer overflows ont eu une carrière aussi glorieuse.
+C'est petit, un peu strict, un peu rétro, et juste assez dangereux pour vous rappeler pourquoi les buffer overflows ont longtemps été un mode de vie.
 
-Vous vous souvenez de l'époque où afficher une seule lettre à l'écran ressemblait à une petite crise émotionnelle ?
+Vous vous souvenez de l'époque où afficher une seule lettre à l'écran relevait déjà du combat de boss ?
 
-Vous vous souvenez quand votre plus grand nombre respectable était `255` ?
+Vous vous souvenez quand votre plus grand nombre sérieux, adulte, responsable, c'était `255` ?
 
-Vous vous souvenez quand la division n'était qu'une soustraction répétée avec une fausse moustache ?
+Vous vous souvenez quand une division, au fond, c'était juste une soustraction répétée avec beaucoup d'aplomb ?
 
-Et qui utilise encore le modulo, franchement, à part absolument tout le monde dès qu'on parle de pixels, de boucles, de compteurs, d'horloges, de débordements ou de chaos ?
+Et puis franchement, qui utilise encore le modulo... à part absolument tout le monde dès qu'on touche à des pixels, des boucles, des compteurs, des horloges, des débordements ou au chaos en général ?
 
 ## Pourquoi ce dépôt est amusant
 
@@ -149,7 +149,7 @@ Et qui utilise encore le modulo, franchement, à part absolument tout le monde d
 - le compilateur mini C est réel
 - oui, il y a même du HTTP
 
-C'est en gros un ordinateur de 1983 qui a bu trop de café et appris le TypeScript.
+C'est en gros un ordinateur de 1983 qui a bu trop de café et découvert le TypeScript.
 
 ## Essayer en ligne
 
@@ -171,7 +171,7 @@ Ensuite :
 3. essayez un petit programme en C
 4. démarrez le bootloader
 5. installez le disque Linux
-6. lancez de petits programmes bizarres avec joie
+6. lancez de petits programmes bizarres avec un bonheur tout à fait raisonnable
 
 ## Tests et rapport
 
@@ -204,7 +204,7 @@ Vous obtenez un tableau de bord de test avec :
 
 Les issues ne seront pas moquées.
 
-Elles seront accueillies, appréciées, et seulement moquées **avec affection** si le bug est particulièrement créatif.
+Elles seront accueillies, appréciées, et seulement taquinées **avec affection** si le bug est particulièrement inventif.
 
 ## Dépôt
 
