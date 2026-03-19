@@ -78,6 +78,7 @@ export default function App() {
   const [hwCpuHalted, setHwCpuHalted] = useState(false);
   const [hwRunSpeed, setHwRunSpeed] = useState(10);
   const hwRunIntervalRef = useRef<number | null>(null);
+  const pendingHardwareSyncRef = useRef<HardwareSyncData | null>(null);
 
   // Derive clock frequency from clock node (used to pace the hardware CPU run loop)
   const hwClockFreq = useMemo(() => {
@@ -1135,16 +1136,10 @@ export default function App() {
   // =============================================
   //  SOFTWARE → HARDWARE SYNC
   // =============================================
-  const handleHardwareSync = useCallback(
+  const applyHardwareSync = useCallback(
     (data: HardwareSyncData) => {
       const toBits = (val: number, bits = 8) =>
         Array.from({ length: bits }, (_, i) => (val & (1 << i) ? 1 : 0));
-      const hwCpu = hwCpuRef.current;
-
-      hwCpu.loadDriveData(data.driveData);
-      hwCpu.driveLastAddr = data.driveLastAddr;
-      hwCpu.driveLastRead = data.driveLastRead & 0xff;
-      hwCpu.driveLastWrite = data.driveLastWrite & 0xff;
 
       setNodes((nds) =>
         nds.map((node) => {
@@ -1254,6 +1249,34 @@ export default function App() {
     },
     [setNodes],
   );
+
+  const handleHardwareSync = useCallback(
+    (data: HardwareSyncData) => {
+      pendingHardwareSyncRef.current = data;
+      const hwCpu = hwCpuRef.current;
+      hwCpu.loadDriveData(data.driveData);
+      hwCpu.driveLastAddr = data.driveLastAddr;
+      hwCpu.driveLastRead = data.driveLastRead & 0xff;
+      hwCpu.driveLastWrite = data.driveLastWrite & 0xff;
+
+      if (activeTab !== "hardware") {
+        return;
+      }
+
+      applyHardwareSync(data);
+    },
+    [activeTab, applyHardwareSync],
+  );
+
+  useEffect(() => {
+    if (activeTab !== "hardware") {
+      return;
+    }
+    if (!pendingHardwareSyncRef.current) {
+      return;
+    }
+    applyHardwareSync(pendingHardwareSyncRef.current);
+  }, [activeTab, applyHardwareSync]);
 
   // =============================================
   //  HARDWARE CPU – program load & execution

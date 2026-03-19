@@ -922,17 +922,34 @@ export function bootCpuToShell(
   options: {
     preserveConsole?: boolean;
     preservePlotter?: boolean;
+    preserveNetwork?: boolean;
     maxSteps?: number;
   } = {},
 ): boolean {
   const {
     preserveConsole = true,
     preservePlotter = false,
+    preserveNetwork = false,
     maxSteps = 200000,
   } = options;
   const previousConsole = preserveConsole ? [...cpu.consoleOutput] : [];
   const previousPlotterPixels = preservePlotter ? new Map(cpu.plotterPixels) : null;
   const previousPlotterColor = preservePlotter ? { ...cpu.plotterColor } : null;
+  const previousNetwork = preserveNetwork
+    ? {
+        lastMethod: cpu.httpLastMethod,
+        lastUrl: cpu.httpLastUrl,
+        lastBody: cpu.httpLastBody,
+        lastStatus: cpu.httpLastStatus,
+        completedMethod: cpu.httpCompletedMethod,
+        completedUrl: cpu.httpCompletedUrl,
+        completedBody: cpu.httpCompletedBody,
+        completedStatus: cpu.httpCompletedStatus,
+        completedResponseText: cpu.httpCompletedResponseText,
+        history: [...cpu.httpHistory],
+        revision: cpu.networkRevision,
+      }
+    : null;
   if (
     preserveConsole &&
     previousConsole.length > 0 &&
@@ -949,6 +966,19 @@ export function bootCpuToShell(
   if (preservePlotter && previousPlotterPixels && previousPlotterColor) {
     cpu.plotterPixels = previousPlotterPixels;
     cpu.plotterColor = previousPlotterColor;
+  }
+  if (preserveNetwork && previousNetwork) {
+    cpu.httpLastMethod = previousNetwork.lastMethod;
+    cpu.httpLastUrl = previousNetwork.lastUrl;
+    cpu.httpLastBody = previousNetwork.lastBody;
+    cpu.httpLastStatus = previousNetwork.lastStatus;
+    cpu.httpCompletedMethod = previousNetwork.completedMethod;
+    cpu.httpCompletedUrl = previousNetwork.completedUrl;
+    cpu.httpCompletedBody = previousNetwork.completedBody;
+    cpu.httpCompletedStatus = previousNetwork.completedStatus;
+    cpu.httpCompletedResponseText = previousNetwork.completedResponseText;
+    cpu.httpHistory = previousNetwork.history;
+    cpu.networkRevision = previousNetwork.revision + 1;
   }
   cpu.loadProgram(image.bytes, image.startAddr);
 

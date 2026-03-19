@@ -1,0 +1,42 @@
+import type { MemoryLayout } from "../../cpu/compiler";
+import type { HttpHistoryEntry } from "../../cpu/cpu";
+import type { CPUState } from "../../cpu/isa";
+import type { PlotterColor, PlotterPixels } from "../../plotter";
+
+export interface ComputerPanelData {
+  state: CPUState;
+  consoleOutput: string[];
+  consoleInputBuffer: number[];
+  plotterPixels: PlotterPixels;
+  plotterColor: PlotterColor;
+  keyState: number[];
+  driveData: Uint8Array;
+  drivePage: number;
+  driveLastAddr: number;
+  driveLastRead: number;
+  driveLastWrite: number;
+  networkMethod: "GET" | "POST";
+  networkUrl: string;
+  networkBody: string;
+  networkStatus: string;
+  networkPending: boolean;
+  networkResponseBuffer: number[];
+  networkLastByte: number;
+  networkCompletedMethod: "GET" | "POST";
+  networkCompletedUrl: string;
+  networkCompletedBody: string;
+  networkCompletedStatus: string;
+  networkCompletedResponseText: string;
+  networkHistory: HttpHistoryEntry[];
+  lastOpcode: number;
+  lastOperand: number;
+  clockBit: number;
+  randSeed: number;
+  randCounter: number;
+  sleepCounter: number;
+  assembled: boolean;
+  isRunning: boolean;
+  useBootloader: boolean;
+  memLayout: MemoryLayout | null;
+  codeSize: number;
+}

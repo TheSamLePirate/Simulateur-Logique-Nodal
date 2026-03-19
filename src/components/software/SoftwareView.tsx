@@ -3,6 +3,7 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useMemo,
   type ChangeEvent,
 } from "react";
 import {
@@ -53,6 +54,8 @@ import { MemoryView } from "./MemoryView";
 import { ConsolePanel } from "./ConsolePanel";
 import { PlotterPanel } from "./PlotterPanel";
 import { ResizablePanel } from "./ResizablePanel";
+import { ComputerPanel } from "./ComputerPanel";
+import type { ComputerPanelData } from "./computerPanelTypes";
 import {
   handleRunningKeyboardDown,
   handleRunningKeyboardUp,
@@ -80,9 +83,15 @@ export interface HardwareSyncData {
   networkMethod: "GET" | "POST";
   networkUrl: string;
   networkBody: string;
+  networkStatus: string;
   networkPending: boolean;
   networkResponseBuffer: number[];
   networkLastByte: number;
+  networkCompletedMethod: "GET" | "POST";
+  networkCompletedUrl: string;
+  networkCompletedBody: string;
+  networkCompletedStatus: string;
+  networkCompletedResponseText: string;
   halted: boolean;
 }
 
@@ -119,6 +128,48 @@ export function SoftwareView({
   const [plotterColor, setPlotterColor] = useState<PlotterColor>(
     DEFAULT_PLOTTER_COLOR,
   );
+  const [consoleInputBuffer, setConsoleInputBuffer] = useState<number[]>([]);
+  const [keyStateSnapshot, setKeyStateSnapshot] = useState<number[]>([
+    0, 0, 0, 0, 0,
+  ]);
+  const [driveDataSnapshot, setDriveDataSnapshot] = useState<Uint8Array>(
+    () => cpuRef.current.exportDriveData(),
+  );
+  const [driveStateSnapshot, setDriveStateSnapshot] = useState({
+    page: 0,
+    lastAddr: 0,
+    lastRead: 0,
+    lastWrite: 0,
+  });
+  const [networkSnapshot, setNetworkSnapshot] = useState<{
+    method: "GET" | "POST";
+    url: string;
+    body: string;
+    status: string;
+    pending: boolean;
+    responseBuffer: number[];
+    lastByte: number;
+    completedMethod: "GET" | "POST";
+    completedUrl: string;
+    completedBody: string;
+    completedStatus: string;
+    completedResponseText: string;
+    history: import("../../cpu/cpu").HttpHistoryEntry[];
+  }>({
+    method: "GET",
+    url: "",
+    body: "",
+    status: "Idle",
+    pending: false,
+    responseBuffer: [],
+    lastByte: 0,
+    completedMethod: "GET",
+    completedUrl: "",
+    completedBody: "",
+    completedStatus: "",
+    completedResponseText: "",
+    history: [],
+  });
 
   // Source map for line highlighting (ASM line → PC mapping)
   const sourceMapRef = useRef<Map<number, number>>(new Map());
@@ -134,6 +185,16 @@ export function SoftwareView({
   const [compiledProgramBytes, setCompiledProgramBytes] = useState<number[] | null>(
     null,
   );
+  const [runtimePanelMode, setRuntimePanelMode] = useState<"computer" | "classic">(
+    "computer",
+  );
+  const keyStateSnapshotRef = useRef<number[]>([0, 0, 0, 0, 0]);
+  const consoleRevisionRef = useRef(cpuRef.current.consoleRevision);
+  const plotterRevisionRef = useRef(cpuRef.current.plotterRevision);
+  const inputRevisionRef = useRef(cpuRef.current.inputRevision);
+  const networkRevisionRef = useRef(cpuRef.current.networkRevision);
+  const driveContentRevisionRef = useRef(cpuRef.current.driveContentRevision);
+  const driveStateRevisionRef = useRef(cpuRef.current.driveStateRevision);
 
   // Derived: active code based on language
   const code = language === "c" ? cCode : asmCode;
@@ -148,9 +209,67 @@ export function SoftwareView({
   const syncCpuView = useCallback(
     (cpu: CPU) => {
       setCpuState(cpu.snapshot());
-      setConsoleOutput([...cpu.consoleOutput]);
-      setPlotterPixels(new Map(cpu.plotterPixels));
-      setPlotterColor({ ...cpu.plotterColor });
+
+      if (consoleRevisionRef.current !== cpu.consoleRevision) {
+        consoleRevisionRef.current = cpu.consoleRevision;
+        setConsoleOutput([...cpu.consoleOutput]);
+      }
+
+      if (plotterRevisionRef.current !== cpu.plotterRevision) {
+        plotterRevisionRef.current = cpu.plotterRevision;
+        setPlotterPixels(new Map(cpu.plotterPixels));
+        setPlotterColor({ ...cpu.plotterColor });
+      }
+
+      if (inputRevisionRef.current !== cpu.inputRevision) {
+        inputRevisionRef.current = cpu.inputRevision;
+        setConsoleInputBuffer([...cpu.consoleInputBuffer]);
+      }
+
+      if (
+        keyStateSnapshotRef.current.length !== cpu.keyState.length ||
+        keyStateSnapshotRef.current.some(
+          (value, index) => value !== cpu.keyState[index],
+        )
+      ) {
+        const nextKeyState = [...cpu.keyState];
+        keyStateSnapshotRef.current = nextKeyState;
+        setKeyStateSnapshot(nextKeyState);
+      }
+
+      if (driveContentRevisionRef.current !== cpu.driveContentRevision) {
+        driveContentRevisionRef.current = cpu.driveContentRevision;
+        setDriveDataSnapshot(cpu.exportDriveData());
+      }
+
+      if (driveStateRevisionRef.current !== cpu.driveStateRevision) {
+        driveStateRevisionRef.current = cpu.driveStateRevision;
+        setDriveStateSnapshot({
+          page: cpu.drivePage,
+          lastAddr: cpu.driveLastAddr,
+          lastRead: cpu.driveLastRead,
+          lastWrite: cpu.driveLastWrite,
+        });
+      }
+
+      if (networkRevisionRef.current !== cpu.networkRevision) {
+        networkRevisionRef.current = cpu.networkRevision;
+        setNetworkSnapshot({
+          method: cpu.httpLastMethod,
+          url: cpu.httpLastUrl,
+          body: cpu.httpLastBody,
+          status: cpu.httpLastStatus,
+          pending: cpu.httpPending,
+          responseBuffer: [...cpu.httpResponseBuffer],
+          lastByte: cpu.httpLastByte,
+          completedMethod: cpu.httpCompletedMethod,
+          completedUrl: cpu.httpCompletedUrl,
+          completedBody: cpu.httpCompletedBody,
+          completedStatus: cpu.httpCompletedStatus,
+          completedResponseText: cpu.httpCompletedResponseText,
+          history: [...cpu.httpHistory],
+        });
+      }
 
       onHardwareSync?.({
         pc: cpu.state.pc,
@@ -169,14 +288,32 @@ export function SoftwareView({
         networkMethod: cpu.httpLastMethod,
         networkUrl: cpu.httpLastUrl,
         networkBody: cpu.httpLastBody,
+        networkStatus: cpu.httpLastStatus,
         networkPending: cpu.httpPending,
         networkResponseBuffer: [...cpu.httpResponseBuffer],
         networkLastByte: cpu.httpLastByte,
+        networkCompletedMethod: cpu.httpCompletedMethod,
+        networkCompletedUrl: cpu.httpCompletedUrl,
+        networkCompletedBody: cpu.httpCompletedBody,
+        networkCompletedStatus: cpu.httpCompletedStatus,
+        networkCompletedResponseText: cpu.httpCompletedResponseText,
         halted: cpu.state.halted,
       });
     },
     [onHardwareSync],
   );
+
+  useEffect(() => {
+    const cpu = cpuRef.current;
+    cpu.onExternalStateChange = () => {
+      syncCpuView(cpu);
+    };
+    return () => {
+      if (cpu.onExternalStateChange) {
+        cpu.onExternalStateChange = undefined;
+      }
+    };
+  }, [syncCpuView]);
 
   // ─── Language toggle ───
   const handleLanguageChange = useCallback(
@@ -209,7 +346,10 @@ export function SoftwareView({
 
       cpu.reset();
       cpu.loadProgram(image.bytes, image.startAddr);
-      const booted = bootCpuToShell(cpu, { preserveConsole });
+      const booted = bootCpuToShell(cpu, {
+        preserveConsole,
+        preserveNetwork: true,
+      });
       syncCpuView(cpu);
       onProgramLoaded?.(image);
       return booted;
@@ -336,7 +476,11 @@ export function SoftwareView({
     cpu.step();
 
     if (cpu.state.halted && useBootloader) {
-      bootCpuToShell(cpu, { preserveConsole: true, preservePlotter: true });
+      bootCpuToShell(cpu, {
+        preserveConsole: true,
+        preservePlotter: true,
+        preserveNetwork: true,
+      });
       syncCpuView(cpu);
       return;
     }
@@ -374,6 +518,7 @@ export function SoftwareView({
         !bootCpuToShell(cpuRef.current, {
           preserveConsole: true,
           preservePlotter: true,
+          preserveNetwork: true,
         })
       ) {
         return;
@@ -403,7 +548,11 @@ export function SoftwareView({
         if (!cpu.step()) {
           if (
             useBootloader &&
-            bootCpuToShell(cpu, { preserveConsole: true, preservePlotter: true })
+            bootCpuToShell(cpu, {
+              preserveConsole: true,
+              preservePlotter: true,
+              preserveNetwork: true,
+            })
           ) {
             break;
           }
@@ -437,9 +586,11 @@ export function SoftwareView({
 
   // ─── Console clear ───
   const handleClearConsole = useCallback(() => {
-    cpuRef.current.consoleOutput = [];
-    setConsoleOutput([]);
-  }, []);
+    const cpu = cpuRef.current;
+    cpu.consoleOutput = [];
+    cpu.consoleRevision++;
+    syncCpuView(cpu);
+  }, [syncCpuView]);
 
   // ─── Keyboard input (arrow keys + Enter) — only while CPU is running ───
   useEffect(() => {
@@ -460,12 +611,14 @@ export function SoftwareView({
           },
         })
       ) {
+        syncCpuView(cpu);
         e.preventDefault();
       }
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (handleRunningKeyboardUp(cpu, { key: e.key })) {
+        syncCpuView(cpu);
         e.preventDefault();
       }
     };
@@ -477,8 +630,9 @@ export function SoftwareView({
       window.removeEventListener("keyup", onKeyUp);
       // Reset key state when stopping
       cpu.keyState = [0, 0, 0, 0, 0];
+      syncCpuView(cpu);
     };
-  }, [isRunning]);
+  }, [isRunning, syncCpuView]);
 
   // ─── Console input ───
   const handleConsoleInput = useCallback((text: string) => {
@@ -487,11 +641,33 @@ export function SoftwareView({
       cpu.pushInput(text.charCodeAt(i));
     }
     cpu.pushInput(10); // newline
-  }, []);
+    syncCpuView(cpu);
+  }, [syncCpuView]);
+
+  const handleImmediateKeyDown = useCallback(
+    (key: string) => {
+      const cpu = cpuRef.current;
+      if (handleRunningKeyboardDown(cpu, { key })) {
+        syncCpuView(cpu);
+      }
+    },
+    [syncCpuView],
+  );
+
+  const handleImmediateKeyUp = useCallback(
+    (key: string) => {
+      const cpu = cpuRef.current;
+      if (handleRunningKeyboardUp(cpu, { key })) {
+        syncCpuView(cpu);
+      }
+    },
+    [syncCpuView],
+  );
 
   // ─── Plotter clear ───
   const handleClearPlotter = useCallback(() => {
     cpuRef.current.plotterPixels = new Map();
+    cpuRef.current.plotterRevision++;
     syncCpuView(cpuRef.current);
   }, [syncCpuView]);
 
@@ -604,6 +780,62 @@ export function SoftwareView({
   for (const byte of cpuRef.current.driveData) {
     if (byte !== 0) driveUsed++;
   }
+
+  const computerPanelData: ComputerPanelData = useMemo(
+    () => ({
+      state: cpuState,
+      consoleOutput,
+      consoleInputBuffer,
+      plotterPixels,
+      plotterColor,
+      keyState: keyStateSnapshot,
+      driveData: driveDataSnapshot,
+      drivePage: driveStateSnapshot.page,
+      driveLastAddr: driveStateSnapshot.lastAddr,
+      driveLastRead: driveStateSnapshot.lastRead,
+      driveLastWrite: driveStateSnapshot.lastWrite,
+      networkMethod: networkSnapshot.method,
+      networkUrl: networkSnapshot.url,
+      networkBody: networkSnapshot.body,
+      networkStatus: networkSnapshot.status,
+      networkPending: networkSnapshot.pending,
+      networkResponseBuffer: networkSnapshot.responseBuffer,
+      networkLastByte: networkSnapshot.lastByte,
+      networkCompletedMethod: networkSnapshot.completedMethod,
+      networkCompletedUrl: networkSnapshot.completedUrl,
+      networkCompletedBody: networkSnapshot.completedBody,
+      networkCompletedStatus: networkSnapshot.completedStatus,
+      networkCompletedResponseText: networkSnapshot.completedResponseText,
+      networkHistory: networkSnapshot.history,
+      lastOpcode: cpuRef.current.lastOpcode,
+      lastOperand: cpuRef.current.lastOperand,
+      clockBit: cpuRef.current.clockBit,
+      randSeed: cpuRef.current.randSeed,
+      randCounter: cpuRef.current.randCounter,
+      sleepCounter: cpuRef.current.sleepCounter,
+      assembled,
+      isRunning,
+      useBootloader,
+      memLayout,
+      codeSize,
+    }),
+    [
+      assembled,
+      codeSize,
+      consoleInputBuffer,
+      consoleOutput,
+      cpuState,
+      driveDataSnapshot,
+      driveStateSnapshot,
+      isRunning,
+      keyStateSnapshot,
+      memLayout,
+      networkSnapshot,
+      plotterColor,
+      plotterPixels,
+      useBootloader,
+    ],
+  );
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 overflow-hidden">
@@ -879,57 +1111,100 @@ export function SoftwareView({
           }
           second={
             <div className="flex flex-col p-2 gap-2 h-full overflow-hidden">
-              {/* CPU Registers */}
-              <div className="shrink-0">
-                <CPUStatePanel state={cpuState} />
+              <div className="shrink-0 rounded-md border border-slate-800 bg-slate-900/80 p-1.5">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setRuntimePanelMode("computer")}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      runtimePanelMode === "computer"
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                    }`}
+                  >
+                    Computer
+                  </button>
+                  <button
+                    onClick={() => setRuntimePanelMode("classic")}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      runtimePanelMode === "classic"
+                        ? "bg-slate-700 text-slate-100 border border-slate-600"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                    }`}
+                  >
+                    Classic
+                  </button>
+                  <span className="ml-auto px-2 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">
+                    Same live CPU
+                  </span>
+                </div>
               </div>
 
-              {/* Memory + Console/Plotter split */}
               <div className="flex-1 overflow-hidden">
-                <ResizablePanel
-                  direction="horizontal"
-                  initialRatio={0.5}
-                  minRatio={0.3}
-                  maxRatio={0.7}
-                  className="h-full"
-                  first={
-                    <div className="h-full overflow-hidden">
-                      <MemoryView
-                        memory={cpuState.memory}
-                        pc={cpuState.pc}
-                        sp={cpuState.sp}
-                        highlights={memHighlights}
+                {runtimePanelMode === "computer" ? (
+                  <ComputerPanel
+                    data={computerPanelData}
+                    onClearConsole={handleClearConsole}
+                    onConsoleInput={handleConsoleInput}
+                    onClearPlotter={handleClearPlotter}
+                    onKeyDown={handleImmediateKeyDown}
+                    onKeyUp={handleImmediateKeyUp}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2 h-full overflow-hidden">
+                    {/* CPU Registers */}
+                    <div className="shrink-0">
+                      <CPUStatePanel state={cpuState} />
+                    </div>
+
+                    {/* Memory + Console/Plotter split */}
+                    <div className="flex-1 overflow-hidden">
+                      <ResizablePanel
+                        direction="horizontal"
+                        initialRatio={0.5}
+                        minRatio={0.3}
+                        maxRatio={0.7}
+                        className="h-full"
+                        first={
+                          <div className="h-full overflow-hidden">
+                            <MemoryView
+                              memory={cpuState.memory}
+                              pc={cpuState.pc}
+                              sp={cpuState.sp}
+                              highlights={memHighlights}
+                            />
+                          </div>
+                        }
+                        second={
+                          <ResizablePanel
+                            direction="vertical"
+                            initialRatio={0.5}
+                            minRatio={0.2}
+                            maxRatio={0.8}
+                            className="h-full"
+                            first={
+                              <div className="h-full overflow-hidden">
+                                <ConsolePanel
+                                  output={consoleOutput}
+                                  onClear={handleClearConsole}
+                                  onInput={handleConsoleInput}
+                                />
+                              </div>
+                            }
+                            second={
+                              <div className="h-full overflow-hidden">
+                                <PlotterPanel
+                                  pixels={plotterPixels}
+                                  currentColor={plotterColor}
+                                  onClear={handleClearPlotter}
+                                />
+                              </div>
+                            }
+                          />
+                        }
                       />
                     </div>
-                  }
-                  second={
-                    <ResizablePanel
-                      direction="vertical"
-                      initialRatio={0.5}
-                      minRatio={0.2}
-                      maxRatio={0.8}
-                      className="h-full"
-                      first={
-                        <div className="h-full overflow-hidden">
-                          <ConsolePanel
-                            output={consoleOutput}
-                            onClear={handleClearConsole}
-                            onInput={handleConsoleInput}
-                          />
-                        </div>
-                      }
-                      second={
-                        <div className="h-full overflow-hidden">
-                          <PlotterPanel
-                            pixels={plotterPixels}
-                            currentColor={plotterColor}
-                            onClear={handleClearPlotter}
-                          />
-                        </div>
-                      }
-                    />
-                  }
-                />
+                  </div>
+                )}
               </div>
             </div>
           }

@@ -4,7 +4,17 @@ export interface HttpRequest {
   body?: string;
 }
 
-export async function defaultHttpFetch(request: HttpRequest): Promise<string> {
+export interface HttpFetchResult {
+  text: string;
+  status: number;
+  ok: boolean;
+  statusText: string;
+  statusLabel: string;
+}
+
+export async function defaultHttpFetchDetailed(
+  request: HttpRequest,
+): Promise<HttpFetchResult> {
   if (typeof globalThis.fetch !== "function") {
     throw new Error("Fetch API unavailable in this environment.");
   }
@@ -18,13 +28,26 @@ export async function defaultHttpFetch(request: HttpRequest): Promise<string> {
     body: request.method === "POST" ? request.body ?? "" : undefined,
   });
   const text = await response.text();
+  const statusLabel = `HTTP ${response.status} ${response.statusText}`.trim();
+
+  return {
+    text,
+    status: response.status,
+    ok: response.ok,
+    statusText: response.statusText,
+    statusLabel,
+  };
+}
+
+export async function defaultHttpFetch(request: HttpRequest): Promise<string> {
+  const { text, ok, statusLabel } = await defaultHttpFetchDetailed(request);
 
   if (text.length > 0) {
     return text;
   }
 
-  if (!response.ok) {
-    return `HTTP ${response.status} ${response.statusText}`.trim();
+  if (!ok) {
+    return statusLabel;
   }
 
   return "";

@@ -1,7 +1,7 @@
 {
   "suiteName": "C Example Plotter Tests",
   "suiteKey": "cexamples",
-  "generatedAt": "19 Mar 2026, 00:13:47",
+  "generatedAt": "19 Mar 2026, 17:31:22",
   "notes": [
     "Generated at the end of cexamples.test.ts during vitest.",
     "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."
@@ -197,7 +197,7 @@
     "[test] Compiler — Edge Cases > char literals work",
     "[test] Compiler — Edge Cases > getchar reads input correctly",
     "[test] Compiler — Edge Cases > HTTP GET streams response bytes through gethttpchar()",
-    "[snapshot] c-meteo-ales: report/cexamples/c-meteo-ales.png (256x256, scale 2, pixels 10964)",
+    "[snapshot] c-meteo-ales: report/cexamples/c-meteo-ales.png (256x256, scale 2, pixels 7210)",
     "[test] Compiler — Edge Cases > \"Meteo Ales\" fetches weather and draws on the plotter",
     "[test] Compiler — Edge Cases > getKey returns 0 when no key pressed",
     "[test] Compiler — Edge Cases > getKey returns 1 when key is pressed",
@@ -1298,7 +1298,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 10964,
+      "pixelCount": 7210,
       "href": "cexamples/c-meteo-ales.png"
     },
     {

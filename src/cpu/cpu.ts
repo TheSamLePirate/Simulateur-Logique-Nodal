@@ -23,7 +23,11 @@ import {
   type PlotterColor,
   type PlotterPixels,
 } from "../plotter";
-import { defaultHttpFetch, type HttpRequest } from "../network";
+import {
+  defaultHttpFetchDetailed,
+  type HttpFetchResult,
+  type HttpRequest,
+} from "../network";
 
 export interface DisassemblyLine {
   addr: number;
@@ -31,7 +35,18 @@ export interface DisassemblyLine {
   mnemonic: string;
 }
 
-export type HttpFetchHandler = (request: HttpRequest) => Promise<string>;
+export interface HttpHistoryEntry {
+  id: number;
+  method: "GET" | "POST";
+  url: string;
+  requestBody: string;
+  status: string;
+  responseText: string;
+}
+
+export type HttpFetchHandler = (
+  request: HttpRequest,
+) => Promise<string | HttpFetchResult>;
 
 export class CPU {
   state: CPUState;
@@ -51,8 +66,16 @@ export class CPU {
   httpLastMethod: "GET" | "POST";
   httpLastUrl: string;
   httpLastBody: string;
+  httpLastStatus: string;
+  httpCompletedMethod: "GET" | "POST";
+  httpCompletedUrl: string;
+  httpCompletedBody: string;
+  httpCompletedStatus: string;
+  httpCompletedResponseText: string;
+  httpHistory: HttpHistoryEntry[];
   httpLastByte: number;
   onConsoleOutput?: (text: string) => void;
+  onExternalStateChange?: () => void;
 
   /** Last executed opcode (for hardware visualization) */
   lastOpcode = -1;
@@ -68,6 +91,13 @@ export class CPU {
   sleepCounter = 0;
   /** Monotonic request id so stale async responses can be ignored */
   httpRequestSerial = 0;
+  /** Revisions used by the UI to avoid expensive resyncs */
+  consoleRevision = 0;
+  plotterRevision = 0;
+  inputRevision = 0;
+  networkRevision = 0;
+  driveContentRevision = 0;
+  driveStateRevision = 0;
 
   constructor() {
     this.state = createInitialState();
@@ -83,10 +113,17 @@ export class CPU {
     this.driveLastWrite = 0;
     this.httpResponseBuffer = [];
     this.httpPending = false;
-    this.httpFetch = defaultHttpFetch;
+    this.httpFetch = defaultHttpFetchDetailed;
     this.httpLastMethod = "GET";
     this.httpLastUrl = "";
     this.httpLastBody = "";
+    this.httpLastStatus = "Idle";
+    this.httpCompletedMethod = "GET";
+    this.httpCompletedUrl = "";
+    this.httpCompletedBody = "";
+    this.httpCompletedStatus = "";
+    this.httpCompletedResponseText = "";
+    this.httpHistory = [];
     this.httpLastByte = 0;
   }
 
@@ -108,6 +145,13 @@ export class CPU {
     this.httpLastMethod = "GET";
     this.httpLastUrl = "";
     this.httpLastBody = "";
+    this.httpLastStatus = "Idle";
+    this.httpCompletedMethod = "GET";
+    this.httpCompletedUrl = "";
+    this.httpCompletedBody = "";
+    this.httpCompletedStatus = "";
+    this.httpCompletedResponseText = "";
+    this.httpHistory = [];
     this.httpLastByte = 0;
     this.lastOpcode = -1;
     this.lastOperand = 0;
@@ -115,6 +159,12 @@ export class CPU {
     this.randSeed = 0xac;
     this.randCounter = 0;
     this.sleepCounter = 0;
+    this.consoleRevision = 0;
+    this.plotterRevision = 0;
+    this.inputRevision = 0;
+    this.networkRevision = 0;
+    this.driveContentRevision = 0;
+    this.driveStateRevision = 0;
   }
 
   /** Load a program (byte array) into memory starting at startAddr */
@@ -178,6 +228,7 @@ export class CPU {
 
   private output(text: string): void {
     this.consoleOutput.push(text);
+    this.consoleRevision++;
     this.onConsoleOutput?.(text);
   }
 
@@ -204,6 +255,44 @@ export class CPU {
   private queueHttpResponse(text: string): void {
     const encoded = new TextEncoder().encode(text);
     this.httpResponseBuffer = Array.from(encoded, (byte) => byte & 0xff);
+    this.networkRevision++;
+  }
+
+  private normalizeHttpFetchResult(
+    result: string | HttpFetchResult,
+  ): { text: string; statusLabel: string } {
+    if (typeof result === "string") {
+      return {
+        text: result,
+        statusLabel: result.startsWith("HTTP ERROR:")
+          ? result
+          : result.length > 0
+            ? "HTTP 200 OK"
+            : "HTTP 204 No Content",
+      };
+    }
+
+    return {
+      text: result.text,
+      statusLabel: result.statusLabel,
+    };
+  }
+
+  private recordHttpHistory(
+    entry: Omit<HttpHistoryEntry, "id"> & { id?: number },
+  ): void {
+    const nextId = entry.id ?? this.httpRequestSerial;
+    this.httpHistory = [
+      {
+        id: nextId,
+        method: entry.method,
+        url: entry.url,
+        requestBody: entry.requestBody,
+        status: entry.status,
+        responseText: entry.responseText,
+      },
+      ...this.httpHistory,
+    ].slice(0, 24);
   }
 
   private startHttpRequest(method: "GET" | "POST", url: string, body?: string): void {
@@ -211,28 +300,65 @@ export class CPU {
     this.httpLastMethod = method;
     this.httpLastUrl = url;
     this.httpLastBody = body ?? "";
+    this.httpLastStatus = "Pending";
     this.httpLastByte = 0;
     this.httpPending = true;
     this.httpResponseBuffer = [];
+    this.networkRevision++;
 
     void this.httpFetch({ method, url, body })
-      .then((text) => {
+      .then((result) => {
         if (requestId !== this.httpRequestSerial) return;
-        this.queueHttpResponse(text);
+        const normalized = this.normalizeHttpFetchResult(result);
+        this.httpLastStatus = normalized.statusLabel;
+        this.httpCompletedMethod = method;
+        this.httpCompletedUrl = url;
+        this.httpCompletedBody = body ?? "";
+        this.httpCompletedStatus = normalized.statusLabel;
+        this.httpCompletedResponseText = normalized.text;
+        this.recordHttpHistory({
+          id: requestId,
+          method,
+          url,
+          requestBody: body ?? "",
+          status: normalized.statusLabel,
+          responseText: normalized.text,
+        });
+        this.queueHttpResponse(normalized.text);
         this.httpPending = false;
+        this.networkRevision++;
+        this.onExternalStateChange?.();
       })
       .catch((error: unknown) => {
         if (requestId !== this.httpRequestSerial) return;
         const message =
           error instanceof Error ? error.message : "Unknown network error";
-        this.queueHttpResponse(`HTTP ERROR: ${message}`);
+        const status = `HTTP ERROR: ${message}`;
+        this.httpLastStatus = status;
+        this.httpCompletedMethod = method;
+        this.httpCompletedUrl = url;
+        this.httpCompletedBody = body ?? "";
+        this.httpCompletedStatus = status;
+        this.httpCompletedResponseText = status;
+        this.recordHttpHistory({
+          id: requestId,
+          method,
+          url,
+          requestBody: body ?? "",
+          status,
+          responseText: status,
+        });
+        this.queueHttpResponse(status);
         this.httpPending = false;
+        this.networkRevision++;
+        this.onExternalStateChange?.();
       });
   }
 
   /** Push a character into the console input buffer */
   pushInput(char: number): void {
     this.consoleInputBuffer.push(char & 0xff);
+    this.inputRevision++;
   }
 
   private getDriveAddress(): number {
@@ -246,6 +372,8 @@ export class CPU {
     this.driveLastAddr = 0;
     this.driveLastRead = 0;
     this.driveLastWrite = 0;
+    this.driveContentRevision++;
+    this.driveStateRevision++;
   }
 
   loadDriveData(bytes: ArrayLike<number>): void {
@@ -258,6 +386,8 @@ export class CPU {
     this.driveLastAddr = 0;
     this.driveLastRead = 0;
     this.driveLastWrite = 0;
+    this.driveContentRevision++;
+    this.driveStateRevision++;
   }
 
   exportDriveData(): Uint8Array {
@@ -411,14 +541,17 @@ export class CPU {
 
       case Opcode.COLR:
         this.plotterColor = { ...this.plotterColor, r: this.state.a };
+        this.plotterRevision++;
         break;
 
       case Opcode.COLG:
         this.plotterColor = { ...this.plotterColor, g: this.state.a };
+        this.plotterRevision++;
         break;
 
       case Opcode.COLB:
         this.plotterColor = { ...this.plotterColor, b: this.state.a };
+        this.plotterRevision++;
         break;
 
       case Opcode.HTTPIN:
@@ -440,6 +573,7 @@ export class CPU {
           this.state.flags.n = false;
           this.state.flags.c = false;
         }
+        this.networkRevision++;
         break;
 
       // ─── Stack (1-byte) ───
@@ -474,14 +608,17 @@ export class CPU {
             this.plotterColor.b,
           ),
         );
+        this.plotterRevision++;
         break;
 
       case Opcode.CLR:
         this.plotterPixels = new Map();
+        this.plotterRevision++;
         break;
 
       case Opcode.CLCON:
         this.consoleOutput = [];
+        this.consoleRevision++;
         break;
 
       case Opcode.DRVRD:
@@ -489,12 +626,15 @@ export class CPU {
         this.driveLastRead = this.driveData[this.driveLastAddr];
         this.state.a = this.driveLastRead;
         this.updateFlags(this.state.a);
+        this.driveStateRevision++;
         break;
 
       case Opcode.DRVWR:
         this.driveLastAddr = this.getDriveAddress();
         this.driveLastWrite = this.state.b & 0xff;
         this.driveData[this.driveLastAddr] = this.driveLastWrite;
+        this.driveContentRevision++;
+        this.driveStateRevision++;
         break;
 
       case Opcode.DRVCLR:
@@ -503,11 +643,13 @@ export class CPU {
 
       case Opcode.DRVPG:
         this.drivePage = this.state.a & (DRIVE_PAGE_COUNT - 1);
+        this.driveStateRevision++;
         break;
 
       case Opcode.INA:
         if (this.consoleInputBuffer.length > 0) {
           this.state.a = this.consoleInputBuffer.shift()!;
+          this.inputRevision++;
         } else {
           this.state.a = 0;
         }

@@ -163,6 +163,20 @@ Here you can:
 - draw on the plotter
 - use the external drive
 
+The runtime area on the right now has two modes:
+
+- `Computer` shows a non-editable live overview of the same running machine used by the software view
+- `Classic` keeps the older split panels for registers, memory, console, and plotter
+
+The `Computer` panel can be fullscreened and is meant to show the whole machine at once without dropping to hardware-scene granularity. It groups together:
+
+- CPU state, registers, flags, bus/state summary, and stack activity
+- memory and boot argument state
+- console and plotter output
+- immediate keyboard input, with a collapsible on-screen keyboard
+- the external drive using the bootloader filesystem conventions
+- the network controller, including recent completed requests
+
 ### Basic workflow
 
 1. Choose `ASM` or `C`
@@ -177,6 +191,8 @@ If something goes wrong, use:
 - the register view
 - the memory view
 - the generated test report in `report/index.html`
+
+If you want the broadest live view of the running program, switch the runtime area to `Computer`. It is especially useful in bootloader mode because the disk, keyboard, console, plotter, and network state are visible together in one place.
 
 ---
 
@@ -302,6 +318,17 @@ run wget url
 cat result
 ```
 
+If you keep the software view on the `Computer` panel while running `wget`, the network card shows:
+
+- the current pending request
+- the last completed status
+- the last completed URL
+- the last completed request body
+- the last completed response body
+- a recent-request history
+
+That history is kept so short-lived tools are still inspectable even when they return quickly to the bootloader shell.
+
 ### `glxnano`
 
 `glxnano` is the graphical text editor.
@@ -313,6 +340,8 @@ run glxnano readme
 ```
 
 Then type directly. The keyboard is immediate while the program runs.
+
+In the `Computer` runtime panel, the keyboard card mirrors that behavior with a collapsible input surface, while the plotter and console cards show the editor's live output in the same fullscreenable dashboard.
 
 Typical keys:
 

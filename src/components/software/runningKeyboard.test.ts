@@ -65,18 +65,22 @@ describe("running keyboard handler", () => {
     expect(cpu.keyState[4]).toBe(0);
   });
 
-  it("queues printable keys and backspace immediately", () => {
+  it("queues printable and control keys immediately", () => {
     const cpu = new CPU();
 
     expect(handleRunningKeyboardDown(cpu, { key: "a" })).toBe(true);
     expect(handleRunningKeyboardDown(cpu, { key: "Backspace" })).toBe(true);
     expect(handleRunningKeyboardDown(cpu, { key: "Tab" })).toBe(true);
+    expect(handleRunningKeyboardDown(cpu, { key: "Escape" })).toBe(true);
+    expect(handleRunningKeyboardDown(cpu, { key: "Delete" })).toBe(true);
     expect(handleRunningKeyboardDown(cpu, { key: "!" })).toBe(true);
 
     expect(cpu.consoleInputBuffer).toEqual([
       "a".charCodeAt(0),
       8,
       9,
+      27,
+      127,
       "!".charCodeAt(0),
     ]);
   });

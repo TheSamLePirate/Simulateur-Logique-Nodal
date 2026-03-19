@@ -21,6 +21,13 @@ const KEY_INDEX: Record<string, number> = {
   Enter: 4,
 };
 
+const IMMEDIATE_INPUT_KEYS: Record<string, number> = {
+  Backspace: 8,
+  Tab: 9,
+  Escape: 27,
+  Delete: 127,
+};
+
 function isEditableTarget(target?: KeyboardTargetLike | null): boolean {
   if (!target) return false;
   if (target.isContentEditable) return true;
@@ -49,13 +56,9 @@ export function handleRunningKeyboardDown(
     return false;
   }
 
-  if (event.key === "Backspace") {
-    cpu.pushInput(8);
-    return true;
-  }
-
-  if (event.key === "Tab") {
-    cpu.pushInput(9);
+  const immediateInput = IMMEDIATE_INPUT_KEYS[event.key];
+  if (immediateInput !== undefined) {
+    cpu.pushInput(immediateInput);
     return true;
   }
 

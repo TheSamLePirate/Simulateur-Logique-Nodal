@@ -311,6 +311,8 @@ The simulator can also bridge to the browser's JavaScript `fetch()` API.
 
 On the hardware tab, these instructions are mirrored by the **network controller** node, which shows pending state and exposes response bytes on `Q0-Q7`.
 
+On the software tab, the optional `Computer` runtime panel exposes the same I/O at a higher level. It shows the live request, response buffer state, the last completed status/URL/request body/response body, and a recent-request history so very fast tools such as `wget` remain inspectable after they finish.
+
 That Carry-while-pending behavior is what lets the C built-in `gethttpchar()` block without confusing "still waiting" with "end of response".
 
 #### Jumps (Conditional & Unconditional)
@@ -823,6 +825,8 @@ The software view now has an optional **bootloader mode**.
 - **Install Linux Disk** replaces the external drive with a bundled Linux-like userland disk image
 - the boot shell can then `ls`, `run program [file]`, `cat x`, `clr`, `free`, and `help`
 
+The same software view also has a `Computer` runtime panel. Unlike the hardware tab, it is not an editable structural view: it is a live dashboard for the exact software CPU instance that is compiling, stepping, running, and returning to the shell.
+
 The bundled Linux-like disk image is meant as a ready-to-run playground. It ships with text files plus small userland tools such as `hello`, `sysinfo`, `wget`, `nano`, `glxsh`, and `glxnano`.
 
 The bundled disk is a complete prefilled bootloader filesystem image:
@@ -867,6 +871,8 @@ The bootloader lives in upper RAM and copies a selected disk program down to add
 If you launch a program as `run viewer notes`, the bootloader also resolves `notes` first and stores its directory/page metadata in `0x1018..0x101F`. That lets the launched program read the file immediately instead of rescanning the filesystem by name.
 
 When a disk-loaded C or ASM program executes `HLT` while bootloader mode is active, the software CPU does **not** stay dead. The software view reloads the shell and returns to the `unix$ ` prompt automatically, with a newline inserted before the resumed prompt.
+
+That automatic shell resume now preserves the recent network inspection state used by the software `Computer` panel, so a short-lived disk program can finish and return to `unix$ ` without erasing the last completed request, response body, or recent network history.
 
 ### Shared Disk Format
 
@@ -937,6 +943,21 @@ src/components/software/
   ConsolePanel.tsx    Text output console with keyboard input field
                      Also includes disk import/export, bootloader toggle,
                      and "Compile to Disk"
+  ComputerPanel.tsx   Full live computer dashboard for the software CPU
+  ComputerStatusCard.tsx
+                     CPU/IO/register/state summary card for the dashboard
+  ComputerMemoryCard.tsx
+                     Memory, stack, and boot argument inspection
+  ComputerFilesystemCard.tsx
+                     External drive/filesystem view using bootloader layout
+  ComputerNetworkCard.tsx
+                     Live/persistent network request inspection
+  ComputerKeyboardCard.tsx
+                     Immediate key input surface with collapsible keyboard
+  computerPanelTypes.ts
+                     Shared data model for the software computer panel
+  computerPanelUtils.ts
+                     Formatting helpers used by the panel cards
 
 src/components/nodes/
   DriveNode.tsx       External 8 KB drive with read/write/clear controls
@@ -957,9 +978,11 @@ src/components/nodes/
   10. Click "Step" to execute one instruction at a time
      or "Run" to execute continuously
   11. CPU state (registers, memory, flags) updates in real time
-  12. Output appears in the console panel
-  13. Console programs can read text from the console input field, and running programs can also receive immediate live keys (letters, arrows, Enter, Backspace, Tab, etc.) from the main software view keyboard handler
-  14. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
+  12. The runtime area can stay in `Classic` mode or switch to the fullscreenable `Computer` panel, which shows the same live CPU through a non-editable whole-machine dashboard
+  13. Output appears in the console panel, and the `Computer` panel also mirrors console, plotter, disk, keyboard, memory, and network state together
+  14. Console programs can read text from the console input field, and running programs can also receive immediate live keys (letters, arrows, Enter, Backspace, Tab, Escape, Delete, etc.) from the main software view keyboard handler
+  15. Network activity is inspectable both while pending and after completion, including preserved recent history for bootloader-launched tools that return quickly to the shell
+  16. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
 ```
 
 ---

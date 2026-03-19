@@ -4290,6 +4290,8 @@ void draw_scene() {
   int x;
   int y;
   int level;
+  int page;
+  int bits;
 
   clear();
 
@@ -4316,17 +4318,46 @@ void draw_scene() {
     disc(206, 42, 13, 240, 240, 220);
     disc(212, 38, 13, 20, 30, 72);
     color(255, 244, 216);
-    draw(28, 18); draw(72, 28); draw(118, 16); draw(168, 22); draw(216, 14);
+    draw(28, 18); draw(118, 16); draw(216, 14);
   }
 
   if (weather_code != 0) {
     if (weather_code <= 3) {
-      cloud(56, 78, 220);
-      cloud(150, 92, 208);
+      cloud(86, 84, 216);
     } else {
-      cloud(52, 78, 154);
-      cloud(138, 82, 142);
+      cloud(82, 80, 148);
     }
+  }
+
+  page = 91;
+  color(248, 248, 252);
+  x = 40;
+  if (temp_neg) {
+    draw(40, 76);
+    draw(41, 76);
+    draw(42, 76);
+    x = 44;
+  }
+  if (temp_abs > 9) {
+    level = temp_abs / 10 * 5;
+    y = 0;
+    while (y < 5) {
+      bits = drive_read_at(page, level + y);
+      if (bits & 4) { draw(x, 72 + y); }
+      if (bits & 2) { draw(x + 1, 72 + y); }
+      if (bits & 1) { draw(x + 2, 72 + y); }
+      y = y + 1;
+    }
+    x = x + 4;
+  }
+  level = temp_abs % 10 * 5;
+  y = 0;
+  while (y < 5) {
+    bits = drive_read_at(page, level + y);
+    if (bits & 4) { draw(x, 72 + y); }
+    if (bits & 2) { draw(x + 1, 72 + y); }
+    if (bits & 1) { draw(x + 2, 72 + y); }
+    y = y + 1;
   }
 
   if ((weather_code >= 51 && weather_code <= 67) || (weather_code >= 80 && weather_code <= 82)) {
@@ -4349,7 +4380,6 @@ void draw_scene() {
 
   if (weather_code == 45 || weather_code == 48) {
     fill_rect(16, 94, 240, 100, 184, 190, 198);
-    fill_rect(28, 118, 228, 124, 170, 176, 186);
   }
 
   if (weather_code >= 95) {
@@ -4360,10 +4390,7 @@ void draw_scene() {
   color(34, 58, 42);
   hline(0, 255, 186);
   hline(0, 255, 202);
-  hline(0, 255, 218);
   fill_rect(34, 156, 48, 218, 22, 24, 28);
-  fill_rect(74, 144, 92, 218, 18, 20, 24);
-  fill_rect(154, 150, 172, 218, 22, 24, 28);
 
   fill_rect(18, 40, 28, 182, 232, 236, 242);
   fill_rect(20, 42, 26, 180, 38, 42, 58);
