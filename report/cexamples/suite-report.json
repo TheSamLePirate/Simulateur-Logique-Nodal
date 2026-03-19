@@ -1,7 +1,7 @@
 {
   "suiteName": "C Example Plotter Tests",
   "suiteKey": "cexamples",
-  "generatedAt": "19 Mar 2026, 19:24:36",
+  "generatedAt": "19 Mar 2026, 20:34:36",
   "notes": [
     "Generated at the end of cexamples.test.ts during vitest.",
     "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."
@@ -184,10 +184,12 @@
     "[test] Compiler — Edge Cases > function with multiple return paths",
     "[test] Compiler — Edge Cases > nested function calls",
     "[test] Compiler — Edge Cases > recursion works correctly",
+    "[test] Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "[test] Compiler — Edge Cases > while loop with break condition",
     "[test] Compiler — Edge Cases > for loop counts correctly",
     "[test] Compiler — Edge Cases > compound assignment operators",
     "[test] Compiler — Edge Cases > postfix increment/decrement",
+    "[test] Compiler — Edge Cases > logical short-circuit skips side effects",
     "[test] Compiler — Edge Cases > logical AND/OR operators",
     "[test] Compiler — Edge Cases > >= and > comparison operators",
     "[test] Compiler — Edge Cases > <= and < comparison operators",
@@ -204,12 +206,19 @@
     "[snapshot] c-color-built-in: report/cexamples/c-color-built-in.png (256x256, scale 2, pixels 3)",
     "[test] Compiler — Edge Cases > color built-in latches RGB values for subsequent draw calls",
     "[test] Compiler — Edge Cases > stack pointer is restored after function calls",
+    "[test] Compiler — Edge Cases > max-depth simple recursion reaches 256 calls and restores the stack",
+    "[test] Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
+    "[test] Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
+    "[test] Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
     "[test] Compiler — Edge Cases > supports multiple local declarations in one statement",
     "[test] Compiler — Edge Cases > supports multiple global declarations in one statement",
     "[test] Compiler — Edge Cases > supports multiple declarations in for-loop init",
     "[test] Compiler — Edge Cases > reuses frame memory across unrelated functions",
     "[test] Compiler — Edge Cases > reuses block-local slots across branches",
     "[test] Compiler — Edge Cases > bitwise expressions still work with shared lowering",
+    "[test] Compiler — Edge Cases > division and modulo by zero follow the CPU semantics and return 0",
+    "[test] Compiler — Edge Cases > large wrapped arithmetic expressions stay correct",
+    "[test] Compiler — Edge Cases > large arithmetic checksums stay correct across multiply divide modulo and shifts",
     "[test] Compiler — Edge Cases > 16 globals are allowed",
     "[test] Compiler — Edge Cases > 17th global produces an error",
     "[test] Compiler — Edge Cases > break exits while loop early",
@@ -234,12 +243,19 @@
     "[test] Compiler — Arrays > global array accessed from function",
     "[test] Compiler — Arrays > array parameter can be read inside a function",
     "[test] Compiler — Arrays > array parameter writes are copied back to the caller array",
+    "[test] Compiler — Arrays > passing the same array to two array parameters follows copy-in copy-back semantics, not C pointer aliasing",
+    "[test] Compiler — Arrays > copy-back order for aliased array parameters can overwrite an earlier parameter update",
+    "[test] Compiler — Arrays > array parameters reject pointer-like expressions such as data + 1",
+    "[test] Compiler — Arrays > postfix increment in an array index keeps the old index and updates the variable",
     "[test] Compiler — Arrays > array parameter works from a recursive caller frame",
     "[test] Compiler — Arrays > swap via array (bubble sort pattern)",
     "[test] Compiler — Arrays > array size 0 is rejected",
     "[test] Compiler — Arrays > global array too large is rejected",
     "[test] Compiler — Arrays > array name without index is rejected",
     "[test] Compiler — Arrays > index on non-array variable is rejected",
+    "[test] Compiler — Arrays > postfix increment on an array element is rejected instead of silently miscompiling",
+    "[test] Compiler — Arrays > prefix increment on an array element is rejected instead of silently miscompiling",
+    "[test] Compiler — Arrays > prefix increment on a function call is rejected",
     "[test] Compiler — Arrays > array initializer works for local arrays",
     "[test] Compiler — Arrays > const global data and arrays initialize correctly",
     "[test] Compiler — Arrays > global array initializer works",
@@ -250,16 +266,25 @@
     "[test] Compiler — Arrays > print accepts a string variable",
     "[test] Compiler — Arrays > print accepts a zero-terminated buffer",
     "[test] Compiler — Arrays > string_len reflects manual append inside a larger buffer",
+    "[test] Compiler — Arrays > string_len stops at the first embedded zero byte",
+    "[test] Compiler — Arrays > unterminated buffers keep scanning into adjacent storage until a zero is found",
     "[test] Compiler — Arrays > string can be modified by index when it is not const",
     "[test] Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
     "[test] Compiler — Arrays > const string cannot be modified by index",
     "[test] Compiler — Arrays > writing to a const scalar is rejected",
     "[test] Compiler — Arrays > const declaration without initializer is rejected",
     "[test] Compiler — Arrays > string declaration without literal initializer is rejected",
+    "[test] Compiler — Arrays > string literal initializer must fit including the trailing zero",
     "[test] Compiler — Arrays > string concatenation with + is not supported",
     "[test] Compiler — Arrays > assigning a string literal to one array element is rejected",
     "[test] Compiler — Arrays > reassigning a string variable is not supported",
     "[test] Compiler — Arrays > out-of-bounds array access is not rejected by the compiler",
+    "[test] Compiler — Arrays > out-of-bounds global array writes can corrupt the next global variable",
+    "[test] Compiler — Arrays > out-of-bounds local array writes can corrupt a later local variable",
+    "[test] Compiler — Arrays > local out-of-bounds writes inside recursion can silently corrupt nearby local state",
+    "[test] Compiler — Arrays > array_len returns capacity even when string_len has been shortened by an embedded zero",
+    "[test] Compiler — Arrays > array_len rejects non-identifier expressions",
+    "[test] Compiler — Arrays > string_len rejects non-identifier expressions",
     "[test] Compiler — Arrays > writing to a const array is rejected",
     "[test] Compiler — Arrays > passing a scalar to an array parameter is rejected",
     "[test] C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",
@@ -301,7 +326,7 @@
     "[test] C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
     "[test] C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
     "[test] C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader",
-    "[suite] 270 tests recorded"
+    "[suite] 295 tests recorded"
   ],
   "tests": [
     "C Examples — Compilation > \"Hello World\" compiles without errors",
@@ -459,10 +484,12 @@
     "Compiler — Edge Cases > function with multiple return paths",
     "Compiler — Edge Cases > nested function calls",
     "Compiler — Edge Cases > recursion works correctly",
+    "Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "Compiler — Edge Cases > while loop with break condition",
     "Compiler — Edge Cases > for loop counts correctly",
     "Compiler — Edge Cases > compound assignment operators",
     "Compiler — Edge Cases > postfix increment/decrement",
+    "Compiler — Edge Cases > logical short-circuit skips side effects",
     "Compiler — Edge Cases > logical AND/OR operators",
     "Compiler — Edge Cases > >= and > comparison operators",
     "Compiler — Edge Cases > <= and < comparison operators",
@@ -477,12 +504,19 @@
     "Compiler — Edge Cases > getKey returns 1 when key is pressed",
     "Compiler — Edge Cases > color built-in latches RGB values for subsequent draw calls",
     "Compiler — Edge Cases > stack pointer is restored after function calls",
+    "Compiler — Edge Cases > max-depth simple recursion reaches 256 calls and restores the stack",
+    "Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
+    "Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
+    "Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
     "Compiler — Edge Cases > supports multiple local declarations in one statement",
     "Compiler — Edge Cases > supports multiple global declarations in one statement",
     "Compiler — Edge Cases > supports multiple declarations in for-loop init",
     "Compiler — Edge Cases > reuses frame memory across unrelated functions",
     "Compiler — Edge Cases > reuses block-local slots across branches",
     "Compiler — Edge Cases > bitwise expressions still work with shared lowering",
+    "Compiler — Edge Cases > division and modulo by zero follow the CPU semantics and return 0",
+    "Compiler — Edge Cases > large wrapped arithmetic expressions stay correct",
+    "Compiler — Edge Cases > large arithmetic checksums stay correct across multiply divide modulo and shifts",
     "Compiler — Edge Cases > 16 globals are allowed",
     "Compiler — Edge Cases > 17th global produces an error",
     "Compiler — Edge Cases > break exits while loop early",
@@ -507,12 +541,19 @@
     "Compiler — Arrays > global array accessed from function",
     "Compiler — Arrays > array parameter can be read inside a function",
     "Compiler — Arrays > array parameter writes are copied back to the caller array",
+    "Compiler — Arrays > passing the same array to two array parameters follows copy-in copy-back semantics, not C pointer aliasing",
+    "Compiler — Arrays > copy-back order for aliased array parameters can overwrite an earlier parameter update",
+    "Compiler — Arrays > array parameters reject pointer-like expressions such as data + 1",
+    "Compiler — Arrays > postfix increment in an array index keeps the old index and updates the variable",
     "Compiler — Arrays > array parameter works from a recursive caller frame",
     "Compiler — Arrays > swap via array (bubble sort pattern)",
     "Compiler — Arrays > array size 0 is rejected",
     "Compiler — Arrays > global array too large is rejected",
     "Compiler — Arrays > array name without index is rejected",
     "Compiler — Arrays > index on non-array variable is rejected",
+    "Compiler — Arrays > postfix increment on an array element is rejected instead of silently miscompiling",
+    "Compiler — Arrays > prefix increment on an array element is rejected instead of silently miscompiling",
+    "Compiler — Arrays > prefix increment on a function call is rejected",
     "Compiler — Arrays > array initializer works for local arrays",
     "Compiler — Arrays > const global data and arrays initialize correctly",
     "Compiler — Arrays > global array initializer works",
@@ -523,16 +564,25 @@
     "Compiler — Arrays > print accepts a string variable",
     "Compiler — Arrays > print accepts a zero-terminated buffer",
     "Compiler — Arrays > string_len reflects manual append inside a larger buffer",
+    "Compiler — Arrays > string_len stops at the first embedded zero byte",
+    "Compiler — Arrays > unterminated buffers keep scanning into adjacent storage until a zero is found",
     "Compiler — Arrays > string can be modified by index when it is not const",
     "Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
     "Compiler — Arrays > const string cannot be modified by index",
     "Compiler — Arrays > writing to a const scalar is rejected",
     "Compiler — Arrays > const declaration without initializer is rejected",
     "Compiler — Arrays > string declaration without literal initializer is rejected",
+    "Compiler — Arrays > string literal initializer must fit including the trailing zero",
     "Compiler — Arrays > string concatenation with + is not supported",
     "Compiler — Arrays > assigning a string literal to one array element is rejected",
     "Compiler — Arrays > reassigning a string variable is not supported",
     "Compiler — Arrays > out-of-bounds array access is not rejected by the compiler",
+    "Compiler — Arrays > out-of-bounds global array writes can corrupt the next global variable",
+    "Compiler — Arrays > out-of-bounds local array writes can corrupt a later local variable",
+    "Compiler — Arrays > local out-of-bounds writes inside recursion can silently corrupt nearby local state",
+    "Compiler — Arrays > array_len returns capacity even when string_len has been shortened by an embedded zero",
+    "Compiler — Arrays > array_len rejects non-identifier expressions",
+    "Compiler — Arrays > string_len rejects non-identifier expressions",
     "Compiler — Arrays > writing to a const array is rejected",
     "Compiler — Arrays > passing a scalar to an array parameter is rejected",
     "C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",
@@ -741,6 +791,10 @@
       "output": "[compileAndRun]\n55"
     },
     {
+      "testName": "Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
+      "output": "[compileAndRun]\n185"
+    },
+    {
       "testName": "Compiler — Edge Cases > while loop with break condition",
       "output": "[compileAndRun]\n128"
     },
@@ -755,6 +809,10 @@
     {
       "testName": "Compiler — Edge Cases > postfix increment/decrement",
       "output": "[compileAndRun]\n5 6 6 5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > logical short-circuit skips side effects",
+      "output": "[compileAndRun]\n0 0 1 0"
     },
     {
       "testName": "Compiler — Edge Cases > logical AND/OR operators",
@@ -809,6 +867,22 @@
       "output": "[compileAndRun]\n11"
     },
     {
+      "testName": "Compiler — Edge Cases > max-depth simple recursion reaches 256 calls and restores the stack",
+      "output": "[compileAndRun]\n0 1"
+    },
+    {
+      "testName": "Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
+      "output": "[compileAndRun]\n127 0 1"
+    },
+    {
+      "testName": "Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
+      "output": "[compileAndRun]\n¿¿¿¿¿¿¿¿¿¿¿\u0001À"
+    },
+    {
+      "testName": "Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
+      "output": "[compileAndRun]\n183 61 122"
+    },
+    {
       "testName": "Compiler — Edge Cases > supports multiple local declarations in one statement",
       "output": "[compileAndRun]\n5"
     },
@@ -823,6 +897,18 @@
     {
       "testName": "Compiler — Edge Cases > bitwise expressions still work with shared lowering",
       "output": "[compileAndRun]\n9 7"
+    },
+    {
+      "testName": "Compiler — Edge Cases > division and modulo by zero follow the CPU semantics and return 0",
+      "output": "[compileAndRun]\n0 0"
+    },
+    {
+      "testName": "Compiler — Edge Cases > large wrapped arithmetic expressions stay correct",
+      "output": "[compileAndRun]\n48 9 88"
+    },
+    {
+      "testName": "Compiler — Edge Cases > large arithmetic checksums stay correct across multiply divide modulo and shifts",
+      "output": "[compileAndRun]\n64 175 99 243 220"
     },
     {
       "testName": "Compiler — Edge Cases > 16 globals are allowed",
@@ -901,6 +987,18 @@
       "output": "[compileAndRun]\n10 25 30"
     },
     {
+      "testName": "Compiler — Arrays > passing the same array to two array parameters follows copy-in copy-back semantics, not C pointer aliasing",
+      "output": "[compileAndRun]\n1 22"
+    },
+    {
+      "testName": "Compiler — Arrays > copy-back order for aliased array parameters can overwrite an earlier parameter update",
+      "output": "[compileAndRun]\n9 2"
+    },
+    {
+      "testName": "Compiler — Arrays > postfix increment in an array index keeps the old index and updates the variable",
+      "output": "[compileAndRun]\n1 7 9"
+    },
+    {
       "testName": "Compiler — Arrays > array parameter works from a recursive caller frame",
       "output": "[compileAndRun]\n6"
     },
@@ -949,12 +1047,36 @@
       "output": "[compileAndRun]\n3"
     },
     {
+      "testName": "Compiler — Arrays > string_len stops at the first embedded zero byte",
+      "output": "[compileAndRun]\n1 h"
+    },
+    {
+      "testName": "Compiler — Arrays > unterminated buffers keep scanning into adjacent storage until a zero is found",
+      "output": "[compileAndRun]\n4 ABCZ"
+    },
+    {
       "testName": "Compiler — Arrays > string can be modified by index when it is not const",
       "output": "[compileAndRun]\nHellO"
     },
     {
       "testName": "Compiler — Arrays > string buffers can be manually appended when extra capacity exists",
       "output": "[compileAndRun]\nhi!"
+    },
+    {
+      "testName": "Compiler — Arrays > out-of-bounds global array writes can corrupt the next global variable",
+      "output": "[compileAndRun]\n7 1 2"
+    },
+    {
+      "testName": "Compiler — Arrays > out-of-bounds local array writes can corrupt a later local variable",
+      "output": "[compileAndRun]\n9 10 88"
+    },
+    {
+      "testName": "Compiler — Arrays > local out-of-bounds writes inside recursion can silently corrupt nearby local state",
+      "output": "[compileAndRun]\n0"
+    },
+    {
+      "testName": "Compiler — Arrays > array_len returns capacity even when string_len has been shortened by an embedded zero",
+      "output": "[compileAndRun]\n2 8"
     },
     {
       "testName": "C Examples — Execution Properties > \"Hello World\" halts within reasonable cycles",

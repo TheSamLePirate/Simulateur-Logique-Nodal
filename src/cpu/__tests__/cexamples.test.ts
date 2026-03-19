@@ -48,6 +48,10 @@ interface RunResult {
 
 const testConsoleOutputMap = new Map<string, string[]>();
 
+function u8(value: number) {
+  return value & 0xff;
+}
+
 function recordConsoleOutput(output: string, label?: string) {
   const normalized = output.replaceAll("\0", "").trim();
   if (!normalized) return;
@@ -1150,6 +1154,35 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("mutual recursion is detected and preserves correct results", () => {
+    const ping = (n: number): number => (n === 0 ? 1 : u8(1 + pong(n - 1)));
+    const pong = (n: number): number => {
+      const b = u8(n + 1);
+      return n === 0 ? b : u8(b + ping(n - 1));
+    };
+    const r = compileAndRun(`
+      int pong(int n) {
+        int b;
+        b = n + 1;
+        if (n == 0) { return b; }
+        return b + ping(n - 1);
+      }
+      int ping(int n) {
+        int a;
+        a = n;
+        if (n == 0) { return 1; }
+        return 1 + pong(n - 1);
+      }
+      int main() {
+        print_num(ping(40));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe(String(ping(40)));
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
   it("while loop with break condition", () => {
     const r = compileAndRun(`
       int main() {
@@ -1214,6 +1247,28 @@ describe("Compiler — Edge Cases", () => {
       }
     `);
     expect(r.output).toBe("5 6 6 5");
+    expect(r.halted).toBe(true);
+  });
+
+  it("logical short-circuit skips side effects", () => {
+    const r = compileAndRun(`
+      int hit = 0;
+      int bump() {
+        hit = hit + 1;
+        return 1;
+      }
+      int main() {
+        print_num(0 && bump());
+        putchar(32);
+        print_num(hit);
+        putchar(32);
+        print_num(1 || bump());
+        putchar(32);
+        print_num(hit);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("0 0 1 0");
     expect(r.halted).toBe(true);
   });
 
@@ -1467,6 +1522,128 @@ describe("Compiler — Edge Cases", () => {
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
   });
 
+  it("max-depth simple recursion reaches 256 calls and restores the stack", () => {
+    const r = compileAndRun(`
+      int hit = 0;
+      int wraps = 0;
+      int dive(int n) {
+        hit = hit + 1;
+        if (hit == 0) {
+          wraps = wraps + 1;
+        }
+        if (n == 0) {
+          return 0;
+        }
+        return dive(n - 1);
+      }
+      int main() {
+        dive(255);
+        print_num(hit);
+        putchar(32);
+        print_num(wraps);
+        return 0;
+      }
+    `, { maxCycles: 5_000_000 });
+    expect(r.output).toBe("0 1");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
+  it("deep recursion with a large local frame still computes the wrapped result correctly", () => {
+    const r = compileAndRun(`
+      int hit = 0;
+      int wraps = 0;
+      int dive(int n) {
+        int buf[6];
+        buf[0] = n;
+        buf[1] = n + 1;
+        buf[2] = n + 2;
+        buf[3] = n + 3;
+        buf[4] = n + 4;
+        buf[5] = n + 5;
+        hit = hit + 1;
+        if (hit == 0) {
+          wraps = wraps + 1;
+        }
+        if (n == 0) {
+          return buf[0];
+        }
+        return buf[1] + dive(n - 1);
+      }
+      int main() {
+        print_num(dive(255));
+        putchar(32);
+        print_num(hit);
+        putchar(32);
+        print_num(wraps);
+        return 0;
+      }
+    `, { maxCycles: 10_000_000 });
+    expect(r.output).toBe("127 0 1");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
+  it("very deep recursion with a huge local frame has no runtime stack-overflow protection yet", () => {
+    const r = compileAndRun(`
+      int hit = 0;
+      int wraps = 0;
+      int dive(int n) {
+        int buf[48];
+        int i;
+        for (i = 0; i < 48; i++) {
+          buf[i] = n + i;
+        }
+        hit = hit + 1;
+        if (hit == 0) {
+          wraps = wraps + 1;
+        }
+        if (n == 0) {
+          return buf[0];
+        }
+        return buf[1] + dive(n - 1);
+      }
+      int main() {
+        print_num(dive(255));
+        putchar(32);
+        print_num(hit);
+        putchar(32);
+        print_num(wraps);
+        return 0;
+      }
+    `, { maxCycles: 50_000_000 });
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).not.toBe(MEMORY_SIZE - 1);
+    expect(/^[0-9 ]*$/u.test(r.output)).toBe(false);
+  });
+
+  it("recursive array copy-back still works across many recursive calls", () => {
+    const r = compileAndRun(`
+      int walk(int n, int values[2]) {
+        values[0] = values[0] + 1;
+        values[1] = values[1] + 2;
+        if (n == 0) {
+          return values[0] + values[1];
+        }
+        return walk(n - 1, values);
+      }
+      int main() {
+        int data[2];
+        data[0] = 0;
+        data[1] = 0;
+        print_num(walk(60, data));
+        putchar(32);
+        print_num(data[0]);
+        putchar(32);
+        print_num(data[1]);
+        return 0;
+      }
+    `, { maxCycles: 10_000_000 });
+    expect(r.output).toBe("183 61 122");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
   it("supports multiple local declarations in one statement", () => {
     const r = compileAndRun(`
       int main() {
@@ -1559,6 +1736,91 @@ describe("Compiler — Edge Cases", () => {
       }
     `);
     expect(r.output).toBe("9 7");
+    expect(r.halted).toBe(true);
+  });
+
+  it("division and modulo by zero follow the CPU semantics and return 0", () => {
+    const r = compileAndRun(`
+      int main() {
+        print_num(7 / 0);
+        putchar(32);
+        print_num(7 % 0);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("0 0");
+    expect(r.halted).toBe(true);
+  });
+
+  it("large wrapped arithmetic expressions stay correct", () => {
+    const expectedLeft = u8(u8(200 * 200) + u8(250 - 10));
+    const expectedMid = Math.floor(u8(200 * 200) / 7) & 0xff;
+    const expectedRight = u8(u8(200 + 200) + 200);
+    const r = compileAndRun(`
+      int main() {
+        print_num((200 * 200) + (250 - 10));
+        putchar(32);
+        print_num((200 * 200) / 7);
+        putchar(32);
+        print_num(200 + 200 + 200);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe(`${expectedLeft} ${expectedMid} ${expectedRight}`);
+    expect(r.halted).toBe(true);
+  });
+
+  it("large arithmetic checksums stay correct across multiply divide modulo and shifts", () => {
+    let mul = 0;
+    let div = 0;
+    let mod = 0;
+    let shl = 0;
+    let shr = 0;
+    for (let i = 0; i < 16; i++) {
+      for (let j = 1; j < 16; j++) {
+        mul = u8(mul + u8(i * j));
+        div = u8(div + (Math.floor(u8(i * 17 + j) / j) & 0xff));
+        mod = u8(mod + (u8(i * 17 + j) % j));
+      }
+    }
+    for (let i = 0; i < 8; i++) {
+      shl = u8(shl + u8(13 << i));
+      shr = u8(shr + ((240 >> i) & 0xff));
+    }
+
+    const r = compileAndRun(`
+      int main() {
+        int i;
+        int j;
+        int mul = 0;
+        int div = 0;
+        int mod = 0;
+        int shl = 0;
+        int shr = 0;
+        for (i = 0; i < 16; i++) {
+          for (j = 1; j < 16; j++) {
+            mul = mul + (i * j);
+            div = div + ((i * 17 + j) / j);
+            mod = mod + ((i * 17 + j) % j);
+          }
+        }
+        for (i = 0; i < 8; i++) {
+          shl = shl + (13 << i);
+          shr = shr + (240 >> i);
+        }
+        print_num(mul);
+        putchar(32);
+        print_num(div);
+        putchar(32);
+        print_num(mod);
+        putchar(32);
+        print_num(shl);
+        putchar(32);
+        print_num(shr);
+        return 0;
+      }
+    `, { maxCycles: 10_000_000 });
+    expect(r.output).toBe(`${mul} ${div} ${mod} ${shl} ${shr}`);
     expect(r.halted).toBe(true);
   });
 
@@ -2001,6 +2263,84 @@ describe("Compiler — Arrays", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("passing the same array to two array parameters follows copy-in copy-back semantics, not C pointer aliasing", () => {
+    const r = compileAndRun(`
+      void touch(int a[2], int b[2]) {
+        a[0] = 11;
+        b[1] = 22;
+      }
+      int main() {
+        int data[2];
+        data[0] = 1;
+        data[1] = 2;
+        touch(data, data);
+        print_num(data[0]);
+        putchar(32);
+        print_num(data[1]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("1 22");
+    expect(r.halted).toBe(true);
+  });
+
+  it("copy-back order for aliased array parameters can overwrite an earlier parameter update", () => {
+    const r = compileAndRun(`
+      void mix(int a[2], int b[2]) {
+        a[0] = 7;
+        b[0] = 9;
+      }
+      int main() {
+        int data[2];
+        data[0] = 1;
+        data[1] = 2;
+        mix(data, data);
+        print_num(data[0]);
+        putchar(32);
+        print_num(data[1]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("9 2");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array parameters reject pointer-like expressions such as data + 1", () => {
+    const cr = compile(`
+      void bad(int a[2], int b[2]) {}
+      int main() {
+        int data[2];
+        bad(data + 1, data);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(
+      cr.errors.some((error) =>
+        error.message.includes("Un argument de tableau doit être le nom d'un tableau déclaré"),
+      ),
+    ).toBe(true);
+  });
+
+  it("postfix increment in an array index keeps the old index and updates the variable", () => {
+    const r = compileAndRun(`
+      int main() {
+        int values[3];
+        int i = 0;
+        values[i++] = 7;
+        values[i] = 9;
+        print_num(i);
+        putchar(32);
+        print_num(values[0]);
+        putchar(32);
+        print_num(values[1]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("1 7 9");
+    expect(r.halted).toBe(true);
+  });
+
   it("array parameter works from a recursive caller frame", () => {
     const r = compileAndRun(`
       void bump(int values[2]) {
@@ -2097,6 +2437,44 @@ describe("Compiler — Arrays", () => {
         (e) => e.message.includes("tableau") || e.message.includes("Tableau"),
       ),
     ).toBe(true);
+  });
+
+  it("postfix increment on an array element is rejected instead of silently miscompiling", () => {
+    const cr = compile(`
+      int main() {
+        int values[2];
+        values[0] = 5;
+        print_num(values[0]++);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("variable simple"))).toBe(true);
+  });
+
+  it("prefix increment on an array element is rejected instead of silently miscompiling", () => {
+    const cr = compile(`
+      int main() {
+        int values[2];
+        values[0] = 5;
+        print_num(++values[0]);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("variable simple"))).toBe(true);
+  });
+
+  it("prefix increment on a function call is rejected", () => {
+    const cr = compile(`
+      int one() { return 1; }
+      int main() {
+        print_num(++one());
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("variable simple"))).toBe(true);
   });
 
   it("array initializer works for local arrays", () => {
@@ -2254,6 +2632,36 @@ describe("Compiler — Arrays", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("string_len stops at the first embedded zero byte", () => {
+    const r = compileAndRun(`
+      int main() {
+        int buf[8] = "hello";
+        buf[1] = 0;
+        print_num(string_len(buf));
+        putchar(32);
+        print(buf);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("1 h");
+    expect(r.halted).toBe(true);
+  });
+
+  it("unterminated buffers keep scanning into adjacent storage until a zero is found", () => {
+    const r = compileAndRun(`
+      int buf[3] = {65, 66, 67};
+      int after = 90;
+      int main() {
+        print_num(string_len(buf));
+        putchar(32);
+        print(buf);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("4 ABCZ");
+    expect(r.halted).toBe(true);
+  });
+
   it("string can be modified by index when it is not const", () => {
     const r = compileAndRun(`
       int main() {
@@ -2338,6 +2746,17 @@ describe("Compiler — Arrays", () => {
     expect(cr.errors.some((e) => e.message.includes("string"))).toBe(true);
   });
 
+  it("string literal initializer must fit including the trailing zero", () => {
+    const cr = compile(`
+      int main() {
+        int buf[5] = "hello";
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("initialiseur"))).toBe(true);
+  });
+
   it("string concatenation with + is not supported", () => {
     const cr = compile(`
       int main() {
@@ -2384,6 +2803,104 @@ describe("Compiler — Arrays", () => {
       }
     `);
     expect(cr.success).toBe(true);
+  });
+
+  it("out-of-bounds global array writes can corrupt the next global variable", () => {
+    const r = compileAndRun(`
+      int a[2] = {1, 2};
+      int x = 9;
+      int main() {
+        a[2] = 7;
+        print_num(x);
+        putchar(32);
+        print_num(a[0]);
+        putchar(32);
+        print_num(a[1]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("7 1 2");
+    expect(r.halted).toBe(true);
+  });
+
+  it("out-of-bounds local array writes can corrupt a later local variable", () => {
+    const r = compileAndRun(`
+      int main() {
+        int a[2] = {1, 2};
+        int x = 9;
+        int y = 10;
+        int z = 11;
+        a[4] = 88;
+        print_num(x);
+        putchar(32);
+        print_num(y);
+        putchar(32);
+        print_num(z);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("9 10 88");
+    expect(r.halted).toBe(true);
+  });
+
+  it("local out-of-bounds writes inside recursion can silently corrupt nearby local state", () => {
+    const r = compileAndRun(`
+      int f(int n) {
+        int a[2] = {1, 2};
+        int x = n;
+        a[3] = 77;
+        if (n == 0) {
+          return x;
+        }
+        return f(n - 1);
+      }
+      int main() {
+        print_num(f(5));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("0");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
+  it("array_len returns capacity even when string_len has been shortened by an embedded zero", () => {
+    const r = compileAndRun(`
+      int main() {
+        int buf[8] = "hello";
+        buf[2] = 0;
+        print_num(string_len(buf));
+        putchar(32);
+        print_num(array_len(buf));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("2 8");
+    expect(r.halted).toBe(true);
+  });
+
+  it("array_len rejects non-identifier expressions", () => {
+    const cr = compile(`
+      int main() {
+        int buf[4] = {1, 2, 3, 4};
+        print_num(array_len(buf + 1));
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("array_len"))).toBe(true);
+  });
+
+  it("string_len rejects non-identifier expressions", () => {
+    const cr = compile(`
+      int main() {
+        string msg = "hello";
+        print_num(string_len(msg[0]));
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(false);
+    expect(cr.errors.some((e) => e.message.includes("string_len"))).toBe(true);
   });
 
   it("writing to a const array is rejected", () => {

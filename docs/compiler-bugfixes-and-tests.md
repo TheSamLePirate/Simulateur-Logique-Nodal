@@ -641,7 +641,7 @@ All 5 regions are contiguous, non-overlapping, and sum to exactly 8192.
 | Stack overflow | No | By design — SP wraps via `& ADDR_MASK` |
 | Stack into data | No | By design — 8-bit CPU simplicity |
 
-Stack overflow is intentionally unprotected. Real 8-bit CPUs (6502, Z80) also lack stack protection. With 2048 bytes and ~13 bytes per function call, max recursion depth is approximately 157 levels.
+Stack overflow is intentionally unprotected. Real 8-bit CPUs (6502, Z80) also lack stack protection. The practical recursion limit is **not one fixed number**: it depends heavily on the local frame size, temporary saves, and array copies used by each call. Recent tests confirmed that very deep simple recursion can still complete correctly, while very deep recursion with large local arrays can corrupt the stack and output before halting.
 
 ### Memory Test Program
 
@@ -671,3 +671,15 @@ It initializes 16 globals, uses 11 local variables in main, makes 2 function cal
 | `int arr[N]` (array decl) | 0 bytes code (allocates N contiguous addresses) |
 | `x = arr[i]` (indexed read) | ~6 bytes (load index + LDAI base) |
 | `arr[i] = x` (indexed write) | ~12 bytes (load value + PUSH + load index + TAB + POP + STAI base) |
+
+### Semantic Boundaries Confirmed By Tests
+
+The newer edge-case suites also document a few important truths about the language:
+
+- array parameters use copy-in / copy-back semantics, not normal C pointer aliasing
+- only declared arrays may be passed to fixed-size array parameters; expressions like `data + 1` are rejected
+- `array_len(buf)` reports storage capacity, while `string_len(buf)` reports visible bytes up to the first `0`
+- unterminated buffers can leak neighboring memory through `print(buf)` and `string_len(buf)`
+- local and global out-of-bounds writes can corrupt nearby values
+- division by zero and modulo by zero currently return `0`, matching the CPU runtime semantics
+- `++` / `--` on non-simple lvalues are rejected explicitly so they do not silently miscompile

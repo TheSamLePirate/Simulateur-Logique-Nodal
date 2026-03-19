@@ -139,6 +139,27 @@ describe("full computer architecture flow", () => {
     writeCpuArtifact("linux-boot-prompt", cpu, { scenario: "boot-prompt" });
   });
 
+  it("exports a bootloader failure state when a missing file is requested", () => {
+    const cpu = bootToPrompt(getLinuxBootDiskImage());
+    const before = cpu.consoleOutput.join("");
+
+    pushText(cpu, "cat missing\n");
+    expect(
+      runCpuUntil(
+        cpu,
+        () =>
+          cpu.consoleOutput.join("").length > before.length
+          && cpu.consoleOutput.join("").endsWith(BOOTLOADER_PROMPT),
+        400_000,
+      ),
+    ).toBe(true);
+
+    expect(cpu.consoleOutput.join("").slice(before.length)).toContain("not found");
+    expect(cpu.state.halted).toBe(false);
+
+    writeCpuArtifact("linux-cat-missing", cpu, { scenario: "missing-file-error" });
+  });
+
   it("runs a bundled Linux grep command and exports the resulting computer state", () => {
     const cpu = new CPU();
     const boot = getBootloaderImage();

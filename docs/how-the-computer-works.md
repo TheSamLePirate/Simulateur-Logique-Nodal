@@ -773,8 +773,13 @@ The simulator C compiler is intentionally small, so a few constraints matter in 
 - string concatenation is not built in; you must append manually into a buffer with spare capacity and write the final `0` yourself
 - `print(buf)` and `string_len(buf)` read until the first `0`, so malformed or unterminated buffers may print garbage
 - fixed-size array parameters use copy-in/copy-out semantics rather than pointer passing, which costs both time and frame space
+- only declared arrays can be passed to array parameters; pointer-like expressions such as `data + 1` are rejected
+- passing the same array to two array parameters does not behave like normal C pointer aliasing because each parameter is copied separately
+- prefix/postfix `++` and `--` are intentionally restricted to simple assignable variables; forms like `values[0]++` are rejected instead of silently miscompiling
 - globals are limited to the `0x1000-0x100F` region, so large global arrays quickly exhaust available global RAM
 - recursion is supported, but deep recursion can still overflow the `0x1800-0x1FFF` stack
+- there is no friendly runtime stack-overflow trap yet, so very deep recursion with large local frames can corrupt the stack and output before halting
+- division by zero and modulo by zero currently follow the CPU semantics and yield `0`
 
 Features still outside the language include pointers, structs, `switch`, `sizeof`, dynamic allocation, and multi-dimensional arrays.
 
@@ -1194,7 +1199,14 @@ The LDAI/STAI opcodes make array access efficient — each read or write is a si
 
 The compiler, bootloader, examples, runtime input paths, and computer architecture visualizations are covered by a shared **Vitest** suite. The tests exercise the real pipeline: source code → compile/assemble → CPU execution → console output, drive state, plotter verification, and architecture snapshot export.
 
-As of **March 19, 2026**, `npm test` runs **357 tests across 7 test files**.
+Testing policy for this repository:
+
+- everything the user can run on the computer must be covered by automated tests
+- every bundled example program must be tested through multiple real workflows whenever that makes sense
+- bootloader/Linux userland programs must stay covered in both the direct CPU suites and the `Computer Architecture Flow` suites
+- here, that end-to-end executable coverage is what "100% test coverage" means
+
+As of **March 19, 2026**, `npm test` runs **400 tests across 9 test files**.
 
 ### Main Test Files
 
@@ -1212,6 +1224,10 @@ As of **March 19, 2026**, `npm test` runs **357 tests across 7 test files**.
   Full-computer architecture snapshots captured from bootloader + Linux-like disk scenarios.
 - `src/components/software/computerArchitectureFlow.cexamples.test.ts`
   One architecture snapshot for every bundled C example, including disk, HTTP, bootloader-arg, and graphical programs.
+- `src/cpu/__tests__/linuxUserlandPrograms.test.ts`
+  Direct-CPU bootloader/Linux userland coverage for every runnable bundled userland program.
+- `src/components/software/computerArchitectureFlow.linuxUserland.test.ts`
+  Matching architecture-flow coverage for every runnable bundled Linux userland program, using the same program scenario matrix as the direct CPU suite.
 
 ### What The Suites Check
 
@@ -1261,6 +1277,19 @@ As of **March 19, 2026**, `npm test` runs **357 tests across 7 test files**.
 - exports one architecture snapshot for every bundled entry in `src/cpu/cexamples.ts`
 - covers plain console examples, plotter examples, keyboard loops, drive/filesystem tools, network tools, and bootloader-arg programs
 - generates matching JSON, SVG, and PNG artifacts for each C example
+
+#### `linuxUserlandPrograms.test.ts`
+
+- runs every bundled Linux-like userland program through the real bootloader on the shared disk
+- records console output for the whole runnable set
+- exports PNG plotter snapshots for programs that draw
+- acts as the direct CPU side of the userland coverage contract
+
+#### `computerArchitectureFlow.linuxUserland.test.ts`
+
+- exports one architecture snapshot for every bundled Linux-like userland program
+- uses the same shared scenario definitions as `linuxUserlandPrograms.test.ts`
+- keeps the architecture-flow suite aligned with the direct CPU suite so runnable program coverage cannot drift
 
 ### Generated Report
 

@@ -1,7 +1,7 @@
 {
   "suiteName": "C Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-cexamples",
-  "generatedAt": "19 Mar 2026, 19:24:46",
+  "generatedAt": "19 Mar 2026, 20:34:46",
   "notes": [
     "Generated during computerArchitectureFlow.cexamples.test.ts.",
     "Exports one architecture flow snapshot for every bundled C example program.",

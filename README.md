@@ -24,6 +24,13 @@ If you fear C, this may be the safest possible place to get bitten by it.
 
 It is small, a little strict, a little retro, and just dangerous enough to teach you why buffer overflows were such a legendary hobby.
 
+Some important tested truths about this mini C:
+
+- integers are 8-bit unsigned and wrap around
+- array parameters use copy-in / copy-back semantics, not normal C pointer aliasing
+- strings are just zero-terminated buffers
+- buffer overflows and deep recursion can still corrupt memory if you push too far
+
 Remember when writing a single letter on screen was a small emotional crisis?
 
 Remember when your biggest respectable number was `255`?
@@ -101,6 +108,13 @@ You get one test dashboard with:
 - one architecture snapshot for every bundled C example
 - animated previews for multi-frame programs
 
+Testing policy for this project:
+
+- everything the user can run on the computer must be covered by automated tests
+- every example program must be tested through multiple real workflows when possible, not just one isolated path
+- in practice that means direct CPU execution and architecture-flow coverage must stay in sync for bootloader/Linux userland programs
+- for this repository, that is what "100% test coverage" means
+
 ## Docs
 
 - [Easy user guide](docs/userguide.md)
@@ -148,6 +162,13 @@ Si vous aimez le C, vous aimerez probablement mon mini C.
 Si vous avez peur du C, c'est probablement l'endroit le plus sûr pour vous faire mordre par lui.
 
 C'est petit, un peu strict, un peu rétro, et juste assez dangereux pour vous rappeler pourquoi les buffer overflows ont longtemps été un mode de vie.
+
+Quelques verites importantes confirmees par les tests sur ce mini C :
+
+- les entiers sont en 8 bits non signes avec overflow modulo 256
+- les parametres tableau utilisent une semantique copie aller / copie retour, pas un aliasing pointeur classique du C
+- les strings sont juste des buffers termines par `0`
+- les buffer overflows et la recursion trop profonde peuvent encore corrompre la memoire si on pousse trop loin
 
 Vous vous souvenez de l'époque où afficher une seule lettre à l'écran relevait déjà du combat de boss ?
 
@@ -225,6 +246,13 @@ Vous obtenez un tableau de bord de test avec :
 - des captures "ordinateur complet" pour les runs bootloader/Linux
 - une capture d'architecture pour chaque exemple C embarqué
 - des aperçus animés pour les programmes à plusieurs images
+
+Politique de test du projet :
+
+- tout ce que l'utilisateur peut lancer sur l'ordinateur doit etre couvert par des tests automatiques
+- chaque programme d'exemple doit etre teste via plusieurs workflows reels quand c'est pertinent, pas seulement par un chemin isole
+- en pratique, cela signifie que l'execution directe CPU et la couverture architecture-flow doivent rester synchronisees pour les programmes bootloader/Linux userland
+- dans ce depot, c'est cela que signifie "100% test coverage"
 
 ## Documentation
 

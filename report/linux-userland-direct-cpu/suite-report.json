@@ -1,0 +1,168 @@
+{
+  "suiteName": "Linux Userland Direct CPU Tests",
+  "suiteKey": "linux-userland-direct-cpu",
+  "generatedAt": "19 Mar 2026, 20:34:14",
+  "notes": [
+    "Generated during linuxUserlandPrograms.test.ts.",
+    "Runs every bootloader-runnable Linux-like userland program directly on the CPU and records console output.",
+    "Programs that draw on the plotter also export PNG snapshots."
+  ],
+  "consoleLines": [
+    "[program] hello: halted=true plotter=0 drivePage=4 httpStatus=Idle",
+    "[program] sysinfo: halted=true plotter=0 drivePage=5 httpStatus=Idle",
+    "[program] uname: halted=true plotter=0 drivePage=6 httpStatus=Idle",
+    "[program] pwd: halted=true plotter=0 drivePage=7 httpStatus=Idle",
+    "[program] bootcat: halted=true plotter=0 drivePage=89 httpStatus=Idle",
+    "[program] argdump: halted=true plotter=0 drivePage=9 httpStatus=Idle",
+    "[program] wc: halted=true plotter=0 drivePage=90 httpStatus=Idle",
+    "[program] head: halted=true plotter=0 drivePage=89 httpStatus=Idle",
+    "[program] wget: halted=true plotter=0 drivePage=1 httpStatus=HTTP 200 OK",
+    "[program] ascii: halted=true plotter=0 drivePage=14 httpStatus=Idle",
+    "[program] upper: halted=false plotter=0 drivePage=15 httpStatus=Idle",
+    "[program] echoio: halted=false plotter=0 drivePage=16 httpStatus=Idle",
+    "[program] plot: halted=true plotter=65536 drivePage=17 httpStatus=Idle",
+    "[snapshot] linux-userland-plot: report/linux-userland-direct-cpu/linux-userland-plot.png (256x256, scale 2, pixels 65536)",
+    "[program] nano: halted=true plotter=0 drivePage=1 httpStatus=Idle",
+    "[program] glxnano: halted=false plotter=3397 drivePage=92 httpStatus=Idle",
+    "[snapshot] linux-userland-glxnano: report/linux-userland-direct-cpu/linux-userland-glxnano.png (256x256, scale 2, pixels 3397)",
+    "[program] glxsh: halted=false plotter=1297 drivePage=92 httpStatus=Idle",
+    "[snapshot] linux-userland-glxsh: report/linux-userland-direct-cpu/linux-userland-glxsh.png (256x256, scale 2, pixels 1297)",
+    "[program] cp: halted=true plotter=0 drivePage=1 httpStatus=Idle",
+    "[program] mv: halted=true plotter=0 drivePage=1 httpStatus=Idle",
+    "[program] grep: halted=true plotter=0 drivePage=90 httpStatus=Idle",
+    "[program] jsonp: halted=true plotter=0 drivePage=95 httpStatus=Idle"
+  ],
+  "tests": [
+    "runs \"hello\" from the bootloader Linux userland",
+    "runs \"sysinfo\" from the bootloader Linux userland",
+    "runs \"uname\" from the bootloader Linux userland",
+    "runs \"pwd\" from the bootloader Linux userland",
+    "runs \"bootcat\" from the bootloader Linux userland",
+    "runs \"argdump\" from the bootloader Linux userland",
+    "runs \"wc\" from the bootloader Linux userland",
+    "runs \"head\" from the bootloader Linux userland",
+    "runs \"wget\" from the bootloader Linux userland",
+    "runs \"ascii\" from the bootloader Linux userland",
+    "runs \"upper\" from the bootloader Linux userland",
+    "runs \"echoio\" from the bootloader Linux userland",
+    "runs \"plot\" from the bootloader Linux userland",
+    "runs \"nano\" from the bootloader Linux userland",
+    "runs \"glxnano\" from the bootloader Linux userland",
+    "runs \"glxsh\" from the bootloader Linux userland",
+    "runs \"cp\" from the bootloader Linux userland",
+    "runs \"mv\" from the bootloader Linux userland",
+    "runs \"grep\" from the bootloader Linux userland",
+    "runs \"jsonp\" from the bootloader Linux userland"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "hello",
+      "output": "NodalLinux\nroot# \nhello from /bin/hello"
+    },
+    {
+      "testName": "sysinfo",
+      "output": "NodalLinux\nroot# \nNodalLinux 8-bit\nCPU: 8-bit unsigned\nRAM: 8K  DISK: 8K\nShell: root@sim:/#"
+    },
+    {
+      "testName": "uname",
+      "output": "NodalLinux\nroot# \nNodalLinux 8-bit 0.3"
+    },
+    {
+      "testName": "pwd",
+      "output": "NodalLinux\nroot# \n/"
+    },
+    {
+      "testName": "bootcat",
+      "output": "NodalLinux\nroot# \nThis is a tiny Linux-like environment for the simulator.\nPrograms live on the external drive and are launched with run NAME.\nUse run NAME FILE to pass one resolved file argument."
+    },
+    {
+      "testName": "argdump",
+      "output": "NodalLinux\nroot# \ntype file page 89 size 179b"
+    },
+    {
+      "testName": "wc",
+      "output": "NodalLinux\nroot# \n134b 2l"
+    },
+    {
+      "testName": "head",
+      "output": "NodalLinux\nroot# \nThis is a tiny Linux-like enviro"
+    },
+    {
+      "testName": "wget",
+      "output": "NodalLinux\nroot# \n{\"ok\":1}"
+    },
+    {
+      "testName": "ascii",
+      "output": "NodalLinux\nroot# \n  ! \" # $ % & ' ( ) * + , - . / \n0 1 2 3 4 5 6 7 8 9 : ; < = > ? \n@ A B C D E F G H I J K L M N O \nP Q R S T U V W X Y Z [ \\ ] ^ _ \n` a b c d e f g h i j k l m n o \np q r s t u v w x y z { | } ~"
+    },
+    {
+      "testName": "upper",
+      "output": "NodalLinux\nroot# \nupper> ABC"
+    },
+    {
+      "testName": "echoio",
+      "output": "NodalLinux\nroot# \necho> abc"
+    },
+    {
+      "testName": "plot",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "nano",
+      "output": "=== EDITEUR FS ASM ===\nnotes | /o nom | arrows move | /n nl | /d del | /s save | @ quit\n[0/0]\n|"
+    },
+    {
+      "testName": "glxnano",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "glxsh",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "cp",
+      "output": "NodalLinux\nroot# \ndest> copied"
+    },
+    {
+      "testName": "mv",
+      "output": "NodalLinux\nroot# \ndest> moved"
+    },
+    {
+      "testName": "grep",
+      "output": "NodalLinux\nroot# \npat> match 40"
+    },
+    {
+      "testName": "jsonp",
+      "output": "NodalLinux\nroot# \nkey> \"Hello\""
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "linux-userland-plot",
+      "outputPath": "report/linux-userland-direct-cpu/linux-userland-plot.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 65536,
+      "href": "linux-userland-direct-cpu/linux-userland-plot.png"
+    },
+    {
+      "name": "linux-userland-glxnano",
+      "outputPath": "report/linux-userland-direct-cpu/linux-userland-glxnano.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 3397,
+      "href": "linux-userland-direct-cpu/linux-userland-glxnano.png"
+    },
+    {
+      "name": "linux-userland-glxsh",
+      "outputPath": "report/linux-userland-direct-cpu/linux-userland-glxsh.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1297,
+      "href": "linux-userland-direct-cpu/linux-userland-glxsh.png"
+    }
+  ]
+}

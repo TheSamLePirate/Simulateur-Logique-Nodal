@@ -1,7 +1,7 @@
 {
   "suiteName": "Full Computer Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-full-computer",
-  "generatedAt": "19 Mar 2026, 19:35:35",
+  "generatedAt": "19 Mar 2026, 20:34:18",
   "notes": [
     "Generated during computerArchitectureFlow.integration.test.ts.",
     "This suite boots the real bootloader with the Linux-like disk and exports JSON/SVG computer snapshots.",
@@ -9,6 +9,7 @@
   ],
   "consoleLines": [
     "[artifact] linux-boot-prompt: report/computer-architecture-flow-full-computer/linux-boot-prompt.json | report/computer-architecture-flow-full-computer/linux-boot-prompt.svg | report/computer-architecture-flow-full-computer/png/linux-boot-prompt.png (12 nodes, 61 edges)",
+    "[artifact] linux-cat-missing: report/computer-architecture-flow-full-computer/linux-cat-missing.json | report/computer-architecture-flow-full-computer/linux-cat-missing.svg | report/computer-architecture-flow-full-computer/png/linux-cat-missing.png (12 nodes, 61 edges)",
     "[artifact] linux-grep-story: report/computer-architecture-flow-full-computer/linux-grep-story.json | report/computer-architecture-flow-full-computer/linux-grep-story.svg | report/computer-architecture-flow-full-computer/png/linux-grep-story.png (12 nodes, 61 edges)",
     "[artifact] linux-wget-url: report/computer-architecture-flow-full-computer/linux-wget-url.json | report/computer-architecture-flow-full-computer/linux-wget-url.svg | report/computer-architecture-flow-full-computer/png/linux-wget-url.png (12 nodes, 61 edges)",
     "[artifact] linux-running-example-glxsh: report/computer-architecture-flow-full-computer/linux-running-example-glxsh.json | report/computer-architecture-flow-full-computer/linux-running-example-glxsh.svg | report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png (12 nodes, 61 edges)",
@@ -16,6 +17,7 @@
   ],
   "tests": [
     "linux-boot-prompt",
+    "linux-cat-missing",
     "linux-grep-story",
     "linux-wget-url",
     "linux-running-example-glxsh",
@@ -25,6 +27,10 @@
     {
       "testName": "linux-boot-prompt",
       "output": "JSON: report/computer-architecture-flow-full-computer/linux-boot-prompt.json\nSVG: report/computer-architecture-flow-full-computer/linux-boot-prompt.svg\nPNG: report/computer-architecture-flow-full-computer/png/linux-boot-prompt.png\nActive edges: 15"
+    },
+    {
+      "testName": "linux-cat-missing",
+      "output": "JSON: report/computer-architecture-flow-full-computer/linux-cat-missing.json\nSVG: report/computer-architecture-flow-full-computer/linux-cat-missing.svg\nPNG: report/computer-architecture-flow-full-computer/png/linux-cat-missing.png\nActive edges: 15"
     },
     {
       "testName": "linux-grep-story",
@@ -52,6 +58,15 @@
       "scale": 1,
       "pixelCount": 15,
       "href": "computer-architecture-flow-full-computer/linux-boot-prompt.svg"
+    },
+    {
+      "name": "linux-cat-missing",
+      "outputPath": "report/computer-architecture-flow-full-computer/linux-cat-missing.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-full-computer/linux-cat-missing.svg"
     },
     {
       "name": "linux-grep-story",
@@ -96,6 +111,17 @@
       "jsonPath": "report/computer-architecture-flow-full-computer/linux-boot-prompt.json",
       "imagePath": "report/computer-architecture-flow-full-computer/linux-boot-prompt.svg",
       "pngPath": "report/computer-architecture-flow-full-computer/png/linux-boot-prompt.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "linux-cat-missing",
+      "jsonPath": "report/computer-architecture-flow-full-computer/linux-cat-missing.json",
+      "imagePath": "report/computer-architecture-flow-full-computer/linux-cat-missing.svg",
+      "pngPath": "report/computer-architecture-flow-full-computer/png/linux-cat-missing.png",
       "width": 1720,
       "height": 1776,
       "nodeCount": 12,

@@ -1,0 +1,2614 @@
+{
+  "generatedAt": "2026-03-19T19:34:20.930Z",
+  "name": "linux-userland-wget",
+  "nodeCount": 12,
+  "edgeCount": 61,
+  "activeEdgeCount": 15,
+  "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-wget.svg",
+  "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-wget.png",
+  "programName": "wget",
+  "exampleName": "Linux - wget",
+  "consoleTail": "NodalLinux\nroot# \n{\"ok\":1}\n",
+  "halted": true,
+  "plotterPixels": 0,
+  "drivePage": 1,
+  "httpStatus": "HTTP 200 OK",
+  "scenario": "wget",
+  "nodes": [
+    {
+      "id": "console",
+      "type": "architecture",
+      "position": {
+        "x": 20,
+        "y": 40
+      },
+      "draggable": false,
+      "data": {
+        "title": "Console Terminal",
+        "subtitle": "CPU writes chars and reads queued input",
+        "tone": "io",
+        "icon": "console",
+        "metrics": [
+          {
+            "label": "OUTPUT",
+            "value": "nux\nroot# \n{\"ok\":1}\n"
+          },
+          {
+            "label": "INPUT",
+            "value": "idle"
+          },
+          {
+            "label": "LAST BYTE",
+            "value": "\\n"
+          },
+          {
+            "label": "QUEUE",
+            "value": "0 bytes"
+          }
+        ],
+        "consolePreview": {
+          "lines": [
+            "NodalLinux",
+            "root# ",
+            "{\"ok\":1}",
+            " ",
+            " "
+          ]
+        },
+        "leftPins": [
+          {
+            "id": "write-data",
+            "label": "WRITE BYTE",
+            "value": "\\n",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "read-req",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "input-byte",
+            "label": "INPUT BYTE",
+            "value": "idle",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "keyboard",
+      "type": "architecture",
+      "position": {
+        "x": 20,
+        "y": 420
+      },
+      "draggable": false,
+      "data": {
+        "title": "Keyboard Matrix",
+        "subtitle": "selection index in A, state returns to CPU",
+        "tone": "io",
+        "icon": "keyboard",
+        "metrics": [
+          {
+            "label": "ACTIVE",
+            "value": "none"
+          },
+          {
+            "label": "SELECT",
+            "value": "slot 0x47"
+          },
+          {
+            "label": "READ",
+            "value": "idle"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "select",
+            "label": "SELECT",
+            "value": "slot 0x47",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "read",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "state",
+            "label": "KEY STATE",
+            "value": "idle",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "cpu",
+      "type": "architecture",
+      "position": {
+        "x": 420,
+        "y": 120
+      },
+      "draggable": false,
+      "data": {
+        "title": "CPU Core",
+        "subtitle": "STA @ 0x00F4 • cycles 25434",
+        "tone": "cpu",
+        "icon": "cpu",
+        "metrics": [
+          {
+            "label": "A",
+            "value": "0x47"
+          },
+          {
+            "label": "B",
+            "value": "0x08"
+          },
+          {
+            "label": "PC",
+            "value": "0x00F4"
+          },
+          {
+            "label": "OPERAND",
+            "value": "0x1105"
+          },
+          {
+            "label": "SP",
+            "value": "0x1FFF"
+          },
+          {
+            "label": "PULSE",
+            "value": "LOW"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "mem-fetch",
+            "label": "FETCH BYTE",
+            "value": "0x90",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "mem-read",
+            "label": "MEM DATA",
+            "value": "0x7D",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "alu-out",
+            "label": "ALU RESULT",
+            "value": "0x47",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "alu-flags",
+            "label": "FLAGS",
+            "value": "0/0/0",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "con-in",
+            "label": "CONSOLE IN",
+            "value": "idle",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "key-in",
+            "label": "KEY STATE",
+            "value": "idle",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "drv-in",
+            "label": "DRIVE IN",
+            "value": "0x5D",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "net-in",
+            "label": "NET IN",
+            "value": "{\"ok\":1}",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "fetch-pc",
+            "label": "FETCH PC",
+            "value": "0x00F4",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "mem-addr",
+            "label": "MEM ADDR",
+            "value": "IMM 0x1105",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "mem-data",
+            "label": "MEM WRITE",
+            "value": "0x47",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "mem-read-req",
+            "label": "MEM READ",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "mem-we",
+            "label": "MEM WRITE EN",
+            "value": "1",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "alu-a",
+            "label": "ALU A",
+            "value": "0x47",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "alu-b",
+            "label": "ALU B",
+            "value": "0x08",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "alu-op",
+            "label": "ALU OP",
+            "value": "PASS",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "con-out",
+            "label": "CONSOLE OUT",
+            "value": "\\n",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "con-rd",
+            "label": "CONSOLE RD",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "key-sel",
+            "label": "KEY SLOT",
+            "value": "slot 0x47",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "key-rd",
+            "label": "KEY READ",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "plot-x",
+            "label": "PLOT X",
+            "value": "0x47",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "plot-y",
+            "label": "PLOT Y",
+            "value": "0x08",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "plot-color",
+            "label": "PLOT RGB",
+            "value": "0x22/0xD3/0xEE",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "plot-draw",
+            "label": "PLOT DRAW",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "plot-clear",
+            "label": "PLOT CLR",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-page",
+            "label": "DRIVE PAGE",
+            "value": "0x01",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-addr",
+            "label": "DRIVE ADDR",
+            "value": "0x0147",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-data",
+            "label": "DRIVE DATA",
+            "value": "0x08",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-rd",
+            "label": "DRIVE RD",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-wr",
+            "label": "DRIVE WR",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "drv-clr",
+            "label": "DRIVE CLR",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "net-addr",
+            "label": "HTTP PTR",
+            "value": "IMM 0x1105",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "net-get",
+            "label": "HTTP GET",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "net-post",
+            "label": "HTTP POST",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "net-rd",
+            "label": "HTTP READ",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory-bus",
+      "type": "architecture",
+      "position": {
+        "x": 850,
+        "y": 100
+      },
+      "draggable": false,
+      "data": {
+        "title": "Memory Bus",
+        "subtitle": "fetch lane + operand lane + read/write strobes",
+        "tone": "bus",
+        "icon": "bus",
+        "metrics": [
+          {
+            "label": "FETCH @",
+            "value": "0x00F4"
+          },
+          {
+            "label": "OPERAND @",
+            "value": "IMM 0x1105"
+          },
+          {
+            "label": "FETCH BYTE",
+            "value": "0x90"
+          },
+          {
+            "label": "DATA BYTE",
+            "value": "0x7D"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "fetch-in",
+            "label": "FETCH ADDR",
+            "value": "0x00F4",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "addr-in",
+            "label": "OPERAND ADDR",
+            "value": "0x1105",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "data-in",
+            "label": "WRITE DATA",
+            "value": "0x47",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "read-in",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "we-in",
+            "label": "WRITE STB",
+            "value": "1",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "fetch-data-in",
+            "label": "FETCH BYTE",
+            "value": "0x90",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "read-data-in",
+            "label": "READ BYTE",
+            "value": "0x7D",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "fetch-addr-out",
+            "label": "FETCH ADDR",
+            "value": "0x00F4",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "addr-out",
+            "label": "OPERAND ADDR",
+            "value": "0x1105",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "data-out",
+            "label": "WRITE DATA",
+            "value": "0x47",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "read-out",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "we-out",
+            "label": "WRITE STB",
+            "value": "1",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "fetch-out",
+            "label": "FETCH -> CPU",
+            "value": "0x90",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "operand-out",
+            "label": "DATA -> CPU",
+            "value": "0x7D",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "cstring-out",
+            "label": "RAM -> URL/BODY",
+            "value": "IMM 0x1105",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "memory",
+      "type": "architecture",
+      "position": {
+        "x": 1280,
+        "y": 100
+      },
+      "draggable": false,
+      "data": {
+        "title": "SRAM",
+        "subtitle": "program bytes, stack, userland strings, and data",
+        "tone": "memory",
+        "icon": "memory",
+        "metrics": [
+          {
+            "label": "FETCH BYTE",
+            "value": "0x90"
+          },
+          {
+            "label": "OPERAND BYTE",
+            "value": "0x7D"
+          },
+          {
+            "label": "READ",
+            "value": "idle"
+          },
+          {
+            "label": "WRITE",
+            "value": "0x47"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "fetch-addr",
+            "label": "FETCH ADDR",
+            "value": "0x00F4",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "addr",
+            "label": "OPERAND ADDR",
+            "value": "0x1105",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "read",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "data",
+            "label": "WRITE DATA",
+            "value": "0x47",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "write",
+            "label": "WRITE STB",
+            "value": "1",
+            "handleType": "target",
+            "active": true
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "fetch",
+            "label": "FETCH BYTE",
+            "value": "0x90",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "operand",
+            "label": "READ BYTE",
+            "value": "0x7D",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "alu",
+      "type": "architecture",
+      "position": {
+        "x": 420,
+        "y": 980
+      },
+      "draggable": false,
+      "data": {
+        "title": "ALU State",
+        "subtitle": "register-to-register lane",
+        "tone": "alu",
+        "icon": "alu",
+        "metrics": [
+          {
+            "label": "OP",
+            "value": "PASS"
+          },
+          {
+            "label": "A",
+            "value": "0x47"
+          },
+          {
+            "label": "B",
+            "value": "0x08"
+          },
+          {
+            "label": "RESULT",
+            "value": "0x47"
+          },
+          {
+            "label": "ZERO/CARRY/NEG",
+            "value": "0/0/0"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "a-in",
+            "label": "A IN",
+            "value": "0x47",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "b-in",
+            "label": "B IN",
+            "value": "0x08",
+            "handleType": "target",
+            "active": true
+          },
+          {
+            "id": "op-in",
+            "label": "OP IN",
+            "value": "PASS",
+            "handleType": "target",
+            "active": true
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "result",
+            "label": "RESULT",
+            "value": "0x47",
+            "handleType": "source",
+            "active": true
+          },
+          {
+            "id": "flags",
+            "label": "FLAGS",
+            "value": "0/0/0",
+            "handleType": "source",
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "plotter-stage",
+      "type": "architecture",
+      "position": {
+        "x": 850,
+        "y": 620
+      },
+      "draggable": false,
+      "data": {
+        "title": "Plotter Latches",
+        "subtitle": "A -> X, B -> Y, RGB registers, draw/clear strobes",
+        "tone": "bus",
+        "icon": "bus",
+        "metrics": [
+          {
+            "label": "X",
+            "value": "0x47"
+          },
+          {
+            "label": "Y",
+            "value": "0x08"
+          },
+          {
+            "label": "RGB",
+            "value": "0x22/0xD3/0xEE"
+          },
+          {
+            "label": "MODE",
+            "value": "idle"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "x-in",
+            "label": "X FROM CPU",
+            "value": "0x47",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "y-in",
+            "label": "Y FROM CPU",
+            "value": "0x08",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "rgb-in",
+            "label": "RGB LATCH",
+            "value": "0x22/0xD3/0xEE",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "draw-in",
+            "label": "DRAW STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "clear-in",
+            "label": "CLEAR STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "x-out",
+            "label": "X -> FB",
+            "value": "0x47",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "y-out",
+            "label": "Y -> FB",
+            "value": "0x08",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "rgb-out",
+            "label": "RGB -> FB",
+            "value": "0x22/0xD3/0xEE",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "draw-out",
+            "label": "DRAW -> FB",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "clear-out",
+            "label": "CLEAR -> FB",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "plotter-io",
+      "type": "architecture",
+      "position": {
+        "x": 1280,
+        "y": 620
+      },
+      "draggable": false,
+      "data": {
+        "title": "Plotter Framebuffer",
+        "subtitle": "256x256 RGB pixels driven by x/y/color latches",
+        "tone": "io",
+        "icon": "plotter",
+        "metrics": [
+          {
+            "label": "PIXELS",
+            "value": "0"
+          },
+          {
+            "label": "X/Y",
+            "value": "0x47/0x08"
+          },
+          {
+            "label": "RGB",
+            "value": "34/211/238"
+          },
+          {
+            "label": "STATE",
+            "value": "idle"
+          }
+        ],
+        "plotterPreview": {
+          "width": 48,
+          "height": 48,
+          "pixels": []
+        },
+        "leftPins": [
+          {
+            "id": "x",
+            "label": "X",
+            "value": "0x47",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "y",
+            "label": "Y",
+            "value": "0x08",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "rgb",
+            "label": "RGB",
+            "value": "0x22/0xD3/0xEE",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "draw",
+            "label": "DRAW",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "clear",
+            "label": "CLEAR",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": []
+      }
+    },
+    {
+      "id": "drive-stage",
+      "type": "architecture",
+      "position": {
+        "x": 850,
+        "y": 980
+      },
+      "draggable": false,
+      "data": {
+        "title": "Drive Controller",
+        "subtitle": "page latch + address mux + B data out",
+        "tone": "bus",
+        "icon": "bus",
+        "metrics": [
+          {
+            "label": "PAGE",
+            "value": "0x01"
+          },
+          {
+            "label": "ADDR",
+            "value": "0x0147"
+          },
+          {
+            "label": "DATA OUT",
+            "value": "0x08"
+          },
+          {
+            "label": "MODE",
+            "value": "idle"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "page-in",
+            "label": "PAGE FROM CPU",
+            "value": "0x01",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "addr-in",
+            "label": "ADDR FROM CPU",
+            "value": "0x0147",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "data-in",
+            "label": "DATA FROM B",
+            "value": "0x08",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "rd-in",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "wr-in",
+            "label": "WRITE STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "clr-in",
+            "label": "CLEAR STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "page-out",
+            "label": "PAGE -> DRIVE",
+            "value": "0x01",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "addr-out",
+            "label": "ADDR -> DRIVE",
+            "value": "0x0147",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "data-out",
+            "label": "DATA -> DRIVE",
+            "value": "0x08",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "rd-out",
+            "label": "READ -> DRIVE",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "wr-out",
+            "label": "WRITE -> DRIVE",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "clr-out",
+            "label": "CLEAR -> DRIVE",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "data-back",
+            "label": "DATA -> CPU",
+            "value": "0x5D",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "drive",
+      "type": "architecture",
+      "position": {
+        "x": 1280,
+        "y": 980
+      },
+      "draggable": false,
+      "data": {
+        "title": "External Drive",
+        "subtitle": "paged storage device addressed by page:offset",
+        "tone": "io",
+        "icon": "drive",
+        "metrics": [
+          {
+            "label": "PAGE",
+            "value": "0x01"
+          },
+          {
+            "label": "ADDR",
+            "value": "0x0147"
+          },
+          {
+            "label": "READ BYTE",
+            "value": "0x5D"
+          },
+          {
+            "label": "WRITE BYTE",
+            "value": "0x08"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "page",
+            "label": "PAGE",
+            "value": "0x01",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "addr",
+            "label": "ADDR",
+            "value": "0x0147",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "data",
+            "label": "DATA IN",
+            "value": "0x08",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "rd",
+            "label": "READ",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "wr",
+            "label": "WRITE",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "clr",
+            "label": "CLEAR",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "read-data",
+            "label": "READ BYTE",
+            "value": "0x5D",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "network-stage",
+      "type": "architecture",
+      "position": {
+        "x": 850,
+        "y": 1320
+      },
+      "draggable": false,
+      "data": {
+        "title": "Network Request Builder",
+        "subtitle": "operand points into RAM; strings become URL/body; response returns byte stream",
+        "tone": "bus",
+        "icon": "bus",
+        "metrics": [
+          {
+            "label": "REQ PTR",
+            "value": "IMM 0x1105"
+          },
+          {
+            "label": "URL",
+            "value": "https://jsonplaceho…"
+          },
+          {
+            "label": "BODY",
+            "value": "idle"
+          },
+          {
+            "label": "RESP",
+            "value": "{\"ok\":1}"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "addr-in",
+            "label": "PTR FROM CPU",
+            "value": "IMM 0x1105",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "ram-in",
+            "label": "RAM CSTRING",
+            "value": "0x7D",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "get-in",
+            "label": "GET STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "post-in",
+            "label": "POST STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "read-in",
+            "label": "READ STB",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "resp-in",
+            "label": "RESP BYTE",
+            "value": "0x00",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "url-out",
+            "label": "URL -> NET",
+            "value": "https://jsonplaceho…",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "body-out",
+            "label": "BODY -> NET",
+            "value": "idle",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "get-out",
+            "label": "GET -> NET",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "post-out",
+            "label": "POST -> NET",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "read-out",
+            "label": "READ -> NET",
+            "value": "0",
+            "handleType": "source",
+            "active": false
+          },
+          {
+            "id": "data-out",
+            "label": "DATA -> CPU",
+            "value": "{\"ok\":1}",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "network",
+      "type": "architecture",
+      "position": {
+        "x": 1280,
+        "y": 1320
+      },
+      "draggable": false,
+      "data": {
+        "title": "Network Device",
+        "subtitle": "HTTP 200 OK",
+        "tone": "io",
+        "icon": "network",
+        "metrics": [
+          {
+            "label": "STATUS",
+            "value": "HTTP 200 OK"
+          },
+          {
+            "label": "PENDING",
+            "value": "no"
+          },
+          {
+            "label": "URL",
+            "value": "https://jsonplaceho…"
+          },
+          {
+            "label": "BUFFER",
+            "value": "0 bytes"
+          }
+        ],
+        "leftPins": [
+          {
+            "id": "url",
+            "label": "URL",
+            "value": "https://jsonplaceho…",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "body",
+            "label": "BODY",
+            "value": "idle",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "get",
+            "label": "GET",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "post",
+            "label": "POST",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          },
+          {
+            "id": "read",
+            "label": "READ",
+            "value": "0",
+            "handleType": "target",
+            "active": false
+          }
+        ],
+        "rightPins": [
+          {
+            "id": "data",
+            "label": "RESPONSE BYTE",
+            "value": "0x00",
+            "handleType": "source",
+            "active": false
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "cpu-fetch-bus",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "fetch-pc",
+      "target": "memory-bus",
+      "targetHandle": "fetch-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "PC 0x00F4",
+        "color": "#f59e0b",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-addr-bus",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "mem-addr",
+      "target": "memory-bus",
+      "targetHandle": "addr-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "ADDR 0x1105",
+        "color": "#f59e0b",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-data-bus",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "mem-data",
+      "target": "memory-bus",
+      "targetHandle": "data-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f97316"
+      },
+      "data": {
+        "label": "WRITE 0x47",
+        "color": "#f97316",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-readreq-bus",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "mem-read-req",
+      "target": "memory-bus",
+      "targetHandle": "read-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#38bdf8"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#38bdf8",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-we-bus",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "mem-we",
+      "target": "memory-bus",
+      "targetHandle": "we-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb7185"
+      },
+      "data": {
+        "label": "WRITE",
+        "color": "#fb7185",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-mem-fetch-addr",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "fetch-addr-out",
+      "target": "memory",
+      "targetHandle": "fetch-addr",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fbbf24"
+      },
+      "data": {
+        "label": "0x00F4",
+        "color": "#fbbf24",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-mem-addr",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "addr-out",
+      "target": "memory",
+      "targetHandle": "addr",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#10b981"
+      },
+      "data": {
+        "label": "0x1105",
+        "color": "#10b981",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-mem-read",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "read-out",
+      "target": "memory",
+      "targetHandle": "read",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22d3ee"
+      },
+      "data": {
+        "label": "RD",
+        "color": "#22d3ee",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-mem-data",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "data-out",
+      "target": "memory",
+      "targetHandle": "data",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22c55e"
+      },
+      "data": {
+        "label": "0x47",
+        "color": "#22c55e",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-mem-we",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "we-out",
+      "target": "memory",
+      "targetHandle": "write",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f43f5e"
+      },
+      "data": {
+        "label": "WE",
+        "color": "#f43f5e",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "mem-bus-fetch",
+      "type": "signal",
+      "source": "memory",
+      "sourceHandle": "fetch",
+      "target": "memory-bus",
+      "targetHandle": "fetch-data-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fde047"
+      },
+      "data": {
+        "label": "0x90",
+        "color": "#fde047",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-cpu-fetch",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "fetch-out",
+      "target": "cpu",
+      "targetHandle": "mem-fetch",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#facc15"
+      },
+      "data": {
+        "label": "0x90",
+        "color": "#facc15",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "mem-bus-read",
+      "type": "signal",
+      "source": "memory",
+      "sourceHandle": "operand",
+      "target": "memory-bus",
+      "targetHandle": "read-data-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22d3ee"
+      },
+      "data": {
+        "label": "0x7D",
+        "color": "#22d3ee",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-cpu-read",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "operand-out",
+      "target": "cpu",
+      "targetHandle": "mem-read",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22d3ee"
+      },
+      "data": {
+        "label": "0x7D",
+        "color": "#22d3ee",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-alu-a",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "alu-a",
+      "target": "alu",
+      "targetHandle": "a-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#a78bfa"
+      },
+      "data": {
+        "label": "A 0x47",
+        "color": "#a78bfa",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-alu-b",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "alu-b",
+      "target": "alu",
+      "targetHandle": "b-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#d946ef"
+      },
+      "data": {
+        "label": "B 0x08",
+        "color": "#d946ef",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-alu-op",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "alu-op",
+      "target": "alu",
+      "targetHandle": "op-in",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f472b6"
+      },
+      "data": {
+        "label": "PASS",
+        "color": "#f472b6",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "alu-cpu-result",
+      "type": "signal",
+      "source": "alu",
+      "sourceHandle": "result",
+      "target": "cpu",
+      "targetHandle": "alu-out",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#e879f9"
+      },
+      "data": {
+        "label": "0x47",
+        "color": "#e879f9",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "alu-cpu-flags",
+      "type": "signal",
+      "source": "alu",
+      "sourceHandle": "flags",
+      "target": "cpu",
+      "targetHandle": "alu-flags",
+      "animated": true,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#c084fc"
+      },
+      "data": {
+        "label": "0/0/0",
+        "color": "#c084fc",
+        "active": true,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-console-out",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "con-out",
+      "target": "console",
+      "targetHandle": "write-data",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#38bdf8"
+      },
+      "data": {
+        "label": "\\n",
+        "color": "#38bdf8",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-console-read",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "con-rd",
+      "target": "console",
+      "targetHandle": "read-req",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#60a5fa"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#60a5fa",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "console-cpu-in",
+      "type": "signal",
+      "source": "console",
+      "sourceHandle": "input-byte",
+      "target": "cpu",
+      "targetHandle": "con-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#93c5fd"
+      },
+      "data": {
+        "label": "idle",
+        "color": "#93c5fd",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-key-select",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "key-sel",
+      "target": "keyboard",
+      "targetHandle": "select",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22c55e"
+      },
+      "data": {
+        "label": "slot 0x47",
+        "color": "#22c55e",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-key-rd",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "key-rd",
+      "target": "keyboard",
+      "targetHandle": "read",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#4ade80"
+      },
+      "data": {
+        "label": "SCAN",
+        "color": "#4ade80",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "keyboard-cpu-state",
+      "type": "signal",
+      "source": "keyboard",
+      "sourceHandle": "state",
+      "target": "cpu",
+      "targetHandle": "key-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#86efac"
+      },
+      "data": {
+        "label": "idle",
+        "color": "#86efac",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-plot-x",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "plot-x",
+      "target": "plotter-stage",
+      "targetHandle": "x-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "X 0x47",
+        "color": "#f59e0b",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-plot-y",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "plot-y",
+      "target": "plotter-stage",
+      "targetHandle": "y-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb923c"
+      },
+      "data": {
+        "label": "Y 0x08",
+        "color": "#fb923c",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-plot-rgb",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "plot-color",
+      "target": "plotter-stage",
+      "targetHandle": "rgb-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb7185"
+      },
+      "data": {
+        "label": "0x22/0xD3/0xEE",
+        "color": "#fb7185",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-plot-draw",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "plot-draw",
+      "target": "plotter-stage",
+      "targetHandle": "draw-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f97316"
+      },
+      "data": {
+        "label": "DRAW",
+        "color": "#f97316",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-plot-clear",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "plot-clear",
+      "target": "plotter-stage",
+      "targetHandle": "clear-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#e11d48"
+      },
+      "data": {
+        "label": "CLEAR",
+        "color": "#e11d48",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "plotter-stage-x",
+      "type": "signal",
+      "source": "plotter-stage",
+      "sourceHandle": "x-out",
+      "target": "plotter-io",
+      "targetHandle": "x",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "0x47",
+        "color": "#f59e0b",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "plotter-stage-y",
+      "type": "signal",
+      "source": "plotter-stage",
+      "sourceHandle": "y-out",
+      "target": "plotter-io",
+      "targetHandle": "y",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb923c"
+      },
+      "data": {
+        "label": "0x08",
+        "color": "#fb923c",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "plotter-stage-rgb",
+      "type": "signal",
+      "source": "plotter-stage",
+      "sourceHandle": "rgb-out",
+      "target": "plotter-io",
+      "targetHandle": "rgb",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb7185"
+      },
+      "data": {
+        "label": "0x22/0xD3/0xEE",
+        "color": "#fb7185",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "plotter-stage-draw",
+      "type": "signal",
+      "source": "plotter-stage",
+      "sourceHandle": "draw-out",
+      "target": "plotter-io",
+      "targetHandle": "draw",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f97316"
+      },
+      "data": {
+        "label": "DRAW",
+        "color": "#f97316",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "plotter-stage-clear",
+      "type": "signal",
+      "source": "plotter-stage",
+      "sourceHandle": "clear-out",
+      "target": "plotter-io",
+      "targetHandle": "clear",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#e11d48"
+      },
+      "data": {
+        "label": "CLEAR",
+        "color": "#e11d48",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-page",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-page",
+      "target": "drive-stage",
+      "targetHandle": "page-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fbbf24"
+      },
+      "data": {
+        "label": "0x01",
+        "color": "#fbbf24",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-addr",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-addr",
+      "target": "drive-stage",
+      "targetHandle": "addr-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "0x0147",
+        "color": "#f59e0b",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-data",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-data",
+      "target": "drive-stage",
+      "targetHandle": "data-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f97316"
+      },
+      "data": {
+        "label": "0x08",
+        "color": "#f97316",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-rd",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-rd",
+      "target": "drive-stage",
+      "targetHandle": "rd-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fdba74"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#fdba74",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-wr",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-wr",
+      "target": "drive-stage",
+      "targetHandle": "wr-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb923c"
+      },
+      "data": {
+        "label": "WRITE",
+        "color": "#fb923c",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-drive-clr",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "drv-clr",
+      "target": "drive-stage",
+      "targetHandle": "clr-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#ef4444"
+      },
+      "data": {
+        "label": "CLEAR",
+        "color": "#ef4444",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-page",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "page-out",
+      "target": "drive",
+      "targetHandle": "page",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fbbf24"
+      },
+      "data": {
+        "label": "0x01",
+        "color": "#fbbf24",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-addr",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "addr-out",
+      "target": "drive",
+      "targetHandle": "addr",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f59e0b"
+      },
+      "data": {
+        "label": "0x0147",
+        "color": "#f59e0b",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-data",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "data-out",
+      "target": "drive",
+      "targetHandle": "data",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#f97316"
+      },
+      "data": {
+        "label": "0x08",
+        "color": "#f97316",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-rd",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "rd-out",
+      "target": "drive",
+      "targetHandle": "rd",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fdba74"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#fdba74",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-wr",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "wr-out",
+      "target": "drive",
+      "targetHandle": "wr",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fb923c"
+      },
+      "data": {
+        "label": "WRITE",
+        "color": "#fb923c",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-clr",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "clr-out",
+      "target": "drive",
+      "targetHandle": "clr",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#ef4444"
+      },
+      "data": {
+        "label": "CLEAR",
+        "color": "#ef4444",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-stage-back",
+      "type": "signal",
+      "source": "drive-stage",
+      "sourceHandle": "data-back",
+      "target": "cpu",
+      "targetHandle": "drv-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fde68a"
+      },
+      "data": {
+        "label": "0x5D",
+        "color": "#fde68a",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "drive-back-stage",
+      "type": "signal",
+      "source": "drive",
+      "sourceHandle": "read-data",
+      "target": "drive-stage",
+      "targetHandle": "data-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#fef3c7"
+      },
+      "data": {
+        "label": "0x5D",
+        "color": "#fef3c7",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-net-addr",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "net-addr",
+      "target": "network-stage",
+      "targetHandle": "addr-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#06b6d4"
+      },
+      "data": {
+        "label": "IMM 0x1105",
+        "color": "#06b6d4",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "bus-net-cstring",
+      "type": "signal",
+      "source": "memory-bus",
+      "sourceHandle": "cstring-out",
+      "target": "network-stage",
+      "targetHandle": "ram-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#22d3ee"
+      },
+      "data": {
+        "label": "https://jsonplaceho…",
+        "color": "#22d3ee",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-net-get",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "net-get",
+      "target": "network-stage",
+      "targetHandle": "get-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#0891b2"
+      },
+      "data": {
+        "label": "GET",
+        "color": "#0891b2",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-net-post",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "net-post",
+      "target": "network-stage",
+      "targetHandle": "post-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#0ea5e9"
+      },
+      "data": {
+        "label": "POST",
+        "color": "#0ea5e9",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "cpu-net-rd",
+      "type": "signal",
+      "source": "cpu",
+      "sourceHandle": "net-rd",
+      "target": "network-stage",
+      "targetHandle": "read-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#38bdf8"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#38bdf8",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-url",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "url-out",
+      "target": "network",
+      "targetHandle": "url",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#06b6d4"
+      },
+      "data": {
+        "label": "https://jsonplaceho…",
+        "color": "#06b6d4",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-body",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "body-out",
+      "target": "network",
+      "targetHandle": "body",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#0ea5e9"
+      },
+      "data": {
+        "label": "idle",
+        "color": "#0ea5e9",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-get",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "get-out",
+      "target": "network",
+      "targetHandle": "get",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#0891b2"
+      },
+      "data": {
+        "label": "GET",
+        "color": "#0891b2",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-post",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "post-out",
+      "target": "network",
+      "targetHandle": "post",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#0ea5e9"
+      },
+      "data": {
+        "label": "POST",
+        "color": "#0ea5e9",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-read",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "read-out",
+      "target": "network",
+      "targetHandle": "read",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#38bdf8"
+      },
+      "data": {
+        "label": "READ",
+        "color": "#38bdf8",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-back-stage",
+      "type": "signal",
+      "source": "network",
+      "sourceHandle": "data",
+      "target": "network-stage",
+      "targetHandle": "resp-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#67e8f9"
+      },
+      "data": {
+        "label": "0x00",
+        "color": "#67e8f9",
+        "active": false,
+        "pulseOn": false
+      }
+    },
+    {
+      "id": "network-stage-cpu",
+      "type": "signal",
+      "source": "network-stage",
+      "sourceHandle": "data-out",
+      "target": "cpu",
+      "targetHandle": "net-in",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 18,
+        "height": 18,
+        "color": "#a5f3fc"
+      },
+      "data": {
+        "label": "{\"ok\":1}",
+        "color": "#a5f3fc",
+        "active": false,
+        "pulseOn": false
+      }
+    }
+  ]
+}

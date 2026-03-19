@@ -1,0 +1,540 @@
+{
+  "suiteName": "Linux Userland Architecture Flow Tests",
+  "suiteKey": "computer-architecture-flow-linux-userland",
+  "generatedAt": "19 Mar 2026, 20:34:28",
+  "notes": [
+    "Generated during computerArchitectureFlow.linuxUserland.test.ts.",
+    "Boots the real Linux-like disk through the bootloader and exports one architecture snapshot for every bundled userland program.",
+    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+  ],
+  "consoleLines": [
+    "[artifact] linux-userland-hello: report/computer-architecture-flow-linux-userland/linux-userland-hello.json | report/computer-architecture-flow-linux-userland/linux-userland-hello.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-hello.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-sysinfo: report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.json | report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-sysinfo.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-uname: report/computer-architecture-flow-linux-userland/linux-userland-uname.json | report/computer-architecture-flow-linux-userland/linux-userland-uname.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-uname.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-pwd: report/computer-architecture-flow-linux-userland/linux-userland-pwd.json | report/computer-architecture-flow-linux-userland/linux-userland-pwd.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-pwd.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-bootcat: report/computer-architecture-flow-linux-userland/linux-userland-bootcat.json | report/computer-architecture-flow-linux-userland/linux-userland-bootcat.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-bootcat.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-argdump: report/computer-architecture-flow-linux-userland/linux-userland-argdump.json | report/computer-architecture-flow-linux-userland/linux-userland-argdump.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-argdump.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-wc: report/computer-architecture-flow-linux-userland/linux-userland-wc.json | report/computer-architecture-flow-linux-userland/linux-userland-wc.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-wc.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-head: report/computer-architecture-flow-linux-userland/linux-userland-head.json | report/computer-architecture-flow-linux-userland/linux-userland-head.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-head.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-wget: report/computer-architecture-flow-linux-userland/linux-userland-wget.json | report/computer-architecture-flow-linux-userland/linux-userland-wget.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-wget.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-ascii: report/computer-architecture-flow-linux-userland/linux-userland-ascii.json | report/computer-architecture-flow-linux-userland/linux-userland-ascii.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-ascii.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-upper: report/computer-architecture-flow-linux-userland/linux-userland-upper.json | report/computer-architecture-flow-linux-userland/linux-userland-upper.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-upper.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-echoio: report/computer-architecture-flow-linux-userland/linux-userland-echoio.json | report/computer-architecture-flow-linux-userland/linux-userland-echoio.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-echoio.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-plot: report/computer-architecture-flow-linux-userland/linux-userland-plot.json | report/computer-architecture-flow-linux-userland/linux-userland-plot.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-plot.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-nano: report/computer-architecture-flow-linux-userland/linux-userland-nano.json | report/computer-architecture-flow-linux-userland/linux-userland-nano.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-nano.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-glxnano: report/computer-architecture-flow-linux-userland/linux-userland-glxnano.json | report/computer-architecture-flow-linux-userland/linux-userland-glxnano.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-glxnano.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-glxsh: report/computer-architecture-flow-linux-userland/linux-userland-glxsh.json | report/computer-architecture-flow-linux-userland/linux-userland-glxsh.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-glxsh.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-cp: report/computer-architecture-flow-linux-userland/linux-userland-cp.json | report/computer-architecture-flow-linux-userland/linux-userland-cp.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-cp.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-mv: report/computer-architecture-flow-linux-userland/linux-userland-mv.json | report/computer-architecture-flow-linux-userland/linux-userland-mv.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-mv.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-grep: report/computer-architecture-flow-linux-userland/linux-userland-grep.json | report/computer-architecture-flow-linux-userland/linux-userland-grep.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-grep.png (12 nodes, 61 edges)",
+    "[artifact] linux-userland-jsonp: report/computer-architecture-flow-linux-userland/linux-userland-jsonp.json | report/computer-architecture-flow-linux-userland/linux-userland-jsonp.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-jsonp.png (12 nodes, 61 edges)"
+  ],
+  "tests": [
+    "linux-userland-hello",
+    "linux-userland-sysinfo",
+    "linux-userland-uname",
+    "linux-userland-pwd",
+    "linux-userland-bootcat",
+    "linux-userland-argdump",
+    "linux-userland-wc",
+    "linux-userland-head",
+    "linux-userland-wget",
+    "linux-userland-ascii",
+    "linux-userland-upper",
+    "linux-userland-echoio",
+    "linux-userland-plot",
+    "linux-userland-nano",
+    "linux-userland-glxnano",
+    "linux-userland-glxsh",
+    "linux-userland-cp",
+    "linux-userland-mv",
+    "linux-userland-grep",
+    "linux-userland-jsonp"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "linux-userland-hello",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-hello.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-hello.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-hello.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-sysinfo",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-sysinfo.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-uname",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-uname.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-uname.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-uname.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-pwd",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-pwd.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-pwd.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-pwd.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-bootcat",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-bootcat.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-bootcat.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-bootcat.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-argdump",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-argdump.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-argdump.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-argdump.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-wc",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-wc.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-wc.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-wc.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-head",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-head.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-head.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-head.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-wget",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-wget.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-wget.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-wget.png\nActive edges: 15"
+    },
+    {
+      "testName": "linux-userland-ascii",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-ascii.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-ascii.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-ascii.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-upper",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-upper.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-upper.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-upper.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-echoio",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-echoio.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-echoio.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-echoio.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-plot",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-plot.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-plot.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-plot.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-nano",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-nano.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-nano.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-nano.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-glxnano",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-glxnano.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-glxnano.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-glxnano.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-glxsh",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-glxsh.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-glxsh.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-glxsh.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-cp",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-cp.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-cp.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-cp.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-mv",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-mv.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-mv.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-mv.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-grep",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-grep.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-grep.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-grep.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-userland-jsonp",
+      "output": "JSON: report/computer-architecture-flow-linux-userland/linux-userland-jsonp.json\nSVG: report/computer-architecture-flow-linux-userland/linux-userland-jsonp.svg\nPNG: report/computer-architecture-flow-linux-userland/png/linux-userland-jsonp.png\nActive edges: 15"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "linux-userland-hello",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-hello.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-hello.svg"
+    },
+    {
+      "name": "linux-userland-sysinfo",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-sysinfo.svg"
+    },
+    {
+      "name": "linux-userland-uname",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-uname.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-uname.svg"
+    },
+    {
+      "name": "linux-userland-pwd",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-pwd.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-pwd.svg"
+    },
+    {
+      "name": "linux-userland-bootcat",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-bootcat.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-bootcat.svg"
+    },
+    {
+      "name": "linux-userland-argdump",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-argdump.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-argdump.svg"
+    },
+    {
+      "name": "linux-userland-wc",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-wc.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-wc.svg"
+    },
+    {
+      "name": "linux-userland-head",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-head.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-head.svg"
+    },
+    {
+      "name": "linux-userland-wget",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-wget.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-wget.svg"
+    },
+    {
+      "name": "linux-userland-ascii",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-ascii.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-ascii.svg"
+    },
+    {
+      "name": "linux-userland-upper",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-upper.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-upper.svg"
+    },
+    {
+      "name": "linux-userland-echoio",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-echoio.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-echoio.svg"
+    },
+    {
+      "name": "linux-userland-plot",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-plot.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-plot.svg"
+    },
+    {
+      "name": "linux-userland-nano",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-nano.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-nano.svg"
+    },
+    {
+      "name": "linux-userland-glxnano",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-glxnano.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-glxnano.svg"
+    },
+    {
+      "name": "linux-userland-glxsh",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-glxsh.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-glxsh.svg"
+    },
+    {
+      "name": "linux-userland-cp",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-cp.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-cp.svg"
+    },
+    {
+      "name": "linux-userland-mv",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-mv.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-mv.svg"
+    },
+    {
+      "name": "linux-userland-grep",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-grep.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-grep.svg"
+    },
+    {
+      "name": "linux-userland-jsonp",
+      "outputPath": "report/computer-architecture-flow-linux-userland/linux-userland-jsonp.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-linux-userland/linux-userland-jsonp.svg"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "linux-userland-hello",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-hello.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-hello.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-hello.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-sysinfo",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-sysinfo.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-sysinfo.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-uname",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-uname.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-uname.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-uname.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-pwd",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-pwd.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-pwd.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-pwd.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-bootcat",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-bootcat.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-bootcat.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-bootcat.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-argdump",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-argdump.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-argdump.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-argdump.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-wc",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-wc.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-wc.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-wc.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-head",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-head.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-head.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-head.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-wget",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-wget.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-wget.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-wget.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "linux-userland-ascii",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-ascii.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-ascii.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-ascii.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-upper",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-upper.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-upper.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-upper.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-echoio",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-echoio.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-echoio.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-echoio.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-plot",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-plot.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-plot.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-plot.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-nano",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-nano.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-nano.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-nano.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-glxnano",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-glxnano.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-glxnano.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-glxnano.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-glxsh",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-glxsh.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-glxsh.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-glxsh.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-cp",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-cp.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-cp.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-cp.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-mv",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-mv.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-mv.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-mv.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-grep",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-grep.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-grep.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-grep.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-userland-jsonp",
+      "jsonPath": "report/computer-architecture-flow-linux-userland/linux-userland-jsonp.json",
+      "imagePath": "report/computer-architecture-flow-linux-userland/linux-userland-jsonp.svg",
+      "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-jsonp.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    }
+  ]
+}

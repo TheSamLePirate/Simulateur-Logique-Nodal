@@ -1608,6 +1608,12 @@ export function generate(program: Program): {
         loadVar(expr.operand.name, ctx, expr.line);
         emit(expr.op === "++" ? "  INC" : "  DEC");
         storeVar(expr.operand.name, ctx, expr.line);
+      } else {
+        errors.push({
+          line: expr.line,
+          message: `L'opérateur '${expr.op}' requiert une variable simple`,
+        });
+        emit(`  LDA 0`);
       }
       return;
     }
@@ -1653,6 +1659,12 @@ export function generate(program: Program): {
       emit(expr.op === "++" ? "  INC" : "  DEC");
       storeVar(expr.operand.name, ctx, expr.line);
       emit(`  POP`); // restore old value as expression result
+    } else {
+      errors.push({
+        line: expr.line,
+        message: `L'opérateur '${expr.op}' requiert une variable simple`,
+      });
+      emit(`  LDA 0`);
     }
   }
 

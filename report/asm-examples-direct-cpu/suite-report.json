@@ -1,0 +1,246 @@
+{
+  "suiteName": "ASM Examples Direct CPU Tests",
+  "suiteKey": "asm-examples-direct-cpu",
+  "generatedAt": "19 Mar 2026, 20:34:16",
+  "notes": [
+    "Generated during asmExamplesCoverage.test.ts.",
+    "Runs every bundled ASM example through a real runnable workflow and records console and plotter state.",
+    "Programs that draw export PNG snapshots for the dashboard."
+  ],
+  "consoleLines": [
+    "[example] Hello World: halted=true plotter=0 bootloader=false codeSize=16",
+    "[example] Compteur 0-9: halted=true plotter=0 bootloader=false codeSize=18",
+    "[example] Fibonacci: halted=true plotter=0 bootloader=false codeSize=39",
+    "[example] Addition: halted=true plotter=0 bootloader=false codeSize=11",
+    "[example] Factorielle: halted=true plotter=0 bootloader=false codeSize=75",
+    "[example] Plotter - Carré: halted=true plotter=200 bootloader=false codeSize=46",
+    "[snapshot] plotter-carre: report/asm-examples-direct-cpu/plotter-carre.png (256x256, scale 2, pixels 200)",
+    "[example] Echo (Saisie): halted=false plotter=0 bootloader=false codeSize=44",
+    "[example] Nodal Linux Bootloader: halted=false plotter=0 bootloader=false codeSize=1760",
+    "[example] Éditeur FS ASM: halted=true plotter=0 bootloader=false codeSize=1912",
+    "[example] Super Unix Shell Plotter: halted=false plotter=1627 bootloader=false codeSize=3976",
+    "[snapshot] super-unix-shell-plotter: report/asm-examples-direct-cpu/super-unix-shell-plotter.png (256x256, scale 2, pixels 1627)",
+    "[example] Majuscules (Saisie): halted=false plotter=0 bootloader=false codeSize=57",
+    "[example] Plotter RGB - Paysage: halted=true plotter=65536 bootloader=false codeSize=966",
+    "[snapshot] plotter-rgb-paysage: report/asm-examples-direct-cpu/plotter-rgb-paysage.png (256x256, scale 2, pixels 65536)",
+    "[example] Linux - hello: halted=true plotter=0 bootloader=true codeSize=67",
+    "[example] Linux - sysinfo: halted=true plotter=0 bootloader=true codeSize=223",
+    "[example] Linux - uname: halted=true plotter=0 bootloader=true codeSize=64",
+    "[example] Linux - pwd: halted=true plotter=0 bootloader=true codeSize=7",
+    "[example] Boot Args - Cat: halted=true plotter=0 bootloader=true codeSize=69",
+    "[example] Linux - argdump: halted=true plotter=0 bootloader=true codeSize=142",
+    "[example] Linux - wc: halted=true plotter=0 bootloader=true codeSize=104",
+    "[example] Linux - head: halted=true plotter=0 bootloader=true codeSize=75",
+    "[example] Linux - wget: halted=true plotter=0 bootloader=true codeSize=461",
+    "[example] Linux - ascii: halted=true plotter=0 bootloader=true codeSize=58",
+    "[example] Linux - upper: halted=false plotter=0 bootloader=true codeSize=87",
+    "[example] Linux - echoio: halted=false plotter=0 bootloader=true codeSize=59",
+    "[example] Linux - plot: halted=true plotter=65536 bootloader=true codeSize=167",
+    "[snapshot] linux-plot: report/asm-examples-direct-cpu/linux-plot.png (256x256, scale 2, pixels 65536)",
+    "[example] Linux - nano: halted=true plotter=0 bootloader=true codeSize=1912",
+    "[example] Linux - glxnano: halted=false plotter=3397 bootloader=true codeSize=4037",
+    "[snapshot] linux-glxnano: report/asm-examples-direct-cpu/linux-glxnano.png (256x256, scale 2, pixels 3397)",
+    "[example] Linux - glxsh: halted=false plotter=1297 bootloader=true codeSize=3976",
+    "[snapshot] linux-glxsh: report/asm-examples-direct-cpu/linux-glxsh.png (256x256, scale 2, pixels 1297)"
+  ],
+  "tests": [
+    "runs \"Hello World\" through a real workflow",
+    "runs \"Compteur 0-9\" through a real workflow",
+    "runs \"Fibonacci\" through a real workflow",
+    "runs \"Addition\" through a real workflow",
+    "runs \"Factorielle\" through a real workflow",
+    "runs \"Plotter - Carré\" through a real workflow",
+    "runs \"Echo (Saisie)\" through a real workflow",
+    "runs \"Nodal Linux Bootloader\" through a real workflow",
+    "runs \"Éditeur FS ASM\" through a real workflow",
+    "runs \"Super Unix Shell Plotter\" through a real workflow",
+    "runs \"Majuscules (Saisie)\" through a real workflow",
+    "runs \"Plotter RGB - Paysage\" through a real workflow",
+    "runs \"Linux - hello\" through a real workflow",
+    "runs \"Linux - sysinfo\" through a real workflow",
+    "runs \"Linux - uname\" through a real workflow",
+    "runs \"Linux - pwd\" through a real workflow",
+    "runs \"Boot Args - Cat\" through a real workflow",
+    "runs \"Linux - argdump\" through a real workflow",
+    "runs \"Linux - wc\" through a real workflow",
+    "runs \"Linux - head\" through a real workflow",
+    "runs \"Linux - wget\" through a real workflow",
+    "runs \"Linux - ascii\" through a real workflow",
+    "runs \"Linux - upper\" through a real workflow",
+    "runs \"Linux - echoio\" through a real workflow",
+    "runs \"Linux - plot\" through a real workflow",
+    "runs \"Linux - nano\" through a real workflow",
+    "runs \"Linux - glxnano\" through a real workflow",
+    "runs \"Linux - glxsh\" through a real workflow"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "Hello World",
+      "output": "HELLO"
+    },
+    {
+      "testName": "Compteur 0-9",
+      "output": "0123456789"
+    },
+    {
+      "testName": "Fibonacci",
+      "output": "1 2 3 5 8 13 21 34 55 89 144 233"
+    },
+    {
+      "testName": "Addition",
+      "output": "42"
+    },
+    {
+      "testName": "Factorielle",
+      "output": "120"
+    },
+    {
+      "testName": "Plotter - Carré",
+      "output": "(no console output)"
+    },
+    {
+      "testName": "Echo (Saisie)",
+      "output": "Tapez: ab"
+    },
+    {
+      "testName": "Nodal Linux Bootloader",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "Éditeur FS ASM",
+      "output": "=== EDITEUR FS ASM ===\nstory | /o nom | arrows move | /n nl | /d del | /s save | @ quit\n[5/5]\nHello|"
+    },
+    {
+      "testName": "Super Unix Shell Plotter",
+      "output": "(no console output)"
+    },
+    {
+      "testName": "Majuscules (Saisie)",
+      "output": "> AB!\n>"
+    },
+    {
+      "testName": "Plotter RGB - Paysage",
+      "output": "(no console output)"
+    },
+    {
+      "testName": "Linux - hello",
+      "output": "NodalLinux\nroot# \nhello from /bin/hello"
+    },
+    {
+      "testName": "Linux - sysinfo",
+      "output": "NodalLinux\nroot# \nNodalLinux 8-bit\nCPU: 8-bit unsigned\nRAM: 8K  DISK: 8K\nShell: root@sim:/#"
+    },
+    {
+      "testName": "Linux - uname",
+      "output": "NodalLinux\nroot# \nNodalLinux 8-bit 0.3"
+    },
+    {
+      "testName": "Linux - pwd",
+      "output": "NodalLinux\nroot# \n/"
+    },
+    {
+      "testName": "Boot Args - Cat",
+      "output": "NodalLinux\nroot# \nThis is a tiny Linux-like environment for the simulator.\nPrograms live on the external drive and are launched with run NAME.\nUse run NAME FILE to pass one resolved file argument."
+    },
+    {
+      "testName": "Linux - argdump",
+      "output": "NodalLinux\nroot# \ntype file page 89 size 179b"
+    },
+    {
+      "testName": "Linux - wc",
+      "output": "NodalLinux\nroot# \n134b 2l"
+    },
+    {
+      "testName": "Linux - head",
+      "output": "NodalLinux\nroot# \nThis is a tiny Linux-like enviro"
+    },
+    {
+      "testName": "Linux - wget",
+      "output": "NodalLinux\nroot# \n{\"ok\":1}"
+    },
+    {
+      "testName": "Linux - ascii",
+      "output": "NodalLinux\nroot# \n  ! \" # $ % & ' ( ) * + , - . / \n0 1 2 3 4 5 6 7 8 9 : ; < = > ? \n@ A B C D E F G H I J K L M N O \nP Q R S T U V W X Y Z [ \\ ] ^ _ \n` a b c d e f g h i j k l m n o \np q r s t u v w x y z { | } ~"
+    },
+    {
+      "testName": "Linux - upper",
+      "output": "NodalLinux\nroot# \nupper> ABC"
+    },
+    {
+      "testName": "Linux - echoio",
+      "output": "NodalLinux\nroot# \necho> abc"
+    },
+    {
+      "testName": "Linux - plot",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "Linux - nano",
+      "output": "=== EDITEUR FS ASM ===\nnotes | /o nom | arrows move | /n nl | /d del | /s save | @ quit\n[0/0]\n|"
+    },
+    {
+      "testName": "Linux - glxnano",
+      "output": "NodalLinux\nroot#"
+    },
+    {
+      "testName": "Linux - glxsh",
+      "output": "NodalLinux\nroot#"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "plotter-carre",
+      "outputPath": "report/asm-examples-direct-cpu/plotter-carre.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 200,
+      "href": "asm-examples-direct-cpu/plotter-carre.png"
+    },
+    {
+      "name": "super-unix-shell-plotter",
+      "outputPath": "report/asm-examples-direct-cpu/super-unix-shell-plotter.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1627,
+      "href": "asm-examples-direct-cpu/super-unix-shell-plotter.png"
+    },
+    {
+      "name": "plotter-rgb-paysage",
+      "outputPath": "report/asm-examples-direct-cpu/plotter-rgb-paysage.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 65536,
+      "href": "asm-examples-direct-cpu/plotter-rgb-paysage.png"
+    },
+    {
+      "name": "linux-plot",
+      "outputPath": "report/asm-examples-direct-cpu/linux-plot.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 65536,
+      "href": "asm-examples-direct-cpu/linux-plot.png"
+    },
+    {
+      "name": "linux-glxnano",
+      "outputPath": "report/asm-examples-direct-cpu/linux-glxnano.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 3397,
+      "href": "asm-examples-direct-cpu/linux-glxnano.png"
+    },
+    {
+      "name": "linux-glxsh",
+      "outputPath": "report/asm-examples-direct-cpu/linux-glxsh.png",
+      "width": 256,
+      "height": 256,
+      "scale": 2,
+      "pixelCount": 1297,
+      "href": "asm-examples-direct-cpu/linux-glxsh.png"
+    }
+  ]
+}

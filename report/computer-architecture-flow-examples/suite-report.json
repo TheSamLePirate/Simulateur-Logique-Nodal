@@ -1,0 +1,748 @@
+{
+  "suiteName": "ASM Examples Architecture Flow Tests",
+  "suiteKey": "computer-architecture-flow-examples",
+  "generatedAt": "19 Mar 2026, 20:34:32",
+  "notes": [
+    "Generated during computerArchitectureFlow.examples.test.ts.",
+    "Exports one architecture flow snapshot for every bundled ASM example.",
+    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+  ],
+  "consoleLines": [
+    "[artifact] hello-world: report/computer-architecture-flow-examples/hello-world.json | report/computer-architecture-flow-examples/hello-world.svg | report/computer-architecture-flow-examples/png/hello-world.png (12 nodes, 61 edges)",
+    "[artifact] compteur-0-9: report/computer-architecture-flow-examples/compteur-0-9.json | report/computer-architecture-flow-examples/compteur-0-9.svg | report/computer-architecture-flow-examples/png/compteur-0-9.png (12 nodes, 61 edges)",
+    "[artifact] fibonacci: report/computer-architecture-flow-examples/fibonacci.json | report/computer-architecture-flow-examples/fibonacci.svg | report/computer-architecture-flow-examples/png/fibonacci.png (12 nodes, 61 edges)",
+    "[artifact] addition: report/computer-architecture-flow-examples/addition.json | report/computer-architecture-flow-examples/addition.svg | report/computer-architecture-flow-examples/png/addition.png (12 nodes, 61 edges)",
+    "[artifact] factorielle: report/computer-architecture-flow-examples/factorielle.json | report/computer-architecture-flow-examples/factorielle.svg | report/computer-architecture-flow-examples/png/factorielle.png (12 nodes, 61 edges)",
+    "[artifact] plotter-carre: report/computer-architecture-flow-examples/plotter-carre.json | report/computer-architecture-flow-examples/plotter-carre.svg | report/computer-architecture-flow-examples/png/plotter-carre.png (12 nodes, 61 edges)",
+    "[artifact] echo-saisie: report/computer-architecture-flow-examples/echo-saisie.json | report/computer-architecture-flow-examples/echo-saisie.svg | report/computer-architecture-flow-examples/png/echo-saisie.png (12 nodes, 61 edges)",
+    "[artifact] nodal-linux-bootloader: report/computer-architecture-flow-examples/nodal-linux-bootloader.json | report/computer-architecture-flow-examples/nodal-linux-bootloader.svg | report/computer-architecture-flow-examples/png/nodal-linux-bootloader.png (12 nodes, 61 edges)",
+    "[artifact] editeur-fs-asm: report/computer-architecture-flow-examples/editeur-fs-asm.json | report/computer-architecture-flow-examples/editeur-fs-asm.svg | report/computer-architecture-flow-examples/png/editeur-fs-asm.png (12 nodes, 61 edges)",
+    "[artifact] super-unix-shell-plotter: report/computer-architecture-flow-examples/super-unix-shell-plotter.json | report/computer-architecture-flow-examples/super-unix-shell-plotter.svg | report/computer-architecture-flow-examples/png/super-unix-shell-plotter.png (12 nodes, 61 edges)",
+    "[artifact] majuscules-saisie: report/computer-architecture-flow-examples/majuscules-saisie.json | report/computer-architecture-flow-examples/majuscules-saisie.svg | report/computer-architecture-flow-examples/png/majuscules-saisie.png (12 nodes, 61 edges)",
+    "[artifact] plotter-rgb-paysage: report/computer-architecture-flow-examples/plotter-rgb-paysage.json | report/computer-architecture-flow-examples/plotter-rgb-paysage.svg | report/computer-architecture-flow-examples/png/plotter-rgb-paysage.png (12 nodes, 61 edges)",
+    "[artifact] linux-hello: report/computer-architecture-flow-examples/linux-hello.json | report/computer-architecture-flow-examples/linux-hello.svg | report/computer-architecture-flow-examples/png/linux-hello.png (12 nodes, 61 edges)",
+    "[artifact] linux-sysinfo: report/computer-architecture-flow-examples/linux-sysinfo.json | report/computer-architecture-flow-examples/linux-sysinfo.svg | report/computer-architecture-flow-examples/png/linux-sysinfo.png (12 nodes, 61 edges)",
+    "[artifact] linux-uname: report/computer-architecture-flow-examples/linux-uname.json | report/computer-architecture-flow-examples/linux-uname.svg | report/computer-architecture-flow-examples/png/linux-uname.png (12 nodes, 61 edges)",
+    "[artifact] linux-pwd: report/computer-architecture-flow-examples/linux-pwd.json | report/computer-architecture-flow-examples/linux-pwd.svg | report/computer-architecture-flow-examples/png/linux-pwd.png (12 nodes, 61 edges)",
+    "[artifact] boot-args-cat: report/computer-architecture-flow-examples/boot-args-cat.json | report/computer-architecture-flow-examples/boot-args-cat.svg | report/computer-architecture-flow-examples/png/boot-args-cat.png (12 nodes, 61 edges)",
+    "[artifact] linux-argdump: report/computer-architecture-flow-examples/linux-argdump.json | report/computer-architecture-flow-examples/linux-argdump.svg | report/computer-architecture-flow-examples/png/linux-argdump.png (12 nodes, 61 edges)",
+    "[artifact] linux-wc: report/computer-architecture-flow-examples/linux-wc.json | report/computer-architecture-flow-examples/linux-wc.svg | report/computer-architecture-flow-examples/png/linux-wc.png (12 nodes, 61 edges)",
+    "[artifact] linux-head: report/computer-architecture-flow-examples/linux-head.json | report/computer-architecture-flow-examples/linux-head.svg | report/computer-architecture-flow-examples/png/linux-head.png (12 nodes, 61 edges)",
+    "[artifact] linux-wget: report/computer-architecture-flow-examples/linux-wget.json | report/computer-architecture-flow-examples/linux-wget.svg | report/computer-architecture-flow-examples/png/linux-wget.png (12 nodes, 61 edges)",
+    "[artifact] linux-ascii: report/computer-architecture-flow-examples/linux-ascii.json | report/computer-architecture-flow-examples/linux-ascii.svg | report/computer-architecture-flow-examples/png/linux-ascii.png (12 nodes, 61 edges)",
+    "[artifact] linux-upper: report/computer-architecture-flow-examples/linux-upper.json | report/computer-architecture-flow-examples/linux-upper.svg | report/computer-architecture-flow-examples/png/linux-upper.png (12 nodes, 61 edges)",
+    "[artifact] linux-echoio: report/computer-architecture-flow-examples/linux-echoio.json | report/computer-architecture-flow-examples/linux-echoio.svg | report/computer-architecture-flow-examples/png/linux-echoio.png (12 nodes, 61 edges)",
+    "[artifact] linux-plot: report/computer-architecture-flow-examples/linux-plot.json | report/computer-architecture-flow-examples/linux-plot.svg | report/computer-architecture-flow-examples/png/linux-plot.png (12 nodes, 61 edges)",
+    "[artifact] linux-nano: report/computer-architecture-flow-examples/linux-nano.json | report/computer-architecture-flow-examples/linux-nano.svg | report/computer-architecture-flow-examples/png/linux-nano.png (12 nodes, 61 edges)",
+    "[artifact] linux-glxnano: report/computer-architecture-flow-examples/linux-glxnano.json | report/computer-architecture-flow-examples/linux-glxnano.svg | report/computer-architecture-flow-examples/png/linux-glxnano.png (12 nodes, 61 edges)",
+    "[artifact] linux-glxsh: report/computer-architecture-flow-examples/linux-glxsh.json | report/computer-architecture-flow-examples/linux-glxsh.svg | report/computer-architecture-flow-examples/png/linux-glxsh.png (12 nodes, 61 edges)"
+  ],
+  "tests": [
+    "hello-world",
+    "compteur-0-9",
+    "fibonacci",
+    "addition",
+    "factorielle",
+    "plotter-carre",
+    "echo-saisie",
+    "nodal-linux-bootloader",
+    "editeur-fs-asm",
+    "super-unix-shell-plotter",
+    "majuscules-saisie",
+    "plotter-rgb-paysage",
+    "linux-hello",
+    "linux-sysinfo",
+    "linux-uname",
+    "linux-pwd",
+    "boot-args-cat",
+    "linux-argdump",
+    "linux-wc",
+    "linux-head",
+    "linux-wget",
+    "linux-ascii",
+    "linux-upper",
+    "linux-echoio",
+    "linux-plot",
+    "linux-nano",
+    "linux-glxnano",
+    "linux-glxsh"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "hello-world",
+      "output": "JSON: report/computer-architecture-flow-examples/hello-world.json\nSVG: report/computer-architecture-flow-examples/hello-world.svg\nPNG: report/computer-architecture-flow-examples/png/hello-world.png\nActive edges: 9"
+    },
+    {
+      "testName": "compteur-0-9",
+      "output": "JSON: report/computer-architecture-flow-examples/compteur-0-9.json\nSVG: report/computer-architecture-flow-examples/compteur-0-9.svg\nPNG: report/computer-architecture-flow-examples/png/compteur-0-9.png\nActive edges: 9"
+    },
+    {
+      "testName": "fibonacci",
+      "output": "JSON: report/computer-architecture-flow-examples/fibonacci.json\nSVG: report/computer-architecture-flow-examples/fibonacci.svg\nPNG: report/computer-architecture-flow-examples/png/fibonacci.png\nActive edges: 9"
+    },
+    {
+      "testName": "addition",
+      "output": "JSON: report/computer-architecture-flow-examples/addition.json\nSVG: report/computer-architecture-flow-examples/addition.svg\nPNG: report/computer-architecture-flow-examples/png/addition.png\nActive edges: 9"
+    },
+    {
+      "testName": "factorielle",
+      "output": "JSON: report/computer-architecture-flow-examples/factorielle.json\nSVG: report/computer-architecture-flow-examples/factorielle.svg\nPNG: report/computer-architecture-flow-examples/png/factorielle.png\nActive edges: 9"
+    },
+    {
+      "testName": "plotter-carre",
+      "output": "JSON: report/computer-architecture-flow-examples/plotter-carre.json\nSVG: report/computer-architecture-flow-examples/plotter-carre.svg\nPNG: report/computer-architecture-flow-examples/png/plotter-carre.png\nActive edges: 9"
+    },
+    {
+      "testName": "echo-saisie",
+      "output": "JSON: report/computer-architecture-flow-examples/echo-saisie.json\nSVG: report/computer-architecture-flow-examples/echo-saisie.svg\nPNG: report/computer-architecture-flow-examples/png/echo-saisie.png\nActive edges: 9"
+    },
+    {
+      "testName": "nodal-linux-bootloader",
+      "output": "JSON: report/computer-architecture-flow-examples/nodal-linux-bootloader.json\nSVG: report/computer-architecture-flow-examples/nodal-linux-bootloader.svg\nPNG: report/computer-architecture-flow-examples/png/nodal-linux-bootloader.png\nActive edges: 15"
+    },
+    {
+      "testName": "editeur-fs-asm",
+      "output": "JSON: report/computer-architecture-flow-examples/editeur-fs-asm.json\nSVG: report/computer-architecture-flow-examples/editeur-fs-asm.svg\nPNG: report/computer-architecture-flow-examples/png/editeur-fs-asm.png\nActive edges: 9"
+    },
+    {
+      "testName": "super-unix-shell-plotter",
+      "output": "JSON: report/computer-architecture-flow-examples/super-unix-shell-plotter.json\nSVG: report/computer-architecture-flow-examples/super-unix-shell-plotter.svg\nPNG: report/computer-architecture-flow-examples/png/super-unix-shell-plotter.png\nActive edges: 9"
+    },
+    {
+      "testName": "majuscules-saisie",
+      "output": "JSON: report/computer-architecture-flow-examples/majuscules-saisie.json\nSVG: report/computer-architecture-flow-examples/majuscules-saisie.svg\nPNG: report/computer-architecture-flow-examples/png/majuscules-saisie.png\nActive edges: 11"
+    },
+    {
+      "testName": "plotter-rgb-paysage",
+      "output": "JSON: report/computer-architecture-flow-examples/plotter-rgb-paysage.json\nSVG: report/computer-architecture-flow-examples/plotter-rgb-paysage.svg\nPNG: report/computer-architecture-flow-examples/png/plotter-rgb-paysage.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-hello",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-hello.json\nSVG: report/computer-architecture-flow-examples/linux-hello.svg\nPNG: report/computer-architecture-flow-examples/png/linux-hello.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-sysinfo",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-sysinfo.json\nSVG: report/computer-architecture-flow-examples/linux-sysinfo.svg\nPNG: report/computer-architecture-flow-examples/png/linux-sysinfo.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-uname",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-uname.json\nSVG: report/computer-architecture-flow-examples/linux-uname.svg\nPNG: report/computer-architecture-flow-examples/png/linux-uname.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-pwd",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-pwd.json\nSVG: report/computer-architecture-flow-examples/linux-pwd.svg\nPNG: report/computer-architecture-flow-examples/png/linux-pwd.png\nActive edges: 9"
+    },
+    {
+      "testName": "boot-args-cat",
+      "output": "JSON: report/computer-architecture-flow-examples/boot-args-cat.json\nSVG: report/computer-architecture-flow-examples/boot-args-cat.svg\nPNG: report/computer-architecture-flow-examples/png/boot-args-cat.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-argdump",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-argdump.json\nSVG: report/computer-architecture-flow-examples/linux-argdump.svg\nPNG: report/computer-architecture-flow-examples/png/linux-argdump.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-wc",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-wc.json\nSVG: report/computer-architecture-flow-examples/linux-wc.svg\nPNG: report/computer-architecture-flow-examples/png/linux-wc.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-head",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-head.json\nSVG: report/computer-architecture-flow-examples/linux-head.svg\nPNG: report/computer-architecture-flow-examples/png/linux-head.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-wget",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-wget.json\nSVG: report/computer-architecture-flow-examples/linux-wget.svg\nPNG: report/computer-architecture-flow-examples/png/linux-wget.png\nActive edges: 15"
+    },
+    {
+      "testName": "linux-ascii",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-ascii.json\nSVG: report/computer-architecture-flow-examples/linux-ascii.svg\nPNG: report/computer-architecture-flow-examples/png/linux-ascii.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-upper",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-upper.json\nSVG: report/computer-architecture-flow-examples/linux-upper.svg\nPNG: report/computer-architecture-flow-examples/png/linux-upper.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-echoio",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-echoio.json\nSVG: report/computer-architecture-flow-examples/linux-echoio.svg\nPNG: report/computer-architecture-flow-examples/png/linux-echoio.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-plot",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-plot.json\nSVG: report/computer-architecture-flow-examples/linux-plot.svg\nPNG: report/computer-architecture-flow-examples/png/linux-plot.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-nano",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-nano.json\nSVG: report/computer-architecture-flow-examples/linux-nano.svg\nPNG: report/computer-architecture-flow-examples/png/linux-nano.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-glxnano",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-glxnano.json\nSVG: report/computer-architecture-flow-examples/linux-glxnano.svg\nPNG: report/computer-architecture-flow-examples/png/linux-glxnano.png\nActive edges: 9"
+    },
+    {
+      "testName": "linux-glxsh",
+      "output": "JSON: report/computer-architecture-flow-examples/linux-glxsh.json\nSVG: report/computer-architecture-flow-examples/linux-glxsh.svg\nPNG: report/computer-architecture-flow-examples/png/linux-glxsh.png\nActive edges: 9"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "hello-world",
+      "outputPath": "report/computer-architecture-flow-examples/hello-world.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/hello-world.svg"
+    },
+    {
+      "name": "compteur-0-9",
+      "outputPath": "report/computer-architecture-flow-examples/compteur-0-9.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/compteur-0-9.svg"
+    },
+    {
+      "name": "fibonacci",
+      "outputPath": "report/computer-architecture-flow-examples/fibonacci.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/fibonacci.svg"
+    },
+    {
+      "name": "addition",
+      "outputPath": "report/computer-architecture-flow-examples/addition.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/addition.svg"
+    },
+    {
+      "name": "factorielle",
+      "outputPath": "report/computer-architecture-flow-examples/factorielle.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/factorielle.svg"
+    },
+    {
+      "name": "plotter-carre",
+      "outputPath": "report/computer-architecture-flow-examples/plotter-carre.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/plotter-carre.svg"
+    },
+    {
+      "name": "echo-saisie",
+      "outputPath": "report/computer-architecture-flow-examples/echo-saisie.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/echo-saisie.svg"
+    },
+    {
+      "name": "nodal-linux-bootloader",
+      "outputPath": "report/computer-architecture-flow-examples/nodal-linux-bootloader.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-examples/nodal-linux-bootloader.svg"
+    },
+    {
+      "name": "editeur-fs-asm",
+      "outputPath": "report/computer-architecture-flow-examples/editeur-fs-asm.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/editeur-fs-asm.svg"
+    },
+    {
+      "name": "super-unix-shell-plotter",
+      "outputPath": "report/computer-architecture-flow-examples/super-unix-shell-plotter.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/super-unix-shell-plotter.svg"
+    },
+    {
+      "name": "majuscules-saisie",
+      "outputPath": "report/computer-architecture-flow-examples/majuscules-saisie.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 11,
+      "href": "computer-architecture-flow-examples/majuscules-saisie.svg"
+    },
+    {
+      "name": "plotter-rgb-paysage",
+      "outputPath": "report/computer-architecture-flow-examples/plotter-rgb-paysage.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/plotter-rgb-paysage.svg"
+    },
+    {
+      "name": "linux-hello",
+      "outputPath": "report/computer-architecture-flow-examples/linux-hello.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-hello.svg"
+    },
+    {
+      "name": "linux-sysinfo",
+      "outputPath": "report/computer-architecture-flow-examples/linux-sysinfo.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-sysinfo.svg"
+    },
+    {
+      "name": "linux-uname",
+      "outputPath": "report/computer-architecture-flow-examples/linux-uname.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-uname.svg"
+    },
+    {
+      "name": "linux-pwd",
+      "outputPath": "report/computer-architecture-flow-examples/linux-pwd.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-pwd.svg"
+    },
+    {
+      "name": "boot-args-cat",
+      "outputPath": "report/computer-architecture-flow-examples/boot-args-cat.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/boot-args-cat.svg"
+    },
+    {
+      "name": "linux-argdump",
+      "outputPath": "report/computer-architecture-flow-examples/linux-argdump.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-argdump.svg"
+    },
+    {
+      "name": "linux-wc",
+      "outputPath": "report/computer-architecture-flow-examples/linux-wc.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-wc.svg"
+    },
+    {
+      "name": "linux-head",
+      "outputPath": "report/computer-architecture-flow-examples/linux-head.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-head.svg"
+    },
+    {
+      "name": "linux-wget",
+      "outputPath": "report/computer-architecture-flow-examples/linux-wget.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-examples/linux-wget.svg"
+    },
+    {
+      "name": "linux-ascii",
+      "outputPath": "report/computer-architecture-flow-examples/linux-ascii.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-ascii.svg"
+    },
+    {
+      "name": "linux-upper",
+      "outputPath": "report/computer-architecture-flow-examples/linux-upper.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-upper.svg"
+    },
+    {
+      "name": "linux-echoio",
+      "outputPath": "report/computer-architecture-flow-examples/linux-echoio.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-echoio.svg"
+    },
+    {
+      "name": "linux-plot",
+      "outputPath": "report/computer-architecture-flow-examples/linux-plot.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-plot.svg"
+    },
+    {
+      "name": "linux-nano",
+      "outputPath": "report/computer-architecture-flow-examples/linux-nano.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-nano.svg"
+    },
+    {
+      "name": "linux-glxnano",
+      "outputPath": "report/computer-architecture-flow-examples/linux-glxnano.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-glxnano.svg"
+    },
+    {
+      "name": "linux-glxsh",
+      "outputPath": "report/computer-architecture-flow-examples/linux-glxsh.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-examples/linux-glxsh.svg"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "hello-world",
+      "jsonPath": "report/computer-architecture-flow-examples/hello-world.json",
+      "imagePath": "report/computer-architecture-flow-examples/hello-world.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/hello-world.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "compteur-0-9",
+      "jsonPath": "report/computer-architecture-flow-examples/compteur-0-9.json",
+      "imagePath": "report/computer-architecture-flow-examples/compteur-0-9.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/compteur-0-9.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "fibonacci",
+      "jsonPath": "report/computer-architecture-flow-examples/fibonacci.json",
+      "imagePath": "report/computer-architecture-flow-examples/fibonacci.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/fibonacci.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "addition",
+      "jsonPath": "report/computer-architecture-flow-examples/addition.json",
+      "imagePath": "report/computer-architecture-flow-examples/addition.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/addition.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "factorielle",
+      "jsonPath": "report/computer-architecture-flow-examples/factorielle.json",
+      "imagePath": "report/computer-architecture-flow-examples/factorielle.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/factorielle.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "plotter-carre",
+      "jsonPath": "report/computer-architecture-flow-examples/plotter-carre.json",
+      "imagePath": "report/computer-architecture-flow-examples/plotter-carre.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/plotter-carre.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "echo-saisie",
+      "jsonPath": "report/computer-architecture-flow-examples/echo-saisie.json",
+      "imagePath": "report/computer-architecture-flow-examples/echo-saisie.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/echo-saisie.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "nodal-linux-bootloader",
+      "jsonPath": "report/computer-architecture-flow-examples/nodal-linux-bootloader.json",
+      "imagePath": "report/computer-architecture-flow-examples/nodal-linux-bootloader.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/nodal-linux-bootloader.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "editeur-fs-asm",
+      "jsonPath": "report/computer-architecture-flow-examples/editeur-fs-asm.json",
+      "imagePath": "report/computer-architecture-flow-examples/editeur-fs-asm.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/editeur-fs-asm.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "super-unix-shell-plotter",
+      "jsonPath": "report/computer-architecture-flow-examples/super-unix-shell-plotter.json",
+      "imagePath": "report/computer-architecture-flow-examples/super-unix-shell-plotter.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/super-unix-shell-plotter.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "majuscules-saisie",
+      "jsonPath": "report/computer-architecture-flow-examples/majuscules-saisie.json",
+      "imagePath": "report/computer-architecture-flow-examples/majuscules-saisie.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/majuscules-saisie.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 11
+    },
+    {
+      "name": "plotter-rgb-paysage",
+      "jsonPath": "report/computer-architecture-flow-examples/plotter-rgb-paysage.json",
+      "imagePath": "report/computer-architecture-flow-examples/plotter-rgb-paysage.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/plotter-rgb-paysage.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-hello",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-hello.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-hello.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-hello.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-sysinfo",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-sysinfo.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-sysinfo.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-sysinfo.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-uname",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-uname.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-uname.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-uname.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-pwd",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-pwd.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-pwd.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-pwd.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "boot-args-cat",
+      "jsonPath": "report/computer-architecture-flow-examples/boot-args-cat.json",
+      "imagePath": "report/computer-architecture-flow-examples/boot-args-cat.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/boot-args-cat.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-argdump",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-argdump.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-argdump.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-argdump.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-wc",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-wc.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-wc.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-wc.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-head",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-head.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-head.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-head.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-wget",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-wget.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-wget.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-wget.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "linux-ascii",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-ascii.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-ascii.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-ascii.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-upper",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-upper.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-upper.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-upper.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-echoio",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-echoio.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-echoio.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-echoio.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-plot",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-plot.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-plot.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-plot.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-nano",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-nano.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-nano.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-nano.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-glxnano",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-glxnano.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-glxnano.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-glxnano.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "linux-glxsh",
+      "jsonPath": "report/computer-architecture-flow-examples/linux-glxsh.json",
+      "imagePath": "report/computer-architecture-flow-examples/linux-glxsh.svg",
+      "pngPath": "report/computer-architecture-flow-examples/png/linux-glxsh.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    }
+  ]
+}

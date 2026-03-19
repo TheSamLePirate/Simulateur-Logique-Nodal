@@ -1,13 +1,16 @@
 {
   "suiteName": "Bootloader Plotter Tests",
   "suiteKey": "bootloader",
-  "generatedAt": "19 Mar 2026, 19:24:18",
+  "generatedAt": "19 Mar 2026, 20:34:16",
   "notes": [
     "Generated at the end of bootloader.test.ts during vitest.",
     "Includes bootloader shell plotter cases, glxsh, and glxnano interaction frames."
   ],
   "consoleLines": [
     "[test] bootloader shell > stores programs on the boot disk directory",
+    "[test] bootloader shell > accepts exact filename and file-size limits and rejects the next byte/char",
+    "[test] bootloader shell > packs entries on sequential pages and records program page counts exactly",
+    "[test] bootloader shell > replacing an existing entry keeps a single directory record with the new content",
     "[test] bootloader shell > lists boot disk files and programs",
     "[test] bootloader shell > clr clears both the shell console and the plotter",
     "[test] bootloader shell > supports 64 directory entries across multiple directory pages",
@@ -45,10 +48,13 @@
     "[test] bootloader shell > prints a helpful message when glxnano is launched without a file argument",
     "[test] bootloader shell > runs bundled wget against a URL file",
     "[test] bootloader shell > keeps long wget URLs intact before issuing HTTP GET",
-    "[suite] 29 tests recorded"
+    "[suite] 32 tests recorded"
   ],
   "tests": [
     "bootloader shell > stores programs on the boot disk directory",
+    "bootloader shell > accepts exact filename and file-size limits and rejects the next byte/char",
+    "bootloader shell > packs entries on sequential pages and records program page counts exactly",
+    "bootloader shell > replacing an existing entry keeps a single directory record with the new content",
     "bootloader shell > lists boot disk files and programs",
     "bootloader shell > clr clears both the shell console and the plotter",
     "bootloader shell > supports 64 directory entries across multiple directory pages",

@@ -415,6 +415,13 @@ int sum(int values[4]) {
 
 When you pass an array to a function, the compiler copies the requested slice into the callee's fixed-size array parameter and copies it back after the call. That means writes inside the function are visible to the caller, but the parameter size must be written as a constant.
 
+This is deliberately simpler than real C pointers, and it has consequences:
+
+- array parameters are not general pointer values
+- `data` is allowed, but `data + 1` is rejected
+- passing the same array to two array parameters does **not** behave like normal C pointer aliasing
+- copy-back order matters, so `touch(data, data)` can give surprising but stable results
+
 ### Calling functions
 
 ```c
@@ -440,6 +447,15 @@ int fact(int n) {
 ```
 
 Keep recursion small, because stack space is limited.
+
+What the current tests confirm:
+
+- normal recursion works
+- mutual recursion works
+- deep recursion with moderate local arrays can still work correctly
+- very deep recursion with very large local frames does **not** have runtime stack-overflow protection yet
+
+In the overflow case, the machine may halt with corrupted output and a damaged stack pointer instead of reporting a friendly error.
 
 ### `void` functions
 
@@ -620,6 +636,12 @@ print_num(string_len(msg));   // 5
 
 If you manually edit the buffer contents, `string_len(...)` reflects the updated runtime value.
 
+Important tested detail:
+
+- `array_len(buf)` is the declared storage capacity
+- `string_len(buf)` is only the runtime length up to the first `0`
+- these two values can differ after you mutate the buffer
+
 #### `print(text_or_buffer)`
 
 Prints either a string literal or a zero-terminated string/buffer.
@@ -631,6 +653,8 @@ print(msg);
 ```
 
 When you pass a variable, `print(...)` reads characters until the first `0`.
+
+So if a buffer is not terminated with `0`, `print(...)` can keep reading into neighboring memory.
 
 #### `console_clear()`
 
@@ -1076,6 +1100,14 @@ The language runs on a very small machine, so programs must fit inside its memor
 - Deep recursion can overflow the stack
 - Expensive operations like `*`, `/`, `%`, `&`, `|`, `^`, `<<`, `>>` may be slower than on a normal CPU
 
+What recent edge-case tests confirmed:
+
+- unsigned arithmetic, shifts, `*`, `/`, and `%` follow the CPU's real 8-bit wraparound behavior even for large calculations
+- division by zero and modulo by zero currently follow the CPU semantics and return `0`
+- global and local buffer overflows can really corrupt nearby variables
+- local overflow inside recursive code can corrupt frame data while still letting execution continue for a while
+- stack overflow from very deep recursion is not trapped by the runtime yet
+
 ---
 
 ## 13. What Is Not Supported
@@ -1097,10 +1129,49 @@ Also keep in mind:
 - `print` only handles string literals and zero-terminated buffers
 - array sizes must be constant integers
 - arrays are not general pointer values; only declared arrays can be passed to fixed-size array parameters
+- prefix/postfix `++` and `--` are only safe on simple assignable variables for now; forms like `values[0]++` are rejected on purpose
 - `string` variables must be initialized from a string literal at declaration time
 - whole-array and whole-string assignment are not supported
 - string concatenation is not built in
 - string literals are not general expression values, so use `'A'` for one character and `print("text")` for direct text output
+
+---
+
+## 14. What The Tests Taught Us
+
+The mini C compiler is now covered by a large set of nasty edge-case tests, and a few truths are worth stating explicitly.
+
+### It is C-like, not full C
+
+The language looks like C on purpose, but some semantics are intentionally simpler:
+
+- integers are always 8-bit unsigned
+- arrays passed to functions use copy-in / copy-back semantics
+- arrays are not pointers
+- there is no runtime memory safety
+
+If you assume “real desktop C” behavior, you can easily predict the wrong result.
+
+### Strings are just arrays with a `0`
+
+The runtime treats strings as ordinary byte arrays that happen to contain a terminating `0`.
+
+That means:
+
+- `array_len` tells you capacity
+- `string_len` tells you current visible text length
+- inserting a `0` in the middle shortens the visible string
+- removing the final `0` lets reads continue into whatever memory comes next
+
+### Overflows are real
+
+This machine does not pretend to protect you from classic low-level bugs.
+
+- writing past the end of a global array can corrupt the next global
+- writing past the end of a local array can corrupt later locals in the same frame
+- deep recursion with too much local storage can damage the stack
+
+This is inconvenient, but also educational: the tests intentionally document these breakages so the project stays honest about them.
 
 ---
 

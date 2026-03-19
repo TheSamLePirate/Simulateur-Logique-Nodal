@@ -18,8 +18,11 @@ import {
 import { CODE_SIZE, DRIVE_SIZE } from "../isa";
 import { DEFAULT_PLOTTER_COLOR, encodePlotterCoord } from "../../plotter";
 import {
+  BOOT_DISK_DATA_START_PAGE,
   BOOT_DISK_MAX_ENTRIES,
+  BOOT_DISK_NAME_LENGTH,
   BOOTLOADER_PROMPT,
+  BOOT_PROGRAM_MAX_PAGES,
   bootCpuToShell,
   getBootloaderImage,
   getLinuxBootDiskImage,
@@ -213,6 +216,89 @@ describe("bootloader shell", () => {
     expect(entries[0].type).toBe(2);
     expect(entries[0].pageCount).toBe(1);
     expect(entries[0].bytes[0]).toBe(0xc0);
+  });
+
+  it("accepts exact filename and file-size limits and rejects the next byte/char", () => {
+    const exactName = "12345678";
+    const file255 = Uint8Array.from({ length: 255 }, (_, index) => index & 0xff);
+    const disk = writeFileToBootDisk(new Uint8Array(DRIVE_SIZE), exactName, file255);
+    const entry = readBootDiskEntries(disk).find((candidate) => candidate.name === exactName);
+
+    expect(entry).toBeDefined();
+    expect(entry?.name).toBe(exactName);
+    expect(entry?.pageCount).toBe(1);
+    expect(entry?.sizeBytes).toBe(255);
+    expect(Array.from(entry?.bytes.slice(0, 4) ?? [])).toEqual([0, 1, 2, 3]);
+
+    expect(() =>
+      writeFileToBootDisk(new Uint8Array(DRIVE_SIZE), "123456789", Uint8Array.from([1])),
+    ).toThrow(`Entry names are limited to ${BOOT_DISK_NAME_LENGTH} characters.`);
+    expect(() =>
+      writeFileToBootDisk(new Uint8Array(DRIVE_SIZE), "has space", Uint8Array.from([1])),
+    ).toThrow("Entry names cannot contain spaces.");
+    expect(() =>
+      writeFileToBootDisk(new Uint8Array(DRIVE_SIZE), "   ", Uint8Array.from([1])),
+    ).toThrow("Entry name cannot be empty.");
+    expect(() =>
+      writeFileToBootDisk(new Uint8Array(DRIVE_SIZE), "tiny", Uint8Array.from({ length: 256 }, () => 65)),
+    ).toThrow("Text files are limited to 255 bytes on this filesystem.");
+  });
+
+  it("packs entries on sequential pages and records program page counts exactly", () => {
+    const twoPageProgram = Uint8Array.from({ length: 300 }, (_, index) => index & 0xff);
+    const onePageFile = Uint8Array.from("hello".split("").map((char) => char.charCodeAt(0)));
+    let disk = writeProgramToBootDisk(new Uint8Array(DRIVE_SIZE), "prog2p", twoPageProgram);
+    disk = writeFileToBootDisk(disk, "notes", onePageFile);
+    disk = writeProgramToBootDisk(
+      disk,
+      "maxprog",
+      Uint8Array.from({ length: BOOT_PROGRAM_MAX_PAGES * 256 }, (_, index) => index & 0xff),
+    );
+
+    const entries = readBootDiskEntries(disk);
+    const prog2p = entries.find((entry) => entry.name === "prog2p");
+    const notes = entries.find((entry) => entry.name === "notes");
+    const maxprog = entries.find((entry) => entry.name === "maxprog");
+
+    expect(prog2p?.startPage).toBe(BOOT_DISK_DATA_START_PAGE);
+    expect(prog2p?.pageCount).toBe(2);
+    expect(notes?.startPage).toBe(BOOT_DISK_DATA_START_PAGE + 2);
+    expect(notes?.pageCount).toBe(1);
+    expect(maxprog?.startPage).toBe(BOOT_DISK_DATA_START_PAGE + 3);
+    expect(maxprog?.pageCount).toBe(BOOT_PROGRAM_MAX_PAGES);
+    expect(maxprog?.sizeBytes).toBe(0);
+    expect(() =>
+      writeProgramToBootDisk(
+        new Uint8Array(DRIVE_SIZE),
+        "toolarge",
+        Uint8Array.from({ length: BOOT_PROGRAM_MAX_PAGES * 256 + 1 }, (_, index) => index & 0xff),
+      ),
+    ).toThrow("Program is too large for disk boot");
+  });
+
+  it("replacing an existing entry keeps a single directory record with the new content", () => {
+    let disk = writeFileToBootDisk(
+      new Uint8Array(DRIVE_SIZE),
+      "notes",
+      Uint8Array.from("abcdef".split("").map((char) => char.charCodeAt(0))),
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "other",
+      Uint8Array.from("xyz".split("").map((char) => char.charCodeAt(0))),
+    );
+    disk = writeFileToBootDisk(
+      disk,
+      "notes",
+      Uint8Array.from("hi".split("").map((char) => char.charCodeAt(0))),
+    );
+
+    const entries = readBootDiskEntries(disk).filter((entry) => entry.name === "notes");
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.sizeBytes).toBe(2);
+    expect(
+      String.fromCharCode(...Array.from(entries[0]!.bytes.slice(0, entries[0]!.sizeBytes))),
+    ).toBe("hi");
   });
 
   it("lists boot disk files and programs", () => {

@@ -406,6 +406,13 @@ That report now includes:
 - full-computer bootloader/Linux architecture runs
 - one architecture snapshot for every bundled C example
 
+Project testing rule:
+
+- everything the user can run on the computer must be tested
+- every bundled example program must be exercised through multiple workflows when possible
+- for Linux-like userland programs, the direct CPU suite and the Computer Architecture Flow suite are expected to cover the same runnable set
+- in this project, that is the practical meaning of `100% test coverage`
+
 ---
 
 ## 10. Final Mental Model
