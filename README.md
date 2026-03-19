@@ -57,6 +57,10 @@ This is basically a 1983 computer that drank too much coffee and learned TypeScr
 
 ![meteo example](report/cexamples/c-meteo-ales.png)
 
+Full computer architecture flow during a running Linux-like graphical example:
+
+![full computer architecture example](report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png)
+
 ## Quick start
 
 **Prerequisite:** Node.js
@@ -177,6 +181,10 @@ C'est en gros un ordinateur de 1983 qui a bu trop de café et découvert le Type
 `Meteo Ales` rendu sur le plotter :
 
 ![exemple meteo](report/cexamples/c-meteo-ales.png)
+
+Vue complète de l'architecture de l'ordinateur pendant un exemple graphique Linux-like en cours :
+
+![exemple architecture ordinateur complet](report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png)
 
 ## Démarrage rapide
 
