@@ -89,14 +89,14 @@ function ComputerPanelInner({
       </div>
 
       <div className="grid gap-4">
-        <div className="min-h-[320px] overflow-hidden">
+        <div className="aspect-square w-full overflow-hidden">
           <MemoPlotterPanel
             pixels={data.plotterPixels}
             currentColor={data.plotterColor}
             onClear={onClearPlotter}
           />
         </div>
-        <div className="min-h-[300px] overflow-hidden">
+        <div className="overflow-hidden">
           <MemoConsolePanel
             output={data.consoleOutput}
             onClear={onClearConsole}

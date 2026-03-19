@@ -1379,7 +1379,7 @@ describe("Compiler — Edge Cases", () => {
     expect(weatherExample).toBeDefined();
 
     const r = await compileAndRunAsync(weatherExample!.code, {
-      maxCycles: 500_000,
+      maxCycles: 1_900_000,
       driveData: getLinuxBootDiskImage(),
       httpFetch: async ({ method, url }) => {
         expect(method).toBe("GET");
@@ -1391,8 +1391,8 @@ describe("Compiler — Edge Cases", () => {
     expect(r.output).toBe(">T+11 61\n");
     expect(r.halted).toBe(true);
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(500);
-    expect(pixelColor(r.cpu, 41, 72)).toBe(packPlotterColor(248, 248, 252));
-    expect(pixelColor(r.cpu, 45, 72)).toBe(packPlotterColor(248, 248, 252));
+    expect(pixelColor(r.cpu, 36, 126)).toBe(packPlotterColor(248, 248, 252));
+    expect(pixelColor(r.cpu, 44, 126)).toBe(packPlotterColor(248, 248, 252));
     savePlotterSnapshot(r.cpu, "c-meteo-ales");
   });
 

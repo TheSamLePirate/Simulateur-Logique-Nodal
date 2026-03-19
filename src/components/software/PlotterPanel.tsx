@@ -19,6 +19,29 @@ export function PlotterPanel({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [viewportSize, setViewportSize] = useState(CANVAS_SIZE);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateViewportSize = () => {
+      const nextSize = Math.max(
+        1,
+        Math.floor(Math.min(container.clientWidth, container.clientHeight)),
+      );
+      setViewportSize(nextSize);
+    };
+
+    updateViewportSize();
+
+    const observer = new ResizeObserver(() => {
+      updateViewportSize();
+    });
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [fullscreen]);
 
   // Redraw canvas whenever pixels change
   useEffect(() => {
@@ -100,8 +123,12 @@ export function PlotterPanel({
       ref={canvasRef}
       width={CANVAS_SIZE}
       height={CANVAS_SIZE}
-      className="w-full h-full object-contain"
-      style={{ imageRendering: "pixelated" }}
+      className="block"
+      style={{
+        imageRendering: "pixelated",
+        width: `${viewportSize}px`,
+        height: `${viewportSize}px`,
+      }}
     />
   );
 

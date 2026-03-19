@@ -4195,6 +4195,21 @@ void cloud(int x, int y, int tone) {
   fill_rect(x - 4, y, x + 28, y + 8, tone - 8, tone - 8, tone);
 }
 
+void big_digit(int page, int digit, int x, int y) {
+  int row;
+  int bits;
+
+  row = 0;
+  while (row < 5) {
+    bits = drive_read_at(page, digit * 5 + row);
+    if (bits & 4) { hline(x, x + 1, y); hline(x, x + 1, y + 1); }
+    if (bits & 2) { hline(x + 2, x + 3, y); hline(x + 2, x + 3, y + 1); }
+    if (bits & 1) { hline(x + 4, x + 5, y); hline(x + 4, x + 5, y + 1); }
+    y = y + 2;
+    row = row + 1;
+  }
+}
+
 void reset_num() {
   num_started = 0;
   num_value = 0;
@@ -4291,24 +4306,21 @@ void draw_scene() {
   int y;
   int level;
   int page;
-  int bits;
 
   clear();
 
   if (is_day_now) {
-    if (weather_code == 0) {
-      color(98, 192, 255);
-    } else {
-      color(112, 154, 210);
-    }
+    fill_rect(0, 0, 255, 118, 108, 148, 210);
+    color(170, 210, 255);
   } else {
-    color(26, 36, 74);
+    fill_rect(0, 0, 255, 118, 18, 26, 52);
+    color(68, 86, 128);
   }
 
-  y = 6;
-  while (y < 118) {
+  y = 12;
+  while (y < 112) {
     hline(0, 255, y);
-    y = y + 18;
+    y = y + 20;
   }
 
   if (is_day_now) {
@@ -4322,49 +4334,14 @@ void draw_scene() {
   }
 
   if (weather_code != 0) {
-    if (weather_code <= 3) {
-      cloud(86, 84, 216);
-    } else {
-      cloud(82, 80, 148);
-    }
-  }
-
-  page = 91;
-  color(248, 248, 252);
-  x = 40;
-  if (temp_neg) {
-    draw(40, 76);
-    draw(41, 76);
-    draw(42, 76);
-    x = 44;
-  }
-  if (temp_abs > 9) {
-    level = temp_abs / 10 * 5;
-    y = 0;
-    while (y < 5) {
-      bits = drive_read_at(page, level + y);
-      if (bits & 4) { draw(x, 72 + y); }
-      if (bits & 2) { draw(x + 1, 72 + y); }
-      if (bits & 1) { draw(x + 2, 72 + y); }
-      y = y + 1;
-    }
-    x = x + 4;
-  }
-  level = temp_abs % 10 * 5;
-  y = 0;
-  while (y < 5) {
-    bits = drive_read_at(page, level + y);
-    if (bits & 4) { draw(x, 72 + y); }
-    if (bits & 2) { draw(x + 1, 72 + y); }
-    if (bits & 1) { draw(x + 2, 72 + y); }
-    y = y + 1;
+    cloud(82, 80, 148);
   }
 
   if ((weather_code >= 51 && weather_code <= 67) || (weather_code >= 80 && weather_code <= 82)) {
     color(126, 190, 255);
     x = 20;
     while (x < 240) {
-      draw(x, 94); draw(x + 2, 100); draw(x + 4, 106);
+      draw(x, 94); draw(x + 1, 97); draw(x + 2, 100); draw(x + 4, 106);
       x = x + 16;
     }
   }
@@ -4378,19 +4355,15 @@ void draw_scene() {
     }
   }
 
-  if (weather_code == 45 || weather_code == 48) {
-    fill_rect(16, 94, 240, 100, 184, 190, 198);
+  if (is_day_now) {
+    fill_rect(0, 118, 255, 255, 28, 68, 38);
+    color(34, 92, 54);
+  } else {
+    fill_rect(0, 118, 255, 255, 8, 20, 18);
+    color(16, 34, 28);
   }
-
-  if (weather_code >= 95) {
-    color(255, 244, 180);
-    draw(182, 64); draw(174, 82); draw(180, 82);
-  }
-
-  color(34, 58, 42);
   hline(0, 255, 186);
   hline(0, 255, 202);
-  fill_rect(34, 156, 48, 218, 22, 24, 28);
 
   fill_rect(18, 40, 28, 182, 232, 236, 242);
   fill_rect(20, 42, 26, 180, 38, 42, 58);
@@ -4408,6 +4381,21 @@ void draw_scene() {
     fill_rect(21, 180 - level * 4, 25, 180, 255, 176, 92);
     disc(23, 194, 6, 255, 176, 92);
   }
+
+  page = 91;
+  color(248, 248, 252);
+  x = 34;
+  y = 170 - level * 4;
+  if (temp_neg) {
+    hline(x, x + 3, y + 4);
+    hline(x, x + 3, y + 5);
+    x = x + 6;
+  }
+  if (temp_abs > 9) {
+    big_digit(page, temp_abs / 10, x, y);
+    x = x + 8;
+  }
+  big_digit(page, temp_abs % 10, x, y);
 }
 
 int main() {

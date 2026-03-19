@@ -10,15 +10,16 @@ interface ConsolePanelProps {
 export function ConsolePanel({ output, onClear, onInput }: ConsolePanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [inputText, setInputText] = useState("");
-
-  // Auto-scroll to bottom when new output arrives
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [output]);
-
   const displayText = output.join("");
+  const lastAutoScrolledTextRef = useRef(displayText);
+
+  // Only force the scroll position when the console text itself changes.
+  useEffect(() => {
+    if (scrollRef.current && lastAutoScrolledTextRef.current !== displayText) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      lastAutoScrolledTextRef.current = displayText;
+    }
+  }, [displayText]);
 
   const handleInputSubmit = () => {
     if (inputText && onInput) {
@@ -28,7 +29,7 @@ export function ConsolePanel({ output, onClear, onInput }: ConsolePanelProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 border border-slate-700 rounded-md overflow-hidden">
+    <div className="flex h-[300px] min-h-[300px] flex-col overflow-hidden rounded-md border border-slate-700 bg-slate-900">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800 border-b border-slate-700">
         <div className="flex items-center gap-2">
@@ -49,7 +50,7 @@ export function ConsolePanel({ output, onClear, onInput }: ConsolePanelProps) {
       {/* Terminal output */}
       <div
         ref={scrollRef}
-        className="flex-1 p-3 font-mono text-sm leading-relaxed text-green-400 bg-black overflow-y-auto whitespace-pre-wrap break-all min-h-[80px]"
+        className="min-h-0 flex-1 overflow-y-auto bg-black p-3 font-mono text-sm leading-relaxed text-green-400 whitespace-pre-wrap break-all"
       >
         {displayText || (
           <span className="text-slate-600 italic">En attente de sortie...</span>
