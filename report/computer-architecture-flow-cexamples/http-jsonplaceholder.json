@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:43.545Z",
+  "generatedAt": "2026-03-19T19:55:57.176Z",
   "name": "http-jsonplaceholder",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/http-jsonplaceholder.png",
   "exampleName": "HTTP JSONPlaceholder",
   "halted": true,
-  "cycles": 893,
+  "cycles": 858,
   "consoleTail": "GET /todos/1\n{\"id\":1,\"title\":\"delectus aut autem\"}\n\nPOST /posts\n{\"id\":101}\n",
   "plotterPixels": 0,
   "nodes": [
@@ -144,7 +144,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x0090 • cycles 893",
+        "subtitle": "HLT @ 0x0081 • cycles 858",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -158,7 +158,7 @@
           },
           {
             "label": "PC",
-            "value": "0x0090"
+            "value": "0x0081"
           },
           {
             "label": "OPERAND",
@@ -170,7 +170,7 @@
           },
           {
             "label": "PULSE",
-            "value": "HIGH"
+            "value": "LOW"
           }
         ],
         "leftPins": [
@@ -235,7 +235,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0090",
+            "value": "0x0081",
             "handleType": "source",
             "active": true
           },
@@ -440,7 +440,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0090"
+            "value": "0x0081"
           },
           {
             "label": "OPERAND @",
@@ -459,7 +459,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0090",
+            "value": "0x0081",
             "handleType": "target",
             "active": true
           },
@@ -510,7 +510,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0090",
+            "value": "0x0081",
             "handleType": "source",
             "active": true
           },
@@ -601,7 +601,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0090",
+            "value": "0x0081",
             "handleType": "target",
             "active": true
           },
@@ -1342,10 +1342,10 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0090",
+        "label": "PC 0x0081",
         "color": "#f59e0b",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1366,7 +1366,7 @@
         "label": "ADDR 0x1468",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1387,7 +1387,7 @@
         "label": "WRITE 0x00",
         "color": "#f97316",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1408,7 +1408,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1429,7 +1429,7 @@
         "label": "WRITE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1447,10 +1447,10 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0090",
+        "label": "0x0081",
         "color": "#fbbf24",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1471,7 +1471,7 @@
         "label": "0x1468",
         "color": "#10b981",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1492,7 +1492,7 @@
         "label": "RD",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1513,7 +1513,7 @@
         "label": "0x00",
         "color": "#22c55e",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1534,7 +1534,7 @@
         "label": "WE",
         "color": "#f43f5e",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1555,7 +1555,7 @@
         "label": "0x0F",
         "color": "#fde047",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1576,7 +1576,7 @@
         "label": "0x0F",
         "color": "#facc15",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1597,7 +1597,7 @@
         "label": "0x00",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1618,7 +1618,7 @@
         "label": "0x00",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1639,7 +1639,7 @@
         "label": "A 0x00",
         "color": "#a78bfa",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1660,7 +1660,7 @@
         "label": "B 0x00",
         "color": "#d946ef",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1681,7 +1681,7 @@
         "label": "PASS",
         "color": "#f472b6",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1702,7 +1702,7 @@
         "label": "0x00",
         "color": "#e879f9",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1723,7 +1723,7 @@
         "label": "1/0/0",
         "color": "#c084fc",
         "active": true,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1744,7 +1744,7 @@
         "label": "\\n",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1765,7 +1765,7 @@
         "label": "READ",
         "color": "#60a5fa",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1786,7 +1786,7 @@
         "label": "idle",
         "color": "#93c5fd",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1807,7 +1807,7 @@
         "label": "slot 0x00",
         "color": "#22c55e",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1828,7 +1828,7 @@
         "label": "SCAN",
         "color": "#4ade80",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1849,7 +1849,7 @@
         "label": "idle",
         "color": "#86efac",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1870,7 +1870,7 @@
         "label": "X 0x00",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1891,7 +1891,7 @@
         "label": "Y 0x00",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1912,7 +1912,7 @@
         "label": "0x22/0xD3/0xEE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1933,7 +1933,7 @@
         "label": "DRAW",
         "color": "#f97316",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1954,7 +1954,7 @@
         "label": "CLEAR",
         "color": "#e11d48",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1975,7 +1975,7 @@
         "label": "0x00",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -1996,7 +1996,7 @@
         "label": "0x00",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2017,7 +2017,7 @@
         "label": "0x22/0xD3/0xEE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2038,7 +2038,7 @@
         "label": "DRAW",
         "color": "#f97316",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2059,7 +2059,7 @@
         "label": "CLEAR",
         "color": "#e11d48",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2080,7 +2080,7 @@
         "label": "0x00",
         "color": "#fbbf24",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2101,7 +2101,7 @@
         "label": "0x0000",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2122,7 +2122,7 @@
         "label": "0x00",
         "color": "#f97316",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2143,7 +2143,7 @@
         "label": "READ",
         "color": "#fdba74",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2164,7 +2164,7 @@
         "label": "WRITE",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2185,7 +2185,7 @@
         "label": "CLEAR",
         "color": "#ef4444",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2206,7 +2206,7 @@
         "label": "0x00",
         "color": "#fbbf24",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2227,7 +2227,7 @@
         "label": "0x0000",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2248,7 +2248,7 @@
         "label": "0x00",
         "color": "#f97316",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2269,7 +2269,7 @@
         "label": "READ",
         "color": "#fdba74",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2290,7 +2290,7 @@
         "label": "WRITE",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2311,7 +2311,7 @@
         "label": "CLEAR",
         "color": "#ef4444",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2332,7 +2332,7 @@
         "label": "0x00",
         "color": "#fde68a",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2353,7 +2353,7 @@
         "label": "0x00",
         "color": "#fef3c7",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2374,7 +2374,7 @@
         "label": "IMM 0x1468",
         "color": "#06b6d4",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2395,7 +2395,7 @@
         "label": "https://jsonplaceho…",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2416,7 +2416,7 @@
         "label": "GET",
         "color": "#0891b2",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2437,7 +2437,7 @@
         "label": "POST",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2458,7 +2458,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2479,7 +2479,7 @@
         "label": "https://jsonplaceho…",
         "color": "#06b6d4",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2500,7 +2500,7 @@
         "label": "{\"title\":\"foo\",\"b…",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2521,7 +2521,7 @@
         "label": "GET",
         "color": "#0891b2",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2542,7 +2542,7 @@
         "label": "POST",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2563,7 +2563,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2584,7 +2584,7 @@
         "label": "0x00",
         "color": "#67e8f9",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     },
     {
@@ -2605,7 +2605,7 @@
         "label": "{\"id\":101}",
         "color": "#a5f3fc",
         "active": false,
-        "pulseOn": true
+        "pulseOn": false
       }
     }
   ]

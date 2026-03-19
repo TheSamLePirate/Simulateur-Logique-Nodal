@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:27.061Z",
+  "generatedAt": "2026-03-19T19:55:43.096Z",
   "name": "linux-argdump",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -10,7 +10,7 @@
   "halted": true,
   "useBootloader": true,
   "cycles": 16924,
-  "consoleTail": "NodalLinux\nroot# \ntype file page 89 size 179b\n",
+  "consoleTail": "NodalLinux\nroot# \ntype file page 83 size 179b\n",
   "plotterPixels": 0,
   "nodes": [
     {
@@ -29,7 +29,7 @@
         "metrics": [
           {
             "label": "OUTPUT",
-            "value": "e page 89 size 179b\n"
+            "value": "e page 83 size 179b\n"
           },
           {
             "label": "INPUT",
@@ -48,7 +48,7 @@
           "lines": [
             "NodalLinux",
             "root# ",
-            "type file page 89 size 179b",
+            "type file page 83 size 179b",
             " ",
             " "
           ]

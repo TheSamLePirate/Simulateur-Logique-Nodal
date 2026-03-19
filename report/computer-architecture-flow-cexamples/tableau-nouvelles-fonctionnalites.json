@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:45.860Z",
+  "generatedAt": "2026-03-19T19:55:59.158Z",
   "name": "tableau-nouvelles-fonctionnalites",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/tableau-nouvelles-fonctionnalites.png",
   "exampleName": "Tableau (Nouvelles Fonctionnalites)",
   "halted": true,
-  "cycles": 491,
+  "cycles": 413,
   "consoleTail": "Avant: 42 7 19 \nTrie: 7 19 42 \nSomme: 68\n",
   "plotterPixels": 0,
   "nodes": [
@@ -143,7 +143,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x0244 • cycles 491",
+        "subtitle": "HLT @ 0x01E7 • cycles 413",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -157,7 +157,7 @@
           },
           {
             "label": "PC",
-            "value": "0x0244"
+            "value": "0x01E7"
           },
           {
             "label": "OPERAND",
@@ -234,7 +234,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0244",
+            "value": "0x01E7",
             "handleType": "source",
             "active": true
           },
@@ -439,7 +439,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0244"
+            "value": "0x01E7"
           },
           {
             "label": "OPERAND @",
@@ -458,7 +458,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0244",
+            "value": "0x01E7",
             "handleType": "target",
             "active": true
           },
@@ -509,7 +509,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0244",
+            "value": "0x01E7",
             "handleType": "source",
             "active": true
           },
@@ -600,7 +600,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0244",
+            "value": "0x01E7",
             "handleType": "target",
             "active": true
           },
@@ -1341,7 +1341,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0244",
+        "label": "PC 0x01E7",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -1446,7 +1446,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0244",
+        "label": "0x01E7",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true

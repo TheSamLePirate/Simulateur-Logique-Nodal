@@ -463,6 +463,25 @@ export function generate(program: Program): {
     return false;
   }
 
+  function collectReachableFunctions(
+    entry: string,
+    graph: Map<string, Set<string>>,
+  ): Set<string> {
+    const reachable = new Set<string>();
+    const visit = (name: string) => {
+      if (reachable.has(name)) return;
+      if (!graph.has(name)) return;
+      reachable.add(name);
+      const next = graph.get(name);
+      if (!next) return;
+      for (const callee of next) {
+        visit(callee);
+      }
+    };
+    visit(entry);
+    return reachable;
+  }
+
   // ═══════════════════════════════════════
   //  Phase 1 — Allocate globals
   // ═══════════════════════════════════════
@@ -508,17 +527,20 @@ export function generate(program: Program): {
 
   const plannedFuncs = program.functions.map(planFunction);
   const callGraph = new Map(plannedFuncs.map((fn) => [fn.name, fn.directCallees]));
+  const reachableFuncNames = collectReachableFunctions("main", callGraph);
+  const emittedFunctions = program.functions.filter((fn) => reachableFuncNames.has(fn.name));
+  const activePlans = plannedFuncs.filter((fn) => reachableFuncNames.has(fn.name));
 
-  for (const fn of plannedFuncs) {
+  for (const fn of activePlans) {
     fn.recursive = reaches(fn.name, fn.name, callGraph);
   }
 
-  const sortedByFrame = [...plannedFuncs].sort((a, b) => b.frameSize - a.frameSize);
+  const sortedByFrame = [...activePlans].sort((a, b) => b.frameSize - a.frameSize);
   for (const fn of sortedByFrame) {
     let base = LOCAL_BASE;
     while (true) {
       let conflict = false;
-      for (const other of plannedFuncs) {
+      for (const other of activePlans) {
         if (other === fn || other.frameSize === 0 || other.frameBase < LOCAL_BASE) continue;
         if (
           !(
@@ -550,7 +572,7 @@ export function generate(program: Program): {
     });
   }
 
-  for (const plan of plannedFuncs) {
+  for (const plan of activePlans) {
     const params: FuncParamInfo[] = [];
     const paramAddrs = new Map<string, number>();
     for (const [name, slot] of plan.paramSlots) {
@@ -607,7 +629,7 @@ export function generate(program: Program): {
   emit("; === Programme compilé depuis C ===");
   emit("  JMP __main");
 
-  for (const fn of program.functions) {
+  for (const fn of emittedFunctions) {
     emitFunction(fn);
   }
 
@@ -991,9 +1013,7 @@ export function generate(program: Program): {
     const elseLabel = newLabel();
     const endLabel = newLabel();
 
-    emitExpr(stmt.condition, ctx);
-    emit(`  CMP 0`);
-    emit(`  JZ ${stmt.elseBranch ? elseLabel : endLabel}`);
+    emitBranchIfFalse(stmt.condition, stmt.elseBranch ? elseLabel : endLabel, ctx);
 
     emitStmt(stmt.thenBranch, ctx);
 
@@ -1016,9 +1036,7 @@ export function generate(program: Program): {
     const endLabel = newLabel();
 
     emit(`${loopLabel}:`);
-    emitExpr(stmt.condition, ctx);
-    emit(`  CMP 0`);
-    emit(`  JZ ${endLabel}`);
+    emitBranchIfFalse(stmt.condition, endLabel, ctx);
 
     loopStack.push({ breakLabel: endLabel, continueLabel: loopLabel });
     emitStmt(stmt.body, ctx);
@@ -1045,9 +1063,7 @@ export function generate(program: Program): {
     emit(`${loopLabel}:`);
 
     if (stmt.condition) {
-      emitExpr(stmt.condition, ctx);
-      emit(`  CMP 0`);
-      emit(`  JZ ${endLabel}`);
+      emitBranchIfFalse(stmt.condition, endLabel, ctx);
     }
 
     loopStack.push({ breakLabel: endLabel, continueLabel: updateLabel });
@@ -1167,6 +1183,138 @@ export function generate(program: Program): {
   }
 
   // ─── Binary expressions ───
+
+  function emitBranchIfTrue(expr: Expr, label: string, ctx: FuncInfo) {
+    const folded = tryEvalConst(expr);
+    if (folded !== null) {
+      if (folded !== 0) emit(`  JMP ${label}`);
+      return;
+    }
+
+    if (expr.kind === "UnaryExpr" && expr.op === "!") {
+      emitBranchIfFalse(expr.operand, label, ctx);
+      return;
+    }
+
+    if (expr.kind === "BinaryExpr") {
+      if (["==", "!=", "<", ">", "<=", ">="].includes(expr.op)) {
+        emitComparisonJump(expr, true, label, ctx);
+        return;
+      }
+      if (expr.op === "&&") {
+        const skipLabel = newLabel();
+        emitBranchIfFalse(expr.left, skipLabel, ctx);
+        emitBranchIfTrue(expr.right, label, ctx);
+        emit(`${skipLabel}:`);
+        return;
+      }
+      if (expr.op === "||") {
+        emitBranchIfTrue(expr.left, label, ctx);
+        emitBranchIfTrue(expr.right, label, ctx);
+        return;
+      }
+    }
+
+    emitExpr(expr, ctx);
+    emit(`  CMP 0`);
+    emit(`  JNZ ${label}`);
+  }
+
+  function emitBranchIfFalse(expr: Expr, label: string, ctx: FuncInfo) {
+    const folded = tryEvalConst(expr);
+    if (folded !== null) {
+      if (folded === 0) emit(`  JMP ${label}`);
+      return;
+    }
+
+    if (expr.kind === "UnaryExpr" && expr.op === "!") {
+      emitBranchIfTrue(expr.operand, label, ctx);
+      return;
+    }
+
+    if (expr.kind === "BinaryExpr") {
+      if (["==", "!=", "<", ">", "<=", ">="].includes(expr.op)) {
+        emitComparisonJump(expr, false, label, ctx);
+        return;
+      }
+      if (expr.op === "&&") {
+        emitBranchIfFalse(expr.left, label, ctx);
+        emitBranchIfFalse(expr.right, label, ctx);
+        return;
+      }
+      if (expr.op === "||") {
+        const skipLabel = newLabel();
+        emitBranchIfTrue(expr.left, skipLabel, ctx);
+        emitBranchIfFalse(expr.right, label, ctx);
+        emit(`${skipLabel}:`);
+        return;
+      }
+    }
+
+    emitExpr(expr, ctx);
+    emit(`  CMP 0`);
+    emit(`  JZ ${label}`);
+  }
+
+  function emitComparisonJump(
+    expr: Expr & { kind: "BinaryExpr" },
+    jumpIfTrue: boolean,
+    label: string,
+    ctx: FuncInfo,
+  ) {
+    const rightConst = tryEvalConst(expr.right);
+
+    if (rightConst !== null) {
+      emitExpr(expr.left, ctx);
+      emit(`  CMP ${rightConst}`);
+    } else {
+      emitExpr(expr.left, ctx);
+      emit(`  PUSH`);
+      emitExpr(expr.right, ctx);
+      emit(`  TAB`);
+      emit(`  POP`);
+      emit(`  CMPB`);
+    }
+
+    switch (expr.op) {
+      case "==":
+        emit(jumpIfTrue ? `  JZ ${label}` : `  JNZ ${label}`);
+        return;
+      case "!=":
+        emit(jumpIfTrue ? `  JNZ ${label}` : `  JZ ${label}`);
+        return;
+      case "<":
+        emit(jumpIfTrue ? `  JC ${label}` : `  JNC ${label}`);
+        return;
+      case ">":
+        if (jumpIfTrue) {
+          const skipLabel = newLabel();
+          emit(`  JZ ${skipLabel}`);
+          emit(`  JC ${skipLabel}`);
+          emit(`  JMP ${label}`);
+          emit(`${skipLabel}:`);
+        } else {
+          emit(`  JZ ${label}`);
+          emit(`  JC ${label}`);
+        }
+        return;
+      case "<=":
+        if (jumpIfTrue) {
+          emit(`  JZ ${label}`);
+          emit(`  JC ${label}`);
+        } else {
+          const skipLabel = newLabel();
+          emit(`  JZ ${skipLabel}`);
+          emit(`  JC ${skipLabel}`);
+          emit(`  JMP ${label}`);
+          emit(`${skipLabel}:`);
+        }
+        return;
+      case ">=":
+        emit(jumpIfTrue ? `  JNC ${label}` : `  JC ${label}`);
+        return;
+    }
+  }
 
   function emitBinaryExpr(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
     const op = expr.op;
@@ -1354,56 +1502,7 @@ export function generate(program: Program): {
   function emitComparison(expr: Expr & { kind: "BinaryExpr" }, ctx: FuncInfo) {
     const trueLabel = newLabel();
     const endLabel = newLabel();
-    const rightConst = tryEvalConst(expr.right);
-
-    if (rightConst !== null) {
-      emitExpr(expr.left, ctx);
-      emit(`  CMP ${rightConst}`);
-    } else {
-      emitExpr(expr.left, ctx);
-      emit(`  PUSH`);
-      emitExpr(expr.right, ctx);
-      emit(`  TAB`); // B = right
-      emit(`  POP`); // A = left
-      emit(`  CMPB`);
-    }
-
-    switch (expr.op) {
-      case "==":
-        emit(`  JZ ${trueLabel}`);
-        break;
-      case "!=":
-        emit(`  JNZ ${trueLabel}`);
-        break;
-      case "<":
-        // unsigned: left < right ↔ borrow (carry) on left - right
-        emit(`  JC ${trueLabel}`);
-        break;
-      case ">": {
-        // unsigned: left > right ↔ no borrow AND not zero
-        // If zero or carry, result is false → fall through to LDA 0
-        const skipGt = newLabel();
-        emit(`  JZ ${skipGt}`);
-        emit(`  JC ${skipGt}`);
-        emit(`  JMP ${trueLabel}`);
-        emit(`${skipGt}:`);
-        break;
-      }
-      case "<=":
-        // unsigned: left <= right ↔ borrow OR zero
-        emit(`  JZ ${trueLabel}`);
-        emit(`  JC ${trueLabel}`);
-        break;
-      case ">=": {
-        // unsigned: left >= right ↔ no borrow
-        // If carry (borrow), result is false → fall through to LDA 0
-        const skipGte = newLabel();
-        emit(`  JC ${skipGte}`);
-        emit(`  JMP ${trueLabel}`);
-        emit(`${skipGte}:`);
-        break;
-      }
-    }
+    emitComparisonJump(expr, true, trueLabel, ctx);
 
     emit(`  LDA 0`);
     emit(`  JMP ${endLabel}`);

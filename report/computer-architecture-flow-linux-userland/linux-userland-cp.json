@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:26.611Z",
+  "generatedAt": "2026-03-19T19:55:41.439Z",
   "name": "linux-userland-cp",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -146,7 +146,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x08C0 • cycles 156652",
+        "subtitle": "HLT @ 0x071F • cycles 119504",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -160,7 +160,7 @@
           },
           {
             "label": "PC",
-            "value": "0x08C0"
+            "value": "0x071F"
           },
           {
             "label": "OPERAND",
@@ -237,7 +237,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x08C0",
+            "value": "0x071F",
             "handleType": "source",
             "active": true
           },
@@ -442,7 +442,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x08C0"
+            "value": "0x071F"
           },
           {
             "label": "OPERAND @",
@@ -461,7 +461,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x08C0",
+            "value": "0x071F",
             "handleType": "target",
             "active": true
           },
@@ -512,7 +512,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x08C0",
+            "value": "0x071F",
             "handleType": "source",
             "active": true
           },
@@ -603,7 +603,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x08C0",
+            "value": "0x071F",
             "handleType": "target",
             "active": true
           },
@@ -1344,7 +1344,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x08C0",
+        "label": "PC 0x071F",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": false
@@ -1449,7 +1449,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x08C0",
+        "label": "0x071F",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": false

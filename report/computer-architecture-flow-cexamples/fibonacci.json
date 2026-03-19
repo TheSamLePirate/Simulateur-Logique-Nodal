@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:16.209Z",
+  "generatedAt": "2026-03-19T19:55:29.974Z",
   "name": "fibonacci",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/fibonacci.png",
   "exampleName": "Fibonacci",
   "halted": true,
-  "cycles": 285,
+  "cycles": 251,
   "consoleTail": "0 1 1 2 3 5 8 13 21 34 ",
   "plotterPixels": 0,
   "nodes": [
@@ -139,7 +139,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x005B • cycles 285",
+        "subtitle": "HLT @ 0x004C • cycles 251",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -153,7 +153,7 @@
           },
           {
             "label": "PC",
-            "value": "0x005B"
+            "value": "0x004C"
           },
           {
             "label": "OPERAND",
@@ -230,7 +230,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x005B",
+            "value": "0x004C",
             "handleType": "source",
             "active": true
           },
@@ -435,7 +435,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x005B"
+            "value": "0x004C"
           },
           {
             "label": "OPERAND @",
@@ -454,7 +454,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x005B",
+            "value": "0x004C",
             "handleType": "target",
             "active": true
           },
@@ -505,7 +505,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x005B",
+            "value": "0x004C",
             "handleType": "source",
             "active": true
           },
@@ -596,7 +596,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x005B",
+            "value": "0x004C",
             "handleType": "target",
             "active": true
           },
@@ -1337,7 +1337,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x005B",
+        "label": "PC 0x004C",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -1442,7 +1442,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x005B",
+        "label": "0x004C",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true

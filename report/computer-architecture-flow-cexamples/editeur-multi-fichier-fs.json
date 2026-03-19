@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:40.304Z",
+  "generatedAt": "2026-03-19T19:55:54.484Z",
   "name": "editeur-multi-fichier-fs",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/editeur-multi-fichier-fs.png",
   "exampleName": "Éditeur Multi-fichier FS",
   "halted": true,
-  "cycles": 14273,
+  "cycles": 10753,
   "consoleTail": "=== EDITEUR CURSEUR FS ===\no nom | l | v | s | c | d | texte\n(o nom pour ouvrir)\ncreated notes\n[notes] 0/0\n||\ninserted\n[] 6/6\nhello\n|\nsaved notes\n[notes] 6/6\nhello\n|\ncreated todo\n[todo] 0/0\n||\ninserted\n[] 9/9\nbuy milk\n|\nsaved todo\n[todo] 9/9\nbuy milk\n|\nf program 7b\nf notes 6b\nf todo 9b\n[todo] 9/9\nbuy milk\n|\nopened notes\n[notes] 6/6\nhello\n|\n[notes] 6/6\nhello\n|\n\n",
   "plotterPixels": 0,
   "nodes": [
@@ -144,7 +144,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "LDM @ 0x0419 • cycles 14273",
+        "subtitle": "LDM @ 0x02C7 • cycles 10753",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -158,7 +158,7 @@
           },
           {
             "label": "PC",
-            "value": "0x0419"
+            "value": "0x02C7"
           },
           {
             "label": "OPERAND",
@@ -235,7 +235,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0419",
+            "value": "0x02C7",
             "handleType": "source",
             "active": true
           },
@@ -440,7 +440,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0419"
+            "value": "0x02C7"
           },
           {
             "label": "OPERAND @",
@@ -459,7 +459,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0419",
+            "value": "0x02C7",
             "handleType": "target",
             "active": true
           },
@@ -510,7 +510,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0419",
+            "value": "0x02C7",
             "handleType": "source",
             "active": true
           },
@@ -601,7 +601,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0419",
+            "value": "0x02C7",
             "handleType": "target",
             "active": true
           },
@@ -1342,7 +1342,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0419",
+        "label": "PC 0x02C7",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -1447,7 +1447,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0419",
+        "label": "0x02C7",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true

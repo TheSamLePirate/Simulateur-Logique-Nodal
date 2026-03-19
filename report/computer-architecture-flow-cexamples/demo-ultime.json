@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:31.436Z",
+  "generatedAt": "2026-03-19T19:55:45.788Z",
   "name": "demo-ultime",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/demo-ultime.png",
   "exampleName": "Démo Ultime",
   "halted": true,
-  "cycles": 61943,
+  "cycles": 53559,
   "consoleTail": "=== DEMO ULTIME ===\nEntrez un chiffre 0-9: 7\nMode clavier=21\nSomme recursive=28\nBrut: 39 37 42 26 26 78 12 40 \nTrie: 12 26 26 37 39 40 42 78 \nMoy=5 R=4 Amp=66\nMix=7\nChecksum=82\nFIN",
   "plotterPixels": 666,
   "nodes": [
@@ -144,7 +144,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x0983 • cycles 61943",
+        "subtitle": "HLT @ 0x07F1 • cycles 53559",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -158,7 +158,7 @@
           },
           {
             "label": "PC",
-            "value": "0x0983"
+            "value": "0x07F1"
           },
           {
             "label": "OPERAND",
@@ -235,7 +235,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0983",
+            "value": "0x07F1",
             "handleType": "source",
             "active": true
           },
@@ -440,7 +440,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0983"
+            "value": "0x07F1"
           },
           {
             "label": "OPERAND @",
@@ -459,7 +459,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0983",
+            "value": "0x07F1",
             "handleType": "target",
             "active": true
           },
@@ -510,7 +510,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0983",
+            "value": "0x07F1",
             "handleType": "source",
             "active": true
           },
@@ -601,7 +601,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0983",
+            "value": "0x07F1",
             "handleType": "target",
             "active": true
           },
@@ -1913,7 +1913,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0983",
+        "label": "PC 0x07F1",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -2018,7 +2018,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0983",
+        "label": "0x07F1",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true

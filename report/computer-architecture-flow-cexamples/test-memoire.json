@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:29.228Z",
+  "generatedAt": "2026-03-19T19:55:43.552Z",
   "name": "test-memoire",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/test-memoire.png",
   "exampleName": "Test Mémoire",
   "halted": true,
-  "cycles": 227,
+  "cycles": 207,
   "consoleTail": "=MEM 2K=\ng0=42 gf=15\nr1=57 r2=5\nPASS\n=CODE:1024=DATA:512=PILE:512=OK",
   "plotterPixels": 0,
   "nodes": [
@@ -143,7 +143,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x02CD • cycles 227",
+        "subtitle": "HLT @ 0x0223 • cycles 207",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -157,7 +157,7 @@
           },
           {
             "label": "PC",
-            "value": "0x02CD"
+            "value": "0x0223"
           },
           {
             "label": "OPERAND",
@@ -234,7 +234,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x02CD",
+            "value": "0x0223",
             "handleType": "source",
             "active": true
           },
@@ -439,7 +439,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x02CD"
+            "value": "0x0223"
           },
           {
             "label": "OPERAND @",
@@ -458,7 +458,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x02CD",
+            "value": "0x0223",
             "handleType": "target",
             "active": true
           },
@@ -509,7 +509,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x02CD",
+            "value": "0x0223",
             "handleType": "source",
             "active": true
           },
@@ -600,7 +600,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x02CD",
+            "value": "0x0223",
             "handleType": "target",
             "active": true
           },
@@ -1341,7 +1341,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x02CD",
+        "label": "PC 0x0223",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -1446,7 +1446,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x02CD",
+        "label": "0x0223",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true

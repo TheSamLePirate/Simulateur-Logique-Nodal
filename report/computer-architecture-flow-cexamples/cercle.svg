@@ -16,7 +16,7 @@
       <path d="M 740 276 C 830 276 760 256 850 256" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" opacity="0.76" />
       <g transform="translate(795, 266)">
         <rect x="-39.8" y="-12" width="79.6" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">PC 0x012E</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">PC 0x00D1</text>
       </g>
     
       <path d="M 740 304 C 830 304 760 284 850 284" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -30,7 +30,7 @@
       <path d="M 740 332 C 830 332 760 312 850 312" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" opacity="0.34" />
       <g transform="translate(795, 322)">
         <rect x="-43" y="-12" width="86" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">WRITE 0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">WRITE 0xFF</text>
       </g>
     
       <path d="M 740 360 C 830 360 760 340 850 340" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -51,7 +51,7 @@
       <path d="M 1170 256 C 1260 256 1190 256 1280 256" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" opacity="0.76" />
       <g transform="translate(1225, 256)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0x012E</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0x00D1</text>
       </g>
     
       <path d="M 1170 284 C 1260 284 1190 284 1280 284" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -72,7 +72,7 @@
       <path d="M 1170 312 C 1260 312 1190 340 1280 340" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.34" />
       <g transform="translate(1225, 326)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0xFF</text>
       </g>
     
       <path d="M 1170 368 C 1260 368 1190 368 1280 368" fill="none" stroke="#f43f5e" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -114,7 +114,7 @@
       <path d="M 740 416 C 628 416 532 1136 420 1136" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" opacity="0.76" />
       <g transform="translate(580, 776)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">A 0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">A 0xFF</text>
       </g>
     
       <path d="M 740 444 C 628 444 532 1164 420 1164" fill="none" stroke="#d946ef" stroke-width="12" stroke-linecap="round" opacity="0.12" />
@@ -135,14 +135,14 @@
       <path d="M 740 1136 C 628 1136 532 332 420 332" fill="none" stroke="#e879f9" stroke-width="4" stroke-linecap="round" opacity="0.76" />
       <g transform="translate(580, 734)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0xFF</text>
       </g>
     
       <path d="M 740 1164 C 628 1164 532 360 420 360" fill="none" stroke="#c084fc" stroke-width="12" stroke-linecap="round" opacity="0.12" />
       <path d="M 740 1164 C 628 1164 532 360 420 360" fill="none" stroke="#c084fc" stroke-width="4" stroke-linecap="round" opacity="0.76" />
       <g transform="translate(580, 762)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">1/0/0</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0/0/1</text>
       </g>
     
       <path d="M 740 500 C 488 500 272 324 20 324" fill="none" stroke="#38bdf8" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -170,7 +170,7 @@
       <path d="M 740 556 C 488 556 272 576 20 576" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" opacity="0.34" />
       <g transform="translate(380, 566)">
         <rect x="-39.8" y="-12" width="79.6" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">slot 0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">slot 0xFF</text>
       </g>
     
       <path d="M 740 584 C 488 584 272 604 20 604" fill="none" stroke="#4ade80" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -191,7 +191,7 @@
       <path d="M 740 612 C 830 612 760 776 850 776" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity="0.34" />
       <g transform="translate(795, 694)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">X 0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">X 0xFF</text>
       </g>
     
       <path d="M 740 640 C 830 640 760 804 850 804" fill="none" stroke="#fb923c" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -226,7 +226,7 @@
       <path d="M 1170 776 C 1260 776 1190 1012 1280 1012" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" opacity="0.34" />
       <g transform="translate(1225, 894)">
         <rect x="-36" y="-12" width="72" height="24" rx="12" fill="#020617" stroke="#334155" />
-        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0x00</text>
+        <text x="0" y="4" fill="#e2e8f0" font-family="monospace" font-size="10" text-anchor="middle">0xFF</text>
       </g>
     
       <path d="M 1170 804 C 1260 804 1190 1040 1280 1040" fill="none" stroke="#fb923c" stroke-width="10" stroke-linecap="round" opacity="0" />
@@ -536,7 +536,7 @@
       <g transform="translate(182, 486)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">SELECT</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">slot 0x00</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">slot 0xFF</text>
       </g>
     
       <g transform="translate(36, 526)">
@@ -550,7 +550,7 @@
           <g transform="translate(32, 564)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">SELECT</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">slot 0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">slot 0xFF</text>
           </g>
           <circle cx="20" cy="576" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -574,12 +574,12 @@
       <g>
         <rect x="420" y="120" width="320" height="924" rx="24" fill="#0f2740" stroke="#22d3ee" stroke-width="2" />
         <text x="436" y="146" fill="#67e8f9" font-size="15" font-family="system-ui" font-weight="700">CPU Core</text>
-        <text x="436" y="162" fill="#94a3b8" font-size="11" font-family="system-ui">NOP @ 0x012E • cycles 4762866</text>
+        <text x="436" y="162" fill="#94a3b8" font-size="11" font-family="system-ui">NOP @ 0x00D1 • cycles 3650214</text>
         
       <g transform="translate(436, 186)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">A</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0xFF</text>
       </g>
     
       <g transform="translate(582, 186)">
@@ -591,7 +591,7 @@
       <g transform="translate(436, 226)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">PC</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x012E</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00D1</text>
       </g>
     
       <g transform="translate(582, 226)">
@@ -631,14 +631,14 @@
           <g transform="translate(432, 320)">
             <rect width="142" height="24" rx="8" fill="#083344" stroke="#22d3ee" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">ALU RESULT</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="420" cy="332" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
           <g transform="translate(432, 348)">
             <rect width="142" height="24" rx="8" fill="#083344" stroke="#22d3ee" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FLAGS</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">1/0/0</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0/0/1</text>
           </g>
           <circle cx="420" cy="360" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -674,7 +674,7 @@
           <g transform="translate(586, 264)">
             <rect width="142" height="24" rx="8" fill="#052e16" stroke="#4ade80" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FETCH PC</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x012E</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00D1</text>
           </g>
           <circle cx="740" cy="276" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -688,7 +688,7 @@
           <g transform="translate(586, 320)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">MEM WRITE</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="740" cy="332" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -709,7 +709,7 @@
           <g transform="translate(586, 404)">
             <rect width="142" height="24" rx="8" fill="#052e16" stroke="#4ade80" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">ALU A</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="740" cy="416" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -744,7 +744,7 @@
           <g transform="translate(586, 544)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">KEY SLOT</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">slot 0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">slot 0xFF</text>
           </g>
           <circle cx="740" cy="556" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -758,7 +758,7 @@
           <g transform="translate(586, 600)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">PLOT X</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="740" cy="612" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -870,7 +870,7 @@
       <g transform="translate(866, 166)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">FETCH @</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x012E</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00D1</text>
       </g>
     
       <g transform="translate(1012, 166)">
@@ -896,7 +896,7 @@
           <g transform="translate(862, 244)">
             <rect width="142" height="24" rx="8" fill="#083344" stroke="#22d3ee" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FETCH ADDR</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x012E</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00D1</text>
           </g>
           <circle cx="850" cy="256" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -910,7 +910,7 @@
           <g transform="translate(862, 300)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">WRITE DATA</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="850" cy="312" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -946,7 +946,7 @@
           <g transform="translate(1016, 244)">
             <rect width="142" height="24" rx="8" fill="#052e16" stroke="#4ade80" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FETCH ADDR</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x012E</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00D1</text>
           </g>
           <circle cx="1170" cy="256" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -960,7 +960,7 @@
           <g transform="translate(1016, 300)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">WRITE DATA</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="1170" cy="312" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -1035,7 +1035,7 @@
           <g transform="translate(1292, 244)">
             <rect width="142" height="24" rx="8" fill="#083344" stroke="#22d3ee" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FETCH ADDR</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x012E</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00D1</text>
           </g>
           <circle cx="1280" cy="256" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -1056,7 +1056,7 @@
           <g transform="translate(1292, 328)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">WRITE DATA</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="1280" cy="340" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -1098,7 +1098,7 @@
       <g transform="translate(582, 1046)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">A</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0xFF</text>
       </g>
     
       <g transform="translate(436, 1086)">
@@ -1110,13 +1110,13 @@
       <g transform="translate(582, 1086)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">RESULT</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0xFF</text>
       </g>
     
       <g transform="translate(436, 1126)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">ZERO/CARRY/NEG</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">1/0/0</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0/0/1</text>
       </g>
     
         
@@ -1124,7 +1124,7 @@
           <g transform="translate(432, 1124)">
             <rect width="142" height="24" rx="8" fill="#083344" stroke="#22d3ee" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">A IN</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="420" cy="1136" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -1146,14 +1146,14 @@
           <g transform="translate(586, 1124)">
             <rect width="142" height="24" rx="8" fill="#052e16" stroke="#4ade80" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">RESULT</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="740" cy="1136" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
           <g transform="translate(586, 1152)">
             <rect width="142" height="24" rx="8" fill="#052e16" stroke="#4ade80" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">FLAGS</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">1/0/0</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0/0/1</text>
           </g>
           <circle cx="740" cy="1164" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -1167,7 +1167,7 @@
       <g transform="translate(866, 686)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">X</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0xFF</text>
       </g>
     
       <g transform="translate(1012, 686)">
@@ -1193,7 +1193,7 @@
           <g transform="translate(862, 764)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">X FROM CPU</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="850" cy="776" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         
@@ -1229,7 +1229,7 @@
           <g transform="translate(1016, 764)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">X -&gt; FB</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="1170" cy="776" r="5" fill="#86efac" stroke="#020617" stroke-width="2" />
         
@@ -1277,7 +1277,7 @@
       <g transform="translate(1442, 686)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">X/Y</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0x00/0x31</text>
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">0xFF/0x31</text>
       </g>
     
       <g transform="translate(1296, 726)">
@@ -1904,7 +1904,7 @@
           <g transform="translate(1292, 1000)">
             <rect width="142" height="24" rx="8" fill="#020617" stroke="#1e293b" />
             <text x="8" y="10" fill="#e2e8f0" font-size="9" font-family="system-ui">X</text>
-            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0x00</text>
+            <text x="8" y="20" fill="#cbd5e1" font-size="8" font-family="monospace">0xFF</text>
           </g>
           <circle cx="1280" cy="1012" r="5" fill="#67e8f9" stroke="#020617" stroke-width="2" />
         

@@ -1,7 +1,7 @@
 {
   "suiteName": "C Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-cexamples",
-  "generatedAt": "19 Mar 2026, 20:34:46",
+  "generatedAt": "19 Mar 2026, 20:55:59",
   "notes": [
     "Generated during computerArchitectureFlow.cexamples.test.ts.",
     "Exports one architecture flow snapshot for every bundled C example program.",
@@ -114,11 +114,11 @@
     },
     {
       "testName": "echo-saisie",
-      "output": "JSON: report/computer-architecture-flow-cexamples/echo-saisie.json\nSVG: report/computer-architecture-flow-cexamples/echo-saisie.svg\nPNG: report/computer-architecture-flow-cexamples/png/echo-saisie.png\nActive edges: 11"
+      "output": "JSON: report/computer-architecture-flow-cexamples/echo-saisie.json\nSVG: report/computer-architecture-flow-cexamples/echo-saisie.svg\nPNG: report/computer-architecture-flow-cexamples/png/echo-saisie.png\nActive edges: 9"
     },
     {
       "testName": "compteur-de-lettres",
-      "output": "JSON: report/computer-architecture-flow-cexamples/compteur-de-lettres.json\nSVG: report/computer-architecture-flow-cexamples/compteur-de-lettres.svg\nPNG: report/computer-architecture-flow-cexamples/png/compteur-de-lettres.png\nActive edges: 11"
+      "output": "JSON: report/computer-architecture-flow-cexamples/compteur-de-lettres.json\nSVG: report/computer-architecture-flow-cexamples/compteur-de-lettres.svg\nPNG: report/computer-architecture-flow-cexamples/png/compteur-de-lettres.png\nActive edges: 9"
     },
     {
       "testName": "calculatrice",
@@ -299,7 +299,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 11,
+      "pixelCount": 9,
       "href": "computer-architecture-flow-cexamples/echo-saisie.svg"
     },
     {
@@ -308,7 +308,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 11,
+      "pixelCount": 9,
       "href": "computer-architecture-flow-cexamples/compteur-de-lettres.svg"
     },
     {
@@ -642,7 +642,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 11
+      "activeEdgeCount": 9
     },
     {
       "name": "compteur-de-lettres",
@@ -653,7 +653,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 11
+      "activeEdgeCount": 9
     },
     {
       "name": "calculatrice",

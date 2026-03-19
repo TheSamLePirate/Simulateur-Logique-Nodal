@@ -1,7 +1,7 @@
 {
   "suiteName": "Linux Userland Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-linux-userland",
-  "generatedAt": "19 Mar 2026, 20:34:28",
+  "generatedAt": "19 Mar 2026, 20:55:43",
   "notes": [
     "Generated during computerArchitectureFlow.linuxUserland.test.ts.",
     "Boots the real Linux-like disk through the bootloader and exports one architecture snapshot for every bundled userland program.",

@@ -1,7 +1,7 @@
 {
   "suiteName": "C Example Plotter Tests",
   "suiteKey": "cexamples",
-  "generatedAt": "19 Mar 2026, 20:34:36",
+  "generatedAt": "19 Mar 2026, 20:55:50",
   "notes": [
     "Generated at the end of cexamples.test.ts during vitest.",
     "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."
@@ -139,9 +139,9 @@
     "[test] C Examples — Output Verification > \"Traceur de droite\" handles b=0 error",
     "[snapshot] c-cercle: report/cexamples/c-cercle.png (256x256, scale 2, pixels 7104)",
     "[test] C Examples — Output Verification > \"Cercle\" draws a circle ring on plotter",
-    "[snapshot] c-clavier-f1: report/cexamples/c-clavier-f1.png (256x256, scale 2, pixels 5)",
-    "[snapshot] c-clavier-f2: report/cexamples/c-clavier-f2.png (256x256, scale 2, pixels 4)",
-    "[snapshot] c-clavier-f3: report/cexamples/c-clavier-f3.png (256x256, scale 2, pixels 1)",
+    "[snapshot] c-clavier-f1: report/cexamples/c-clavier-f1.png (256x256, scale 2, pixels 4)",
+    "[snapshot] c-clavier-f2: report/cexamples/c-clavier-f2.png (256x256, scale 2, pixels 1)",
+    "[snapshot] c-clavier-f3: report/cexamples/c-clavier-f3.png (256x256, scale 2, pixels 4)",
     "[snapshot] c-clavier-f4: report/cexamples/c-clavier-f4.png (256x256, scale 2, pixels 4)",
     "[test] C Examples — Output Verification > \"Clavier\" draws triangle + laser with arrow keys",
     "[test] C Examples — Output Verification > \"Horloge\" starts at 00:00 and increments",
@@ -154,10 +154,10 @@
     "[test] C Examples — Output Verification > \"Tableau (Tri)\" sorts 8 elements correctly",
     "[test] C Examples — Output Verification > \"Tableau (Nouvelles Fonctionnalites)\" demonstrates array params and multi declarations",
     "[test] C Examples — Output Verification > \"Const et String\" demonstrates const data, array initializers, and string declarations",
-    "[snapshot] c-pong-f1: report/cexamples/c-pong-f1.png (256x256, scale 2, pixels 41)",
-    "[snapshot] c-pong-f2: report/cexamples/c-pong-f2.png (256x256, scale 2, pixels 30)",
+    "[snapshot] c-pong-f1: report/cexamples/c-pong-f1.png (256x256, scale 2, pixels 27)",
+    "[snapshot] c-pong-f2: report/cexamples/c-pong-f2.png (256x256, scale 2, pixels 33)",
     "[snapshot] c-pong-f3: report/cexamples/c-pong-f3.png (256x256, scale 2, pixels 10)",
-    "[snapshot] c-pong-f4: report/cexamples/c-pong-f4.png (256x256, scale 2, pixels 41)",
+    "[snapshot] c-pong-f4: report/cexamples/c-pong-f4.png (256x256, scale 2, pixels 28)",
     "[test] C Examples — Output Verification > \"Pong\" runs game loop with plotter output",
     "[snapshot] c-demo-ultime: report/cexamples/c-demo-ultime.png (256x256, scale 2, pixels 666)",
     "[test] C Examples — Output Verification > \"Démo Ultime\" combines console, keyboard, arrays, recursion and plotter",
@@ -173,16 +173,20 @@
     "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" clears one file without touching another",
     "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" reports disk full but still reopens existing files",
     "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" moves the cursor with arrow keys before deleting",
-    "[snapshot] c-systeme-solaire-255-f1: report/cexamples/c-systeme-solaire-255-f1.png (256x256, scale 2, pixels 48)",
-    "[snapshot] c-systeme-solaire-255-f2: report/cexamples/c-systeme-solaire-255-f2.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f1: report/cexamples/c-systeme-solaire-255-f1.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f2: report/cexamples/c-systeme-solaire-255-f2.png (256x256, scale 2, pixels 52)",
     "[snapshot] c-systeme-solaire-255-f3: report/cexamples/c-systeme-solaire-255-f3.png (256x256, scale 2, pixels 53)",
-    "[snapshot] c-systeme-solaire-255-f4: report/cexamples/c-systeme-solaire-255-f4.png (256x256, scale 2, pixels 52)",
-    "[snapshot] c-systeme-solaire-255-f5: report/cexamples/c-systeme-solaire-255-f5.png (256x256, scale 2, pixels 38)",
+    "[snapshot] c-systeme-solaire-255-f4: report/cexamples/c-systeme-solaire-255-f4.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f5: report/cexamples/c-systeme-solaire-255-f5.png (256x256, scale 2, pixels 53)",
     "[test] C Examples — Output Verification > \"Système Solaire 255\" draws a sun and one orbiting planet",
     "[test] Compiler — Edge Cases > empty main halts immediately",
     "[test] Compiler — Edge Cases > global variable initialization",
     "[test] Compiler — Edge Cases > function with multiple return paths",
     "[test] Compiler — Edge Cases > nested function calls",
+    "[test] Compiler — Edge Cases > eliminates unreachable helper functions transitively",
+    "[test] Compiler — Edge Cases > shrinks code size and local frame usage when a helper is unreachable",
+    "[test] Compiler — Edge Cases > branches directly on comparisons in if conditions with smaller code",
+    "[test] Compiler — Edge Cases > branches directly on short-circuit && conditions with smaller code",
     "[test] Compiler — Edge Cases > recursion works correctly",
     "[test] Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "[test] Compiler — Edge Cases > while loop with break condition",
@@ -326,7 +330,7 @@
     "[test] C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
     "[test] C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
     "[test] C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader",
-    "[suite] 295 tests recorded"
+    "[suite] 299 tests recorded"
   ],
   "tests": [
     "C Examples — Compilation > \"Hello World\" compiles without errors",
@@ -483,6 +487,10 @@
     "Compiler — Edge Cases > global variable initialization",
     "Compiler — Edge Cases > function with multiple return paths",
     "Compiler — Edge Cases > nested function calls",
+    "Compiler — Edge Cases > eliminates unreachable helper functions transitively",
+    "Compiler — Edge Cases > shrinks code size and local frame usage when a helper is unreachable",
+    "Compiler — Edge Cases > branches directly on comparisons in if conditions with smaller code",
+    "Compiler — Edge Cases > branches directly on short-circuit && conditions with smaller code",
     "Compiler — Edge Cases > recursion works correctly",
     "Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "Compiler — Edge Cases > while loop with break condition",
@@ -787,6 +795,14 @@
       "output": "[compileAndRun]\n12"
     },
     {
+      "testName": "Compiler — Edge Cases > branches directly on comparisons in if conditions with smaller code",
+      "output": "[compileAndRun]\nY"
+    },
+    {
+      "testName": "Compiler — Edge Cases > branches directly on short-circuit && conditions with smaller code",
+      "output": "[compileAndRun]\nY"
+    },
+    {
       "testName": "Compiler — Edge Cases > recursion works correctly",
       "output": "[compileAndRun]\n55"
     },
@@ -873,10 +889,6 @@
     {
       "testName": "Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
       "output": "[compileAndRun]\n127 0 1"
-    },
-    {
-      "testName": "Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
-      "output": "[compileAndRun]\n¿¿¿¿¿¿¿¿¿¿¿\u0001À"
     },
     {
       "testName": "Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
@@ -1267,7 +1279,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 5,
+      "pixelCount": 4,
       "href": "cexamples/c-clavier-f1.png"
     },
     {
@@ -1276,7 +1288,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 4,
+      "pixelCount": 1,
       "href": "cexamples/c-clavier-f2.png"
     },
     {
@@ -1285,7 +1297,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 1,
+      "pixelCount": 4,
       "href": "cexamples/c-clavier-f3.png"
     },
     {
@@ -1321,7 +1333,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 41,
+      "pixelCount": 27,
       "href": "cexamples/c-pong-f1.png"
     },
     {
@@ -1330,7 +1342,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 30,
+      "pixelCount": 33,
       "href": "cexamples/c-pong-f2.png"
     },
     {
@@ -1348,7 +1360,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 41,
+      "pixelCount": 28,
       "href": "cexamples/c-pong-f4.png"
     },
     {
@@ -1375,7 +1387,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 48,
+      "pixelCount": 53,
       "href": "cexamples/c-systeme-solaire-255-f1.png"
     },
     {
@@ -1384,7 +1396,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 53,
+      "pixelCount": 52,
       "href": "cexamples/c-systeme-solaire-255-f2.png"
     },
     {
@@ -1402,7 +1414,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 52,
+      "pixelCount": 53,
       "href": "cexamples/c-systeme-solaire-255-f4.png"
     },
     {
@@ -1411,7 +1423,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 38,
+      "pixelCount": 53,
       "href": "cexamples/c-systeme-solaire-255-f5.png"
     },
     {

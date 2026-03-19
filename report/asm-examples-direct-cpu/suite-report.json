@@ -1,7 +1,7 @@
 {
   "suiteName": "ASM Examples Direct CPU Tests",
   "suiteKey": "asm-examples-direct-cpu",
-  "generatedAt": "19 Mar 2026, 20:34:16",
+  "generatedAt": "19 Mar 2026, 20:55:29",
   "notes": [
     "Generated during asmExamplesCoverage.test.ts.",
     "Runs every bundled ASM example through a real runnable workflow and records console and plotter state.",
@@ -144,7 +144,7 @@
     },
     {
       "testName": "Linux - argdump",
-      "output": "NodalLinux\nroot# \ntype file page 89 size 179b"
+      "output": "NodalLinux\nroot# \ntype file page 83 size 179b"
     },
     {
       "testName": "Linux - wc",

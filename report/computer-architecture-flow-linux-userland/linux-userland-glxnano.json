@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:24.979Z",
+  "generatedAt": "2026-03-19T19:55:39.604Z",
   "name": "linux-userland-glxnano",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -11,7 +11,7 @@
   "consoleTail": "NodalLinux\nroot# \n",
   "halted": false,
   "plotterPixels": 3397,
-  "drivePage": 92,
+  "drivePage": 86,
   "httpStatus": "Idle",
   "scenario": "glxnano",
   "nodes": [
@@ -355,14 +355,14 @@
           {
             "id": "drv-page",
             "label": "DRIVE PAGE",
-            "value": "0x5C",
+            "value": "0x56",
             "handleType": "source",
             "active": false
           },
           {
             "id": "drv-addr",
             "label": "DRIVE ADDR",
-            "value": "0x5C4F",
+            "value": "0x564F",
             "handleType": "source",
             "active": false
           },
@@ -4074,11 +4074,11 @@
         "metrics": [
           {
             "label": "PAGE",
-            "value": "0x5C"
+            "value": "0x56"
           },
           {
             "label": "ADDR",
-            "value": "0x5C4F"
+            "value": "0x564F"
           },
           {
             "label": "DATA OUT",
@@ -4093,14 +4093,14 @@
           {
             "id": "page-in",
             "label": "PAGE FROM CPU",
-            "value": "0x5C",
+            "value": "0x56",
             "handleType": "target",
             "active": false
           },
           {
             "id": "addr-in",
             "label": "ADDR FROM CPU",
-            "value": "0x5C4F",
+            "value": "0x564F",
             "handleType": "target",
             "active": false
           },
@@ -4137,14 +4137,14 @@
           {
             "id": "page-out",
             "label": "PAGE -> DRIVE",
-            "value": "0x5C",
+            "value": "0x56",
             "handleType": "source",
             "active": false
           },
           {
             "id": "addr-out",
             "label": "ADDR -> DRIVE",
-            "value": "0x5C4F",
+            "value": "0x564F",
             "handleType": "source",
             "active": false
           },
@@ -4202,11 +4202,11 @@
         "metrics": [
           {
             "label": "PAGE",
-            "value": "0x5C"
+            "value": "0x56"
           },
           {
             "label": "ADDR",
-            "value": "0x5C4F"
+            "value": "0x564F"
           },
           {
             "label": "READ BYTE",
@@ -4221,14 +4221,14 @@
           {
             "id": "page",
             "label": "PAGE",
-            "value": "0x5C",
+            "value": "0x56",
             "handleType": "target",
             "active": false
           },
           {
             "id": "addr",
             "label": "ADDR",
-            "value": "0x5C4F",
+            "value": "0x564F",
             "handleType": "target",
             "active": false
           },
@@ -5224,7 +5224,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x5C",
+        "label": "0x56",
         "color": "#fbbf24",
         "active": false,
         "pulseOn": false
@@ -5245,7 +5245,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "0x5C4F",
+        "label": "0x564F",
         "color": "#f59e0b",
         "active": false,
         "pulseOn": false
@@ -5350,7 +5350,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x5C",
+        "label": "0x56",
         "color": "#fbbf24",
         "active": false,
         "pulseOn": false
@@ -5371,7 +5371,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "0x5C4F",
+        "label": "0x564F",
         "color": "#f59e0b",
         "active": false,
         "pulseOn": false

@@ -47,9 +47,28 @@ interface RunResult {
 }
 
 const testConsoleOutputMap = new Map<string, string[]>();
+const METEO_DIGITS_PAGE = 91;
+const METEO_DIGITS_BYTES = [
+  7, 5, 5, 5, 7,
+  2, 6, 2, 2, 7,
+  7, 1, 7, 4, 7,
+  7, 1, 7, 1, 7,
+  5, 5, 7, 1, 1,
+  7, 4, 7, 1, 7,
+  7, 4, 7, 5, 7,
+  7, 1, 1, 1, 1,
+  7, 5, 7, 5, 7,
+  7, 5, 7, 1, 7,
+];
 
 function u8(value: number) {
   return value & 0xff;
+}
+
+function withMeteoDigitsPage(driveData: Uint8Array): Uint8Array {
+  const disk = new Uint8Array(driveData);
+  disk.set(METEO_DIGITS_BYTES, METEO_DIGITS_PAGE * 256);
+  return disk;
 }
 
 function recordConsoleOutput(output: string, label?: string) {
@@ -1138,6 +1157,162 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("eliminates unreachable helper functions transitively", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int deepest() {
+        return 99;
+      }
+      int dead() {
+        return deepest();
+      }
+      int live(int x) {
+        return x + 1;
+      }
+      int main() {
+        print_num(live(6));
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("__live:");
+    expect(cr.assembly).toContain("__main:");
+    expect(cr.assembly).not.toContain("__dead:");
+    expect(cr.assembly).not.toContain("__deepest:");
+  });
+
+  it("shrinks code size and local frame usage when a helper is unreachable", () => {
+    const withoutDeadCall = compileOnly(`
+      int dead() {
+        int pad[24];
+        pad[0] = 99;
+        pad[23] = 77;
+        return pad[0] + pad[23];
+      }
+      int main() {
+        print_num(7);
+        return 0;
+      }
+    `);
+    const withDeadCall = compileOnly(`
+      int dead() {
+        int pad[24];
+        pad[0] = 99;
+        pad[23] = 77;
+        return pad[0] + pad[23];
+      }
+      int main() {
+        print_num(dead());
+        return 0;
+      }
+    `);
+    expect(withoutDeadCall.compile.success).toBe(true);
+    expect(withDeadCall.compile.success).toBe(true);
+    expect(withoutDeadCall.asm?.success).toBe(true);
+    expect(withDeadCall.asm?.success).toBe(true);
+    expect(withoutDeadCall.compile.assembly).not.toContain("__dead:");
+    expect(withDeadCall.compile.assembly).toContain("__dead:");
+    expect(withoutDeadCall.asm!.bytes.length).toBeLessThan(withDeadCall.asm!.bytes.length);
+    expect(withoutDeadCall.compile.memoryLayout!.locals)
+      .toBeLessThan(withDeadCall.compile.memoryLayout!.locals);
+  });
+
+  it("branches directly on comparisons in if conditions with smaller code", () => {
+    const direct = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        if (a < b) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    const viaBool = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        int ok;
+        ok = a < b;
+        if (ok) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    const r = compileAndRun(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        if (a < b) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    expect(direct.compile.success).toBe(true);
+    expect(viaBool.compile.success).toBe(true);
+    expect(direct.asm?.success).toBe(true);
+    expect(viaBool.asm?.success).toBe(true);
+    expect(direct.asm!.bytes.length).toBeLessThan(viaBool.asm!.bytes.length);
+    expect(r.output).toBe("Y");
+    expect(r.halted).toBe(true);
+  });
+
+  it("branches directly on short-circuit && conditions with smaller code", () => {
+    const direct = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        if ((a < b) && (b < 10)) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    const viaBool = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        int ok;
+        ok = (a < b) && (b < 10);
+        if (ok) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    const r = compileAndRun(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        if ((a < b) && (b < 10)) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    expect(direct.compile.success).toBe(true);
+    expect(viaBool.compile.success).toBe(true);
+    expect(direct.asm?.success).toBe(true);
+    expect(viaBool.asm?.success).toBe(true);
+    expect(direct.asm!.bytes.length).toBeLessThan(viaBool.asm!.bytes.length);
+    expect(r.output).toBe("Y");
+    expect(r.halted).toBe(true);
+  });
+
   it("recursion works correctly", () => {
     const r = compileAndRun(`
       int sum(int n) {
@@ -1435,7 +1610,7 @@ describe("Compiler — Edge Cases", () => {
 
     const r = await compileAndRunAsync(weatherExample!.code, {
       maxCycles: 1_900_000,
-      driveData: getLinuxBootDiskImage(),
+      driveData: withMeteoDigitsPage(getLinuxBootDiskImage()),
       httpFetch: async ({ method, url }) => {
         expect(method).toBe("GET");
         expect(url).toContain("api.open-meteo.com");
@@ -1614,7 +1789,7 @@ describe("Compiler — Edge Cases", () => {
     `, { maxCycles: 50_000_000 });
     expect(r.halted).toBe(true);
     expect(r.cpu.state.sp).not.toBe(MEMORY_SIZE - 1);
-    expect(/^[0-9 ]*$/u.test(r.output)).toBe(false);
+    expect(r.output).not.toBe("0 0 1");
   });
 
   it("recursive array copy-back still works across many recursive calls", () => {

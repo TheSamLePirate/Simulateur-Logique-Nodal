@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:34:37.027Z",
+  "generatedAt": "2026-03-19T19:55:51.306Z",
   "name": "writeletters",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/writeletters.png",
   "exampleName": "writeLetters",
   "halted": true,
-  "cycles": 1566,
+  "cycles": 1466,
   "consoleTail": "saved LETTERS\n",
   "plotterPixels": 0,
   "nodes": [
@@ -141,7 +141,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x0AC2 • cycles 1566",
+        "subtitle": "HLT @ 0x09F0 • cycles 1466",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -155,7 +155,7 @@
           },
           {
             "label": "PC",
-            "value": "0x0AC2"
+            "value": "0x09F0"
           },
           {
             "label": "OPERAND",
@@ -232,7 +232,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0AC2",
+            "value": "0x09F0",
             "handleType": "source",
             "active": true
           },
@@ -437,7 +437,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0AC2"
+            "value": "0x09F0"
           },
           {
             "label": "OPERAND @",
@@ -456,7 +456,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0AC2",
+            "value": "0x09F0",
             "handleType": "target",
             "active": true
           },
@@ -507,7 +507,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0AC2",
+            "value": "0x09F0",
             "handleType": "source",
             "active": true
           },
@@ -598,7 +598,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0AC2",
+            "value": "0x09F0",
             "handleType": "target",
             "active": true
           },
@@ -1339,7 +1339,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0AC2",
+        "label": "PC 0x09F0",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": false
@@ -1444,7 +1444,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0AC2",
+        "label": "0x09F0",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": false
