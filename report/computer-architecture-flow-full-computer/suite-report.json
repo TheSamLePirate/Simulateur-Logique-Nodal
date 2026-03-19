@@ -1,7 +1,7 @@
 {
   "suiteName": "Full Computer Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-full-computer",
-  "generatedAt": "19 Mar 2026, 19:24:19",
+  "generatedAt": "19 Mar 2026, 19:35:35",
   "notes": [
     "Generated during computerArchitectureFlow.integration.test.ts.",
     "This suite boots the real bootloader with the Linux-like disk and exports JSON/SVG computer snapshots.",
@@ -11,13 +11,15 @@
     "[artifact] linux-boot-prompt: report/computer-architecture-flow-full-computer/linux-boot-prompt.json | report/computer-architecture-flow-full-computer/linux-boot-prompt.svg | report/computer-architecture-flow-full-computer/png/linux-boot-prompt.png (12 nodes, 61 edges)",
     "[artifact] linux-grep-story: report/computer-architecture-flow-full-computer/linux-grep-story.json | report/computer-architecture-flow-full-computer/linux-grep-story.svg | report/computer-architecture-flow-full-computer/png/linux-grep-story.png (12 nodes, 61 edges)",
     "[artifact] linux-wget-url: report/computer-architecture-flow-full-computer/linux-wget-url.json | report/computer-architecture-flow-full-computer/linux-wget-url.svg | report/computer-architecture-flow-full-computer/png/linux-wget-url.png (12 nodes, 61 edges)",
-    "[artifact] linux-running-example-glxsh: report/computer-architecture-flow-full-computer/linux-running-example-glxsh.json | report/computer-architecture-flow-full-computer/linux-running-example-glxsh.svg | report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png (12 nodes, 61 edges)"
+    "[artifact] linux-running-example-glxsh: report/computer-architecture-flow-full-computer/linux-running-example-glxsh.json | report/computer-architecture-flow-full-computer/linux-running-example-glxsh.svg | report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png (12 nodes, 61 edges)",
+    "[artifact] linux-running-example-glxnano: report/computer-architecture-flow-full-computer/linux-running-example-glxnano.json | report/computer-architecture-flow-full-computer/linux-running-example-glxnano.svg | report/computer-architecture-flow-full-computer/png/linux-running-example-glxnano.png (12 nodes, 61 edges)"
   ],
   "tests": [
     "linux-boot-prompt",
     "linux-grep-story",
     "linux-wget-url",
-    "linux-running-example-glxsh"
+    "linux-running-example-glxsh",
+    "linux-running-example-glxnano"
   ],
   "testConsoleOutputs": [
     {
@@ -35,6 +37,10 @@
     {
       "testName": "linux-running-example-glxsh",
       "output": "JSON: report/computer-architecture-flow-full-computer/linux-running-example-glxsh.json\nSVG: report/computer-architecture-flow-full-computer/linux-running-example-glxsh.svg\nPNG: report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png\nActive edges: 12"
+    },
+    {
+      "testName": "linux-running-example-glxnano",
+      "output": "JSON: report/computer-architecture-flow-full-computer/linux-running-example-glxnano.json\nSVG: report/computer-architecture-flow-full-computer/linux-running-example-glxnano.svg\nPNG: report/computer-architecture-flow-full-computer/png/linux-running-example-glxnano.png\nActive edges: 9"
     }
   ],
   "snapshots": [
@@ -73,6 +79,15 @@
       "scale": 1,
       "pixelCount": 12,
       "href": "computer-architecture-flow-full-computer/linux-running-example-glxsh.svg"
+    },
+    {
+      "name": "linux-running-example-glxnano",
+      "outputPath": "report/computer-architecture-flow-full-computer/linux-running-example-glxnano.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-full-computer/linux-running-example-glxnano.svg"
     }
   ],
   "artifacts": [
@@ -119,6 +134,17 @@
       "nodeCount": 12,
       "edgeCount": 61,
       "activeEdgeCount": 12
+    },
+    {
+      "name": "linux-running-example-glxnano",
+      "jsonPath": "report/computer-architecture-flow-full-computer/linux-running-example-glxnano.json",
+      "imagePath": "report/computer-architecture-flow-full-computer/linux-running-example-glxnano.svg",
+      "pngPath": "report/computer-architecture-flow-full-computer/png/linux-running-example-glxnano.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
     }
   ]
 }

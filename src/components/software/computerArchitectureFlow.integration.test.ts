@@ -191,4 +191,23 @@ describe("full computer architecture flow", () => {
 
     writeCpuArtifact("linux-running-example-glxsh", cpu, { scenario: "glxsh-running" });
   });
+
+  it("runs glxnano from the Linux-like disk and exports the full computer architecture flow", () => {
+    const cpu = bootToPrompt(getLinuxBootDiskImage());
+    pushText(cpu, "run glxnano readme\n");
+
+    expect(
+      runCpuUntil(
+        cpu,
+        () => cpu.plotterPixels.size > 0 && cpu.state.memory[0x1009] === 0,
+        600_000,
+      ),
+    ).toBe(true);
+
+    expect(cpu.state.halted).toBe(false);
+    expect(cpu.plotterPixels.size).toBeGreaterThan(0);
+    expect(cpu.consoleOutput.join("")).toContain("NodalLinux");
+
+    writeCpuArtifact("linux-running-example-glxnano", cpu, { scenario: "glxnano-running" });
+  });
 });

@@ -59,7 +59,7 @@ This is basically a 1983 computer that drank too much coffee and learned TypeScr
 
 Full computer architecture flow during a running Linux-like graphical example:
 
-![full computer architecture example](report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png)
+![full computer architecture example](report/computer-architecture-flow-full-computer/png/linux-running-example-glxnano.png)
 
 ## Quick start
 
@@ -184,7 +184,7 @@ C'est en gros un ordinateur de 1983 qui a bu trop de café et découvert le Type
 
 Vue complète de l'architecture de l'ordinateur pendant un exemple graphique Linux-like en cours :
 
-![exemple architecture ordinateur complet](report/computer-architecture-flow-full-computer/png/linux-running-example-glxsh.png)
+![exemple architecture ordinateur complet](report/computer-architecture-flow-full-computer/png/linux-running-example-glxnano.png)
 
 ## Démarrage rapide
 
