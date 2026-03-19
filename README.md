@@ -47,6 +47,16 @@ This is basically a 1983 computer that drank too much coffee and learned TypeScr
 
 [puter.com/app/1983-computer](https://puter.com/app/1983-computer)
 
+## A few generated examples
+
+`glxnano` running from the bootloader disk:
+
+![glxnano example](report/bootloader/glxnano-readme-base.png)
+
+`Meteo Ales` rendered on the plotter:
+
+![meteo example](report/cexamples/c-meteo-ales.png)
+
 ## Quick start
 
 **Prerequisite:** Node.js
@@ -157,6 +167,16 @@ C'est en gros un ordinateur de 1983 qui a bu trop de café et découvert le Type
 ## Essayer en ligne
 
 [puter.com/app/1983-computer](https://puter.com/app/1983-computer)
+
+## Quelques exemples générés
+
+`glxnano` lancé depuis le disque du bootloader :
+
+![exemple glxnano](report/bootloader/glxnano-readme-base.png)
+
+`Meteo Ales` rendu sur le plotter :
+
+![exemple meteo](report/cexamples/c-meteo-ales.png)
 
 ## Démarrage rapide
 
