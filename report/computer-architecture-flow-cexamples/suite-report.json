@@ -1,0 +1,956 @@
+{
+  "suiteName": "C Examples Architecture Flow Tests",
+  "suiteKey": "computer-architecture-flow-cexamples",
+  "generatedAt": "19 Mar 2026, 19:24:46",
+  "notes": [
+    "Generated during computerArchitectureFlow.cexamples.test.ts.",
+    "Exports one architecture flow snapshot for every bundled C example program.",
+    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+  ],
+  "consoleLines": [
+    "[artifact] hello-world: report/computer-architecture-flow-cexamples/hello-world.json | report/computer-architecture-flow-cexamples/hello-world.svg | report/computer-architecture-flow-cexamples/png/hello-world.png (12 nodes, 61 edges)",
+    "[artifact] compteur: report/computer-architecture-flow-cexamples/compteur.json | report/computer-architecture-flow-cexamples/compteur.svg | report/computer-architecture-flow-cexamples/png/compteur.png (12 nodes, 61 edges)",
+    "[artifact] fibonacci: report/computer-architecture-flow-cexamples/fibonacci.json | report/computer-architecture-flow-cexamples/fibonacci.svg | report/computer-architecture-flow-cexamples/png/fibonacci.png (12 nodes, 61 edges)",
+    "[artifact] factorielle: report/computer-architecture-flow-cexamples/factorielle.json | report/computer-architecture-flow-cexamples/factorielle.svg | report/computer-architecture-flow-cexamples/png/factorielle.png (12 nodes, 61 edges)",
+    "[artifact] calcul: report/computer-architecture-flow-cexamples/calcul.json | report/computer-architecture-flow-cexamples/calcul.svg | report/computer-architecture-flow-cexamples/png/calcul.png (12 nodes, 61 edges)",
+    "[artifact] plotter: report/computer-architecture-flow-cexamples/plotter.json | report/computer-architecture-flow-cexamples/plotter.svg | report/computer-architecture-flow-cexamples/png/plotter.png (12 nodes, 61 edges)",
+    "[artifact] courbe: report/computer-architecture-flow-cexamples/courbe.json | report/computer-architecture-flow-cexamples/courbe.svg | report/computer-architecture-flow-cexamples/png/courbe.png (12 nodes, 61 edges)",
+    "[artifact] echo-saisie: report/computer-architecture-flow-cexamples/echo-saisie.json | report/computer-architecture-flow-cexamples/echo-saisie.svg | report/computer-architecture-flow-cexamples/png/echo-saisie.png (12 nodes, 61 edges)",
+    "[artifact] compteur-de-lettres: report/computer-architecture-flow-cexamples/compteur-de-lettres.json | report/computer-architecture-flow-cexamples/compteur-de-lettres.svg | report/computer-architecture-flow-cexamples/png/compteur-de-lettres.png (12 nodes, 61 edges)",
+    "[artifact] calculatrice: report/computer-architecture-flow-cexamples/calculatrice.json | report/computer-architecture-flow-cexamples/calculatrice.svg | report/computer-architecture-flow-cexamples/png/calculatrice.png (12 nodes, 61 edges)",
+    "[artifact] traceur-de-droite: report/computer-architecture-flow-cexamples/traceur-de-droite.json | report/computer-architecture-flow-cexamples/traceur-de-droite.svg | report/computer-architecture-flow-cexamples/png/traceur-de-droite.png (12 nodes, 61 edges)",
+    "[artifact] cercle: report/computer-architecture-flow-cexamples/cercle.json | report/computer-architecture-flow-cexamples/cercle.svg | report/computer-architecture-flow-cexamples/png/cercle.png (12 nodes, 61 edges)",
+    "[artifact] clavier: report/computer-architecture-flow-cexamples/clavier.json | report/computer-architecture-flow-cexamples/clavier.svg | report/computer-architecture-flow-cexamples/png/clavier.png (12 nodes, 61 edges)",
+    "[artifact] horloge: report/computer-architecture-flow-cexamples/horloge.json | report/computer-architecture-flow-cexamples/horloge.svg | report/computer-architecture-flow-cexamples/png/horloge.png (12 nodes, 61 edges)",
+    "[artifact] spirale: report/computer-architecture-flow-cexamples/spirale.json | report/computer-architecture-flow-cexamples/spirale.svg | report/computer-architecture-flow-cexamples/png/spirale.png (12 nodes, 61 edges)",
+    "[artifact] tableau-de-nombres-premiers: report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.json | report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.svg | report/computer-architecture-flow-cexamples/png/tableau-de-nombres-premiers.png (12 nodes, 61 edges)",
+    "[artifact] etoiles: report/computer-architecture-flow-cexamples/etoiles.json | report/computer-architecture-flow-cexamples/etoiles.svg | report/computer-architecture-flow-cexamples/png/etoiles.png (12 nodes, 61 edges)",
+    "[artifact] test-memoire: report/computer-architecture-flow-cexamples/test-memoire.json | report/computer-architecture-flow-cexamples/test-memoire.svg | report/computer-architecture-flow-cexamples/png/test-memoire.png (12 nodes, 61 edges)",
+    "[artifact] tableau-fonction: report/computer-architecture-flow-cexamples/tableau-fonction.json | report/computer-architecture-flow-cexamples/tableau-fonction.svg | report/computer-architecture-flow-cexamples/png/tableau-fonction.png (12 nodes, 61 edges)",
+    "[artifact] tableau-tri: report/computer-architecture-flow-cexamples/tableau-tri.json | report/computer-architecture-flow-cexamples/tableau-tri.svg | report/computer-architecture-flow-cexamples/png/tableau-tri.png (12 nodes, 61 edges)",
+    "[artifact] pong: report/computer-architecture-flow-cexamples/pong.json | report/computer-architecture-flow-cexamples/pong.svg | report/computer-architecture-flow-cexamples/png/pong.png (12 nodes, 61 edges)",
+    "[artifact] demo-ultime: report/computer-architecture-flow-cexamples/demo-ultime.json | report/computer-architecture-flow-cexamples/demo-ultime.svg | report/computer-architecture-flow-cexamples/png/demo-ultime.png (12 nodes, 61 edges)",
+    "[artifact] calculatrice-graphique: report/computer-architecture-flow-cexamples/calculatrice-graphique.json | report/computer-architecture-flow-cexamples/calculatrice-graphique.svg | report/computer-architecture-flow-cexamples/png/calculatrice-graphique.png (12 nodes, 61 edges)",
+    "[artifact] mini-shell: report/computer-architecture-flow-cexamples/mini-shell.json | report/computer-architecture-flow-cexamples/mini-shell.svg | report/computer-architecture-flow-cexamples/png/mini-shell.png (12 nodes, 61 edges)",
+    "[artifact] writedigits: report/computer-architecture-flow-cexamples/writedigits.json | report/computer-architecture-flow-cexamples/writedigits.svg | report/computer-architecture-flow-cexamples/png/writedigits.png (12 nodes, 61 edges)",
+    "[artifact] writeletters: report/computer-architecture-flow-cexamples/writeletters.json | report/computer-architecture-flow-cexamples/writeletters.svg | report/computer-architecture-flow-cexamples/png/writeletters.png (12 nodes, 61 edges)",
+    "[artifact] fs-disque-externe: report/computer-architecture-flow-cexamples/fs-disque-externe.json | report/computer-architecture-flow-cexamples/fs-disque-externe.svg | report/computer-architecture-flow-cexamples/png/fs-disque-externe.png (12 nodes, 61 edges)",
+    "[artifact] editeur-texte-fs: report/computer-architecture-flow-cexamples/editeur-texte-fs.json | report/computer-architecture-flow-cexamples/editeur-texte-fs.svg | report/computer-architecture-flow-cexamples/png/editeur-texte-fs.png (12 nodes, 61 edges)",
+    "[artifact] editeur-multi-fichier-fs: report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.json | report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.svg | report/computer-architecture-flow-cexamples/png/editeur-multi-fichier-fs.png (12 nodes, 61 edges)",
+    "[artifact] systeme-solaire-255: report/computer-architecture-flow-cexamples/systeme-solaire-255.json | report/computer-architecture-flow-cexamples/systeme-solaire-255.svg | report/computer-architecture-flow-cexamples/png/systeme-solaire-255.png (12 nodes, 61 edges)",
+    "[artifact] paysage-rgb: report/computer-architecture-flow-cexamples/paysage-rgb.json | report/computer-architecture-flow-cexamples/paysage-rgb.svg | report/computer-architecture-flow-cexamples/png/paysage-rgb.png (12 nodes, 61 edges)",
+    "[artifact] http-jsonplaceholder: report/computer-architecture-flow-cexamples/http-jsonplaceholder.json | report/computer-architecture-flow-cexamples/http-jsonplaceholder.svg | report/computer-architecture-flow-cexamples/png/http-jsonplaceholder.png (12 nodes, 61 edges)",
+    "[artifact] meteo-ales: report/computer-architecture-flow-cexamples/meteo-ales.json | report/computer-architecture-flow-cexamples/meteo-ales.svg | report/computer-architecture-flow-cexamples/png/meteo-ales.png (12 nodes, 61 edges)",
+    "[artifact] boot-args-cat: report/computer-architecture-flow-cexamples/boot-args-cat.json | report/computer-architecture-flow-cexamples/boot-args-cat.svg | report/computer-architecture-flow-cexamples/png/boot-args-cat.png (12 nodes, 61 edges)",
+    "[artifact] tableau-nouvelles-fonctionnalites: report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.json | report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.svg | report/computer-architecture-flow-cexamples/png/tableau-nouvelles-fonctionnalites.png (12 nodes, 61 edges)",
+    "[artifact] const-et-string: report/computer-architecture-flow-cexamples/const-et-string.json | report/computer-architecture-flow-cexamples/const-et-string.svg | report/computer-architecture-flow-cexamples/png/const-et-string.png (12 nodes, 61 edges)"
+  ],
+  "tests": [
+    "hello-world",
+    "compteur",
+    "fibonacci",
+    "factorielle",
+    "calcul",
+    "plotter",
+    "courbe",
+    "echo-saisie",
+    "compteur-de-lettres",
+    "calculatrice",
+    "traceur-de-droite",
+    "cercle",
+    "clavier",
+    "horloge",
+    "spirale",
+    "tableau-de-nombres-premiers",
+    "etoiles",
+    "test-memoire",
+    "tableau-fonction",
+    "tableau-tri",
+    "pong",
+    "demo-ultime",
+    "calculatrice-graphique",
+    "mini-shell",
+    "writedigits",
+    "writeletters",
+    "fs-disque-externe",
+    "editeur-texte-fs",
+    "editeur-multi-fichier-fs",
+    "systeme-solaire-255",
+    "paysage-rgb",
+    "http-jsonplaceholder",
+    "meteo-ales",
+    "boot-args-cat",
+    "tableau-nouvelles-fonctionnalites",
+    "const-et-string"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "hello-world",
+      "output": "JSON: report/computer-architecture-flow-cexamples/hello-world.json\nSVG: report/computer-architecture-flow-cexamples/hello-world.svg\nPNG: report/computer-architecture-flow-cexamples/png/hello-world.png\nActive edges: 9"
+    },
+    {
+      "testName": "compteur",
+      "output": "JSON: report/computer-architecture-flow-cexamples/compteur.json\nSVG: report/computer-architecture-flow-cexamples/compteur.svg\nPNG: report/computer-architecture-flow-cexamples/png/compteur.png\nActive edges: 9"
+    },
+    {
+      "testName": "fibonacci",
+      "output": "JSON: report/computer-architecture-flow-cexamples/fibonacci.json\nSVG: report/computer-architecture-flow-cexamples/fibonacci.svg\nPNG: report/computer-architecture-flow-cexamples/png/fibonacci.png\nActive edges: 9"
+    },
+    {
+      "testName": "factorielle",
+      "output": "JSON: report/computer-architecture-flow-cexamples/factorielle.json\nSVG: report/computer-architecture-flow-cexamples/factorielle.svg\nPNG: report/computer-architecture-flow-cexamples/png/factorielle.png\nActive edges: 9"
+    },
+    {
+      "testName": "calcul",
+      "output": "JSON: report/computer-architecture-flow-cexamples/calcul.json\nSVG: report/computer-architecture-flow-cexamples/calcul.svg\nPNG: report/computer-architecture-flow-cexamples/png/calcul.png\nActive edges: 9"
+    },
+    {
+      "testName": "plotter",
+      "output": "JSON: report/computer-architecture-flow-cexamples/plotter.json\nSVG: report/computer-architecture-flow-cexamples/plotter.svg\nPNG: report/computer-architecture-flow-cexamples/png/plotter.png\nActive edges: 9"
+    },
+    {
+      "testName": "courbe",
+      "output": "JSON: report/computer-architecture-flow-cexamples/courbe.json\nSVG: report/computer-architecture-flow-cexamples/courbe.svg\nPNG: report/computer-architecture-flow-cexamples/png/courbe.png\nActive edges: 9"
+    },
+    {
+      "testName": "echo-saisie",
+      "output": "JSON: report/computer-architecture-flow-cexamples/echo-saisie.json\nSVG: report/computer-architecture-flow-cexamples/echo-saisie.svg\nPNG: report/computer-architecture-flow-cexamples/png/echo-saisie.png\nActive edges: 11"
+    },
+    {
+      "testName": "compteur-de-lettres",
+      "output": "JSON: report/computer-architecture-flow-cexamples/compteur-de-lettres.json\nSVG: report/computer-architecture-flow-cexamples/compteur-de-lettres.svg\nPNG: report/computer-architecture-flow-cexamples/png/compteur-de-lettres.png\nActive edges: 11"
+    },
+    {
+      "testName": "calculatrice",
+      "output": "JSON: report/computer-architecture-flow-cexamples/calculatrice.json\nSVG: report/computer-architecture-flow-cexamples/calculatrice.svg\nPNG: report/computer-architecture-flow-cexamples/png/calculatrice.png\nActive edges: 9"
+    },
+    {
+      "testName": "traceur-de-droite",
+      "output": "JSON: report/computer-architecture-flow-cexamples/traceur-de-droite.json\nSVG: report/computer-architecture-flow-cexamples/traceur-de-droite.svg\nPNG: report/computer-architecture-flow-cexamples/png/traceur-de-droite.png\nActive edges: 9"
+    },
+    {
+      "testName": "cercle",
+      "output": "JSON: report/computer-architecture-flow-cexamples/cercle.json\nSVG: report/computer-architecture-flow-cexamples/cercle.svg\nPNG: report/computer-architecture-flow-cexamples/png/cercle.png\nActive edges: 9"
+    },
+    {
+      "testName": "clavier",
+      "output": "JSON: report/computer-architecture-flow-cexamples/clavier.json\nSVG: report/computer-architecture-flow-cexamples/clavier.svg\nPNG: report/computer-architecture-flow-cexamples/png/clavier.png\nActive edges: 9"
+    },
+    {
+      "testName": "horloge",
+      "output": "JSON: report/computer-architecture-flow-cexamples/horloge.json\nSVG: report/computer-architecture-flow-cexamples/horloge.svg\nPNG: report/computer-architecture-flow-cexamples/png/horloge.png\nActive edges: 9"
+    },
+    {
+      "testName": "spirale",
+      "output": "JSON: report/computer-architecture-flow-cexamples/spirale.json\nSVG: report/computer-architecture-flow-cexamples/spirale.svg\nPNG: report/computer-architecture-flow-cexamples/png/spirale.png\nActive edges: 9"
+    },
+    {
+      "testName": "tableau-de-nombres-premiers",
+      "output": "JSON: report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.json\nSVG: report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.svg\nPNG: report/computer-architecture-flow-cexamples/png/tableau-de-nombres-premiers.png\nActive edges: 9"
+    },
+    {
+      "testName": "etoiles",
+      "output": "JSON: report/computer-architecture-flow-cexamples/etoiles.json\nSVG: report/computer-architecture-flow-cexamples/etoiles.svg\nPNG: report/computer-architecture-flow-cexamples/png/etoiles.png\nActive edges: 9"
+    },
+    {
+      "testName": "test-memoire",
+      "output": "JSON: report/computer-architecture-flow-cexamples/test-memoire.json\nSVG: report/computer-architecture-flow-cexamples/test-memoire.svg\nPNG: report/computer-architecture-flow-cexamples/png/test-memoire.png\nActive edges: 9"
+    },
+    {
+      "testName": "tableau-fonction",
+      "output": "JSON: report/computer-architecture-flow-cexamples/tableau-fonction.json\nSVG: report/computer-architecture-flow-cexamples/tableau-fonction.svg\nPNG: report/computer-architecture-flow-cexamples/png/tableau-fonction.png\nActive edges: 9"
+    },
+    {
+      "testName": "tableau-tri",
+      "output": "JSON: report/computer-architecture-flow-cexamples/tableau-tri.json\nSVG: report/computer-architecture-flow-cexamples/tableau-tri.svg\nPNG: report/computer-architecture-flow-cexamples/png/tableau-tri.png\nActive edges: 9"
+    },
+    {
+      "testName": "pong",
+      "output": "JSON: report/computer-architecture-flow-cexamples/pong.json\nSVG: report/computer-architecture-flow-cexamples/pong.svg\nPNG: report/computer-architecture-flow-cexamples/png/pong.png\nActive edges: 9"
+    },
+    {
+      "testName": "demo-ultime",
+      "output": "JSON: report/computer-architecture-flow-cexamples/demo-ultime.json\nSVG: report/computer-architecture-flow-cexamples/demo-ultime.svg\nPNG: report/computer-architecture-flow-cexamples/png/demo-ultime.png\nActive edges: 9"
+    },
+    {
+      "testName": "calculatrice-graphique",
+      "output": "JSON: report/computer-architecture-flow-cexamples/calculatrice-graphique.json\nSVG: report/computer-architecture-flow-cexamples/calculatrice-graphique.svg\nPNG: report/computer-architecture-flow-cexamples/png/calculatrice-graphique.png\nActive edges: 9"
+    },
+    {
+      "testName": "mini-shell",
+      "output": "JSON: report/computer-architecture-flow-cexamples/mini-shell.json\nSVG: report/computer-architecture-flow-cexamples/mini-shell.svg\nPNG: report/computer-architecture-flow-cexamples/png/mini-shell.png\nActive edges: 9"
+    },
+    {
+      "testName": "writedigits",
+      "output": "JSON: report/computer-architecture-flow-cexamples/writedigits.json\nSVG: report/computer-architecture-flow-cexamples/writedigits.svg\nPNG: report/computer-architecture-flow-cexamples/png/writedigits.png\nActive edges: 9"
+    },
+    {
+      "testName": "writeletters",
+      "output": "JSON: report/computer-architecture-flow-cexamples/writeletters.json\nSVG: report/computer-architecture-flow-cexamples/writeletters.svg\nPNG: report/computer-architecture-flow-cexamples/png/writeletters.png\nActive edges: 9"
+    },
+    {
+      "testName": "fs-disque-externe",
+      "output": "JSON: report/computer-architecture-flow-cexamples/fs-disque-externe.json\nSVG: report/computer-architecture-flow-cexamples/fs-disque-externe.svg\nPNG: report/computer-architecture-flow-cexamples/png/fs-disque-externe.png\nActive edges: 9"
+    },
+    {
+      "testName": "editeur-texte-fs",
+      "output": "JSON: report/computer-architecture-flow-cexamples/editeur-texte-fs.json\nSVG: report/computer-architecture-flow-cexamples/editeur-texte-fs.svg\nPNG: report/computer-architecture-flow-cexamples/png/editeur-texte-fs.png\nActive edges: 15"
+    },
+    {
+      "testName": "editeur-multi-fichier-fs",
+      "output": "JSON: report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.json\nSVG: report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.svg\nPNG: report/computer-architecture-flow-cexamples/png/editeur-multi-fichier-fs.png\nActive edges: 15"
+    },
+    {
+      "testName": "systeme-solaire-255",
+      "output": "JSON: report/computer-architecture-flow-cexamples/systeme-solaire-255.json\nSVG: report/computer-architecture-flow-cexamples/systeme-solaire-255.svg\nPNG: report/computer-architecture-flow-cexamples/png/systeme-solaire-255.png\nActive edges: 15"
+    },
+    {
+      "testName": "paysage-rgb",
+      "output": "JSON: report/computer-architecture-flow-cexamples/paysage-rgb.json\nSVG: report/computer-architecture-flow-cexamples/paysage-rgb.svg\nPNG: report/computer-architecture-flow-cexamples/png/paysage-rgb.png\nActive edges: 9"
+    },
+    {
+      "testName": "http-jsonplaceholder",
+      "output": "JSON: report/computer-architecture-flow-cexamples/http-jsonplaceholder.json\nSVG: report/computer-architecture-flow-cexamples/http-jsonplaceholder.svg\nPNG: report/computer-architecture-flow-cexamples/png/http-jsonplaceholder.png\nActive edges: 9"
+    },
+    {
+      "testName": "meteo-ales",
+      "output": "JSON: report/computer-architecture-flow-cexamples/meteo-ales.json\nSVG: report/computer-architecture-flow-cexamples/meteo-ales.svg\nPNG: report/computer-architecture-flow-cexamples/png/meteo-ales.png\nActive edges: 9"
+    },
+    {
+      "testName": "boot-args-cat",
+      "output": "JSON: report/computer-architecture-flow-cexamples/boot-args-cat.json\nSVG: report/computer-architecture-flow-cexamples/boot-args-cat.svg\nPNG: report/computer-architecture-flow-cexamples/png/boot-args-cat.png\nActive edges: 9"
+    },
+    {
+      "testName": "tableau-nouvelles-fonctionnalites",
+      "output": "JSON: report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.json\nSVG: report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.svg\nPNG: report/computer-architecture-flow-cexamples/png/tableau-nouvelles-fonctionnalites.png\nActive edges: 9"
+    },
+    {
+      "testName": "const-et-string",
+      "output": "JSON: report/computer-architecture-flow-cexamples/const-et-string.json\nSVG: report/computer-architecture-flow-cexamples/const-et-string.svg\nPNG: report/computer-architecture-flow-cexamples/png/const-et-string.png\nActive edges: 9"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "hello-world",
+      "outputPath": "report/computer-architecture-flow-cexamples/hello-world.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/hello-world.svg"
+    },
+    {
+      "name": "compteur",
+      "outputPath": "report/computer-architecture-flow-cexamples/compteur.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/compteur.svg"
+    },
+    {
+      "name": "fibonacci",
+      "outputPath": "report/computer-architecture-flow-cexamples/fibonacci.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/fibonacci.svg"
+    },
+    {
+      "name": "factorielle",
+      "outputPath": "report/computer-architecture-flow-cexamples/factorielle.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/factorielle.svg"
+    },
+    {
+      "name": "calcul",
+      "outputPath": "report/computer-architecture-flow-cexamples/calcul.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/calcul.svg"
+    },
+    {
+      "name": "plotter",
+      "outputPath": "report/computer-architecture-flow-cexamples/plotter.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/plotter.svg"
+    },
+    {
+      "name": "courbe",
+      "outputPath": "report/computer-architecture-flow-cexamples/courbe.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/courbe.svg"
+    },
+    {
+      "name": "echo-saisie",
+      "outputPath": "report/computer-architecture-flow-cexamples/echo-saisie.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 11,
+      "href": "computer-architecture-flow-cexamples/echo-saisie.svg"
+    },
+    {
+      "name": "compteur-de-lettres",
+      "outputPath": "report/computer-architecture-flow-cexamples/compteur-de-lettres.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 11,
+      "href": "computer-architecture-flow-cexamples/compteur-de-lettres.svg"
+    },
+    {
+      "name": "calculatrice",
+      "outputPath": "report/computer-architecture-flow-cexamples/calculatrice.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/calculatrice.svg"
+    },
+    {
+      "name": "traceur-de-droite",
+      "outputPath": "report/computer-architecture-flow-cexamples/traceur-de-droite.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/traceur-de-droite.svg"
+    },
+    {
+      "name": "cercle",
+      "outputPath": "report/computer-architecture-flow-cexamples/cercle.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/cercle.svg"
+    },
+    {
+      "name": "clavier",
+      "outputPath": "report/computer-architecture-flow-cexamples/clavier.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/clavier.svg"
+    },
+    {
+      "name": "horloge",
+      "outputPath": "report/computer-architecture-flow-cexamples/horloge.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/horloge.svg"
+    },
+    {
+      "name": "spirale",
+      "outputPath": "report/computer-architecture-flow-cexamples/spirale.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/spirale.svg"
+    },
+    {
+      "name": "tableau-de-nombres-premiers",
+      "outputPath": "report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/tableau-de-nombres-premiers.svg"
+    },
+    {
+      "name": "etoiles",
+      "outputPath": "report/computer-architecture-flow-cexamples/etoiles.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/etoiles.svg"
+    },
+    {
+      "name": "test-memoire",
+      "outputPath": "report/computer-architecture-flow-cexamples/test-memoire.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/test-memoire.svg"
+    },
+    {
+      "name": "tableau-fonction",
+      "outputPath": "report/computer-architecture-flow-cexamples/tableau-fonction.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/tableau-fonction.svg"
+    },
+    {
+      "name": "tableau-tri",
+      "outputPath": "report/computer-architecture-flow-cexamples/tableau-tri.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/tableau-tri.svg"
+    },
+    {
+      "name": "pong",
+      "outputPath": "report/computer-architecture-flow-cexamples/pong.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/pong.svg"
+    },
+    {
+      "name": "demo-ultime",
+      "outputPath": "report/computer-architecture-flow-cexamples/demo-ultime.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/demo-ultime.svg"
+    },
+    {
+      "name": "calculatrice-graphique",
+      "outputPath": "report/computer-architecture-flow-cexamples/calculatrice-graphique.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/calculatrice-graphique.svg"
+    },
+    {
+      "name": "mini-shell",
+      "outputPath": "report/computer-architecture-flow-cexamples/mini-shell.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/mini-shell.svg"
+    },
+    {
+      "name": "writedigits",
+      "outputPath": "report/computer-architecture-flow-cexamples/writedigits.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/writedigits.svg"
+    },
+    {
+      "name": "writeletters",
+      "outputPath": "report/computer-architecture-flow-cexamples/writeletters.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/writeletters.svg"
+    },
+    {
+      "name": "fs-disque-externe",
+      "outputPath": "report/computer-architecture-flow-cexamples/fs-disque-externe.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/fs-disque-externe.svg"
+    },
+    {
+      "name": "editeur-texte-fs",
+      "outputPath": "report/computer-architecture-flow-cexamples/editeur-texte-fs.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-cexamples/editeur-texte-fs.svg"
+    },
+    {
+      "name": "editeur-multi-fichier-fs",
+      "outputPath": "report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-cexamples/editeur-multi-fichier-fs.svg"
+    },
+    {
+      "name": "systeme-solaire-255",
+      "outputPath": "report/computer-architecture-flow-cexamples/systeme-solaire-255.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow-cexamples/systeme-solaire-255.svg"
+    },
+    {
+      "name": "paysage-rgb",
+      "outputPath": "report/computer-architecture-flow-cexamples/paysage-rgb.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/paysage-rgb.svg"
+    },
+    {
+      "name": "http-jsonplaceholder",
+      "outputPath": "report/computer-architecture-flow-cexamples/http-jsonplaceholder.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/http-jsonplaceholder.svg"
+    },
+    {
+      "name": "meteo-ales",
+      "outputPath": "report/computer-architecture-flow-cexamples/meteo-ales.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/meteo-ales.svg"
+    },
+    {
+      "name": "boot-args-cat",
+      "outputPath": "report/computer-architecture-flow-cexamples/boot-args-cat.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/boot-args-cat.svg"
+    },
+    {
+      "name": "tableau-nouvelles-fonctionnalites",
+      "outputPath": "report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.svg"
+    },
+    {
+      "name": "const-et-string",
+      "outputPath": "report/computer-architecture-flow-cexamples/const-et-string.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 9,
+      "href": "computer-architecture-flow-cexamples/const-et-string.svg"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "hello-world",
+      "jsonPath": "report/computer-architecture-flow-cexamples/hello-world.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/hello-world.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/hello-world.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "compteur",
+      "jsonPath": "report/computer-architecture-flow-cexamples/compteur.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/compteur.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/compteur.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "fibonacci",
+      "jsonPath": "report/computer-architecture-flow-cexamples/fibonacci.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/fibonacci.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/fibonacci.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "factorielle",
+      "jsonPath": "report/computer-architecture-flow-cexamples/factorielle.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/factorielle.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/factorielle.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "calcul",
+      "jsonPath": "report/computer-architecture-flow-cexamples/calcul.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/calcul.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/calcul.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "plotter",
+      "jsonPath": "report/computer-architecture-flow-cexamples/plotter.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/plotter.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/plotter.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "courbe",
+      "jsonPath": "report/computer-architecture-flow-cexamples/courbe.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/courbe.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/courbe.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "echo-saisie",
+      "jsonPath": "report/computer-architecture-flow-cexamples/echo-saisie.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/echo-saisie.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/echo-saisie.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 11
+    },
+    {
+      "name": "compteur-de-lettres",
+      "jsonPath": "report/computer-architecture-flow-cexamples/compteur-de-lettres.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/compteur-de-lettres.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/compteur-de-lettres.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 11
+    },
+    {
+      "name": "calculatrice",
+      "jsonPath": "report/computer-architecture-flow-cexamples/calculatrice.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/calculatrice.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/calculatrice.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "traceur-de-droite",
+      "jsonPath": "report/computer-architecture-flow-cexamples/traceur-de-droite.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/traceur-de-droite.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/traceur-de-droite.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "cercle",
+      "jsonPath": "report/computer-architecture-flow-cexamples/cercle.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/cercle.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/cercle.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "clavier",
+      "jsonPath": "report/computer-architecture-flow-cexamples/clavier.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/clavier.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/clavier.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "horloge",
+      "jsonPath": "report/computer-architecture-flow-cexamples/horloge.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/horloge.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/horloge.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "spirale",
+      "jsonPath": "report/computer-architecture-flow-cexamples/spirale.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/spirale.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/spirale.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "tableau-de-nombres-premiers",
+      "jsonPath": "report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/tableau-de-nombres-premiers.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/tableau-de-nombres-premiers.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "etoiles",
+      "jsonPath": "report/computer-architecture-flow-cexamples/etoiles.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/etoiles.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/etoiles.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "test-memoire",
+      "jsonPath": "report/computer-architecture-flow-cexamples/test-memoire.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/test-memoire.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/test-memoire.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "tableau-fonction",
+      "jsonPath": "report/computer-architecture-flow-cexamples/tableau-fonction.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/tableau-fonction.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/tableau-fonction.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "tableau-tri",
+      "jsonPath": "report/computer-architecture-flow-cexamples/tableau-tri.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/tableau-tri.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/tableau-tri.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "pong",
+      "jsonPath": "report/computer-architecture-flow-cexamples/pong.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/pong.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/pong.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "demo-ultime",
+      "jsonPath": "report/computer-architecture-flow-cexamples/demo-ultime.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/demo-ultime.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/demo-ultime.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "calculatrice-graphique",
+      "jsonPath": "report/computer-architecture-flow-cexamples/calculatrice-graphique.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/calculatrice-graphique.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/calculatrice-graphique.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "mini-shell",
+      "jsonPath": "report/computer-architecture-flow-cexamples/mini-shell.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/mini-shell.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/mini-shell.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "writedigits",
+      "jsonPath": "report/computer-architecture-flow-cexamples/writedigits.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/writedigits.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/writedigits.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "writeletters",
+      "jsonPath": "report/computer-architecture-flow-cexamples/writeletters.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/writeletters.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/writeletters.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "fs-disque-externe",
+      "jsonPath": "report/computer-architecture-flow-cexamples/fs-disque-externe.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/fs-disque-externe.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/fs-disque-externe.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "editeur-texte-fs",
+      "jsonPath": "report/computer-architecture-flow-cexamples/editeur-texte-fs.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/editeur-texte-fs.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/editeur-texte-fs.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "editeur-multi-fichier-fs",
+      "jsonPath": "report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/editeur-multi-fichier-fs.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/editeur-multi-fichier-fs.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "systeme-solaire-255",
+      "jsonPath": "report/computer-architecture-flow-cexamples/systeme-solaire-255.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/systeme-solaire-255.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/systeme-solaire-255.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "paysage-rgb",
+      "jsonPath": "report/computer-architecture-flow-cexamples/paysage-rgb.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/paysage-rgb.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/paysage-rgb.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "http-jsonplaceholder",
+      "jsonPath": "report/computer-architecture-flow-cexamples/http-jsonplaceholder.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/http-jsonplaceholder.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/http-jsonplaceholder.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "meteo-ales",
+      "jsonPath": "report/computer-architecture-flow-cexamples/meteo-ales.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/meteo-ales.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/meteo-ales.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "boot-args-cat",
+      "jsonPath": "report/computer-architecture-flow-cexamples/boot-args-cat.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/boot-args-cat.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/boot-args-cat.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "tableau-nouvelles-fonctionnalites",
+      "jsonPath": "report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/tableau-nouvelles-fonctionnalites.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/tableau-nouvelles-fonctionnalites.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    },
+    {
+      "name": "const-et-string",
+      "jsonPath": "report/computer-architecture-flow-cexamples/const-et-string.json",
+      "imagePath": "report/computer-architecture-flow-cexamples/const-et-string.svg",
+      "pngPath": "report/computer-architecture-flow-cexamples/png/const-et-string.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 9
+    }
+  ]
+}

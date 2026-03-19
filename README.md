@@ -82,6 +82,9 @@ You get one test dashboard with:
 - all suites
 - console output
 - plotter snapshots
+- computer architecture snapshots as SVG + PNG
+- full-computer snapshots for bootloader/Linux runs
+- one architecture snapshot for every bundled C example
 - animated previews for multi-frame programs
 
 ## Docs
@@ -190,6 +193,9 @@ Vous obtenez un tableau de bord de test avec :
 - toutes les suites
 - la sortie console
 - les captures du plotter
+- des captures d'architecture machine en SVG + PNG
+- des captures "ordinateur complet" pour les runs bootloader/Linux
+- une capture d'architecture pour chaque exemple C embarqué
 - des aperçus animés pour les programmes à plusieurs images
 
 ## Documentation

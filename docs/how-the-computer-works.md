@@ -944,6 +944,8 @@ src/components/software/
                      Also includes disk import/export, bootloader toggle,
                      and "Compile to Disk"
   ComputerPanel.tsx   Full live computer dashboard for the software CPU
+  ComputerArchitectureFlow.tsx
+                     Live whole-machine SVG architecture view embedded in the Computer panel
   ComputerStatusCard.tsx
                      CPU/IO/register/state summary card for the dashboard
   ComputerMemoryCard.tsx
@@ -958,6 +960,14 @@ src/components/software/
                      Shared data model for the software computer panel
   computerPanelUtils.ts
                      Formatting helpers used by the panel cards
+  computerArchitectureFlowGraph.ts
+                     Builds the architecture graph nodes/edges from live CPU state
+  computerArchitectureFlowSvg.ts
+                     Shared SVG renderer used by the UI and test snapshots
+  computerArchitectureFlowRuntime.ts
+                     CPU -> Computer panel adapter reused by architecture suites
+  computerArchitectureFlowSnapshot.ts
+                     Writes architecture JSON + SVG + PNG artifacts for the report
 
 src/components/nodes/
   DriveNode.tsx       External 8 KB drive with read/write/clear controls
@@ -979,10 +989,12 @@ src/components/nodes/
      or "Run" to execute continuously
   11. CPU state (registers, memory, flags) updates in real time
   12. The runtime area can stay in `Classic` mode or switch to the fullscreenable `Computer` panel, which shows the same live CPU through a non-editable whole-machine dashboard
-  13. Output appears in the console panel, and the `Computer` panel also mirrors console, plotter, disk, keyboard, memory, and network state together
-  14. Console programs can read text from the console input field, and running programs can also receive immediate live keys (letters, arrows, Enter, Backspace, Tab, Escape, Delete, etc.) from the main software view keyboard handler
-  15. Network activity is inspectable both while pending and after completion, including preserved recent history for bootloader-launched tools that return quickly to the shell
-  16. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
+  13. That `Computer` panel also renders a live `Computer Architecture Flow` SVG with CPU/ALU/memory/console/keyboard/drive/network/plotter wiring and embedded console/plotter previews
+  14. Output appears in the console panel, and the `Computer` panel also mirrors console, plotter, disk, keyboard, memory, and network state together
+  15. The architecture SVG in the UI is intentionally rendered by the same shared generator as the snapshot tests, so what you see live matches the report artifacts
+  16. Console programs can read text from the console input field, and running programs can also receive immediate live keys (letters, arrows, Enter, Backspace, Tab, Escape, Delete, etc.) from the main software view keyboard handler
+  17. Network activity is inspectable both while pending and after completion, including preserved recent history for bootloader-launched tools that return quickly to the shell
+  18. In direct mode, CPU halts when it executes HLT; in bootloader mode, halted disk programs return to the shell
 ```
 
 ---
@@ -1180,9 +1192,9 @@ The LDAI/STAI opcodes make array access efficient — each read or write is a si
 
 ## 9. Testing
 
-The compiler, bootloader, examples, and runtime input paths are covered by a shared **Vitest** suite. The tests exercise the real pipeline: source code → compile/assemble → CPU execution → console output, drive state, and plotter verification.
+The compiler, bootloader, examples, runtime input paths, and computer architecture visualizations are covered by a shared **Vitest** suite. The tests exercise the real pipeline: source code → compile/assemble → CPU execution → console output, drive state, plotter verification, and architecture snapshot export.
 
-As of **March 18, 2026**, `npm test` runs **314 tests across 4 test files**.
+As of **March 19, 2026**, `npm test` runs **357 tests across 7 test files**.
 
 ### Main Test Files
 
@@ -1194,6 +1206,12 @@ As of **March 18, 2026**, `npm test` runs **314 tests across 4 test files**.
   Bundled ASM examples, bootable plotter shell examples, and filesystem-oriented ASM samples.
 - `src/components/software/runningKeyboard.test.ts`
   Immediate live-key routing for arrows, Enter, printable keys, Backspace, and the in-run keyboard path used by interactive software.
+- `src/components/software/computerArchitectureFlow.test.ts`
+  Structural architecture snapshots for representative CPU/memory/plotter/network states.
+- `src/components/software/computerArchitectureFlow.integration.test.ts`
+  Full-computer architecture snapshots captured from bootloader + Linux-like disk scenarios.
+- `src/components/software/computerArchitectureFlow.cexamples.test.ts`
+  One architecture snapshot for every bundled C example, including disk, HTTP, bootloader-arg, and graphical programs.
 
 ### What The Suites Check
 
@@ -1226,6 +1244,24 @@ As of **March 18, 2026**, `npm test` runs **314 tests across 4 test files**.
 - Enter is queued immediately
 - printable keys, Backspace, and Tab are routed immediately while programs are running
 
+#### `computerArchitectureFlow.test.ts`
+
+- checks representative architecture graph states for memory, plotter, and network activity
+- verifies node/edge connectivity and exported artifact counts
+- exports JSON, SVG, and PNG architecture snapshots
+
+#### `computerArchitectureFlow.integration.test.ts`
+
+- boots the real bootloader with the Linux-like disk
+- captures architecture snapshots for prompt, `grep`, `wget`, and running graphical examples
+- keeps the report synchronized with the same SVG renderer used in the UI
+
+#### `computerArchitectureFlow.cexamples.test.ts`
+
+- exports one architecture snapshot for every bundled entry in `src/cpu/cexamples.ts`
+- covers plain console examples, plotter examples, keyboard loops, drive/filesystem tools, network tools, and bootloader-arg programs
+- generates matching JSON, SVG, and PNG artifacts for each C example
+
 ### Generated Report
 
 `src/cpu/__tests__/plotterImage.ts` is the shared report helper used by the plotter-oriented suites. It now:
@@ -1236,6 +1272,7 @@ As of **March 18, 2026**, `npm test` runs **314 tests across 4 test files**.
 - groups results by program
 - shows console output captured per test
 - shows animated viewers when a program has multiple frames
+- includes computer-architecture suites that embed SVG whole-machine snapshots and PNG copies
 
 ### Running Tests
 
@@ -1262,6 +1299,10 @@ That report includes:
 - grouped program cards
 - console output for tests that print to the console
 - embedded PNG snapshots for plotter programs
+- embedded SVG computer-architecture snapshots
+- PNG copies of architecture snapshots stored alongside the SVG artifacts
+- full-computer architecture runs from bootloader/Linux scenarios
+- one architecture snapshot per bundled C example
 - animated viewers for multi-frame programs such as `glxnano`, `Pong`, and `Système Solaire 255`
 
 ### What Is Tested

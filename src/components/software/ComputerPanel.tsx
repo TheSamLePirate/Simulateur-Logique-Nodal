@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { ConsolePanel } from "./ConsolePanel";
 import { PlotterPanel } from "./PlotterPanel";
+import { ComputerArchitectureFlow } from "./ComputerArchitectureFlow";
 import { ComputerFilesystemCard } from "./ComputerFilesystemCard";
 import { ComputerKeyboardCard } from "./ComputerKeyboardCard";
 import { ComputerMemoryCard } from "./ComputerMemoryCard";
@@ -80,36 +81,40 @@ function ComputerPanelInner({
   }, [fullscreen]);
 
   const content = (
-    <div className="grid gap-4 2xl:grid-cols-[1.08fr_0.92fr]">
-      <div className="grid gap-4">
-        <ComputerStatusCard data={data} />
-        <ComputerMemoryCard data={data} />
-        <ComputerFilesystemCard data={data} />
-        <ComputerNetworkCard data={data} />
-      </div>
+    <div className="grid gap-4">
+      <ComputerArchitectureFlow data={data} />
 
-      <div className="grid gap-4">
-        <div className="aspect-square w-full overflow-hidden">
-          <MemoPlotterPanel
-            pixels={data.plotterPixels}
-            currentColor={data.plotterColor}
-            onClear={onClearPlotter}
+      <div className="grid gap-4 2xl:grid-cols-[1.08fr_0.92fr]">
+        <div className="grid gap-4">
+          <ComputerStatusCard data={data} />
+          <ComputerMemoryCard data={data} />
+          <ComputerFilesystemCard data={data} />
+          <ComputerNetworkCard data={data} />
+        </div>
+
+        <div className="grid gap-4">
+          <div className="aspect-square w-full overflow-hidden">
+            <MemoPlotterPanel
+              pixels={data.plotterPixels}
+              currentColor={data.plotterColor}
+              onClear={onClearPlotter}
+            />
+          </div>
+          <div className="overflow-hidden">
+            <MemoConsolePanel
+              output={data.consoleOutput}
+              onClear={onClearConsole}
+              onInput={onConsoleInput}
+            />
+          </div>
+          <ComputerKeyboardCard
+            keyState={data.keyState}
+            inputBuffer={data.consoleInputBuffer}
+            isRunning={data.isRunning}
+            onKeyDown={onKeyDown}
+            onKeyUp={onKeyUp}
           />
         </div>
-        <div className="overflow-hidden">
-          <MemoConsolePanel
-            output={data.consoleOutput}
-            onClear={onClearConsole}
-            onInput={onConsoleInput}
-          />
-        </div>
-        <ComputerKeyboardCard
-          keyState={data.keyState}
-          inputBuffer={data.consoleInputBuffer}
-          isRunning={data.isRunning}
-          onKeyDown={onKeyDown}
-          onKeyUp={onKeyUp}
-        />
       </div>
     </div>
   );

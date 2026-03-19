@@ -1,0 +1,98 @@
+{
+  "suiteName": "Computer Architecture Flow Tests",
+  "suiteKey": "computer-architecture-flow",
+  "generatedAt": "19 Mar 2026, 19:24:18",
+  "notes": [
+    "Generated during computerArchitectureFlow.test.ts.",
+    "This suite exports JSON and SVG architecture snapshots for structural verification.",
+    "Snapshot counts indicate active edges, not lit plotter pixels."
+  ],
+  "consoleLines": [
+    "[artifact] memory-read: report/computer-architecture-flow/memory-read.json | report/computer-architecture-flow/memory-read.svg | report/computer-architecture-flow/png/memory-read.png (12 nodes, 61 edges)",
+    "[artifact] plotter-draw: report/computer-architecture-flow/plotter-draw.json | report/computer-architecture-flow/plotter-draw.svg | report/computer-architecture-flow/png/plotter-draw.png (12 nodes, 61 edges)",
+    "[artifact] network-get: report/computer-architecture-flow/network-get.json | report/computer-architecture-flow/network-get.svg | report/computer-architecture-flow/png/network-get.png (12 nodes, 61 edges)"
+  ],
+  "tests": [
+    "memory-read",
+    "plotter-draw",
+    "network-get"
+  ],
+  "testConsoleOutputs": [
+    {
+      "testName": "memory-read",
+      "output": "JSON: report/computer-architecture-flow/memory-read.json\nSVG: report/computer-architecture-flow/memory-read.svg\nPNG: report/computer-architecture-flow/png/memory-read.png\nActive edges: 15"
+    },
+    {
+      "testName": "plotter-draw",
+      "output": "JSON: report/computer-architecture-flow/plotter-draw.json\nSVG: report/computer-architecture-flow/plotter-draw.svg\nPNG: report/computer-architecture-flow/png/plotter-draw.png\nActive edges: 17"
+    },
+    {
+      "testName": "network-get",
+      "output": "JSON: report/computer-architecture-flow/network-get.json\nSVG: report/computer-architecture-flow/network-get.svg\nPNG: report/computer-architecture-flow/png/network-get.png\nActive edges: 19"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "memory-read",
+      "outputPath": "report/computer-architecture-flow/memory-read.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 15,
+      "href": "computer-architecture-flow/memory-read.svg"
+    },
+    {
+      "name": "plotter-draw",
+      "outputPath": "report/computer-architecture-flow/plotter-draw.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 17,
+      "href": "computer-architecture-flow/plotter-draw.svg"
+    },
+    {
+      "name": "network-get",
+      "outputPath": "report/computer-architecture-flow/network-get.svg",
+      "width": 1720,
+      "height": 1776,
+      "scale": 1,
+      "pixelCount": 19,
+      "href": "computer-architecture-flow/network-get.svg"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "memory-read",
+      "jsonPath": "report/computer-architecture-flow/memory-read.json",
+      "imagePath": "report/computer-architecture-flow/memory-read.svg",
+      "pngPath": "report/computer-architecture-flow/png/memory-read.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 15
+    },
+    {
+      "name": "plotter-draw",
+      "jsonPath": "report/computer-architecture-flow/plotter-draw.json",
+      "imagePath": "report/computer-architecture-flow/plotter-draw.svg",
+      "pngPath": "report/computer-architecture-flow/png/plotter-draw.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 17
+    },
+    {
+      "name": "network-get",
+      "jsonPath": "report/computer-architecture-flow/network-get.json",
+      "imagePath": "report/computer-architecture-flow/network-get.svg",
+      "pngPath": "report/computer-architecture-flow/png/network-get.png",
+      "width": 1720,
+      "height": 1776,
+      "nodeCount": 12,
+      "edgeCount": 61,
+      "activeEdgeCount": 19
+    }
+  ]
+}

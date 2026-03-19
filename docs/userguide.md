@@ -193,6 +193,7 @@ If something goes wrong, use:
 - the generated test report in `report/index.html`
 
 If you want the broadest live view of the running program, switch the runtime area to `Computer`. It is especially useful in bootloader mode because the disk, keyboard, console, plotter, and network state are visible together in one place.
+That `Computer` view also includes the live `Computer Architecture Flow`: a whole-machine SVG showing the CPU, ALU, memory bus, console, keyboard, drive, network, and plotter paths with the same renderer used by the automated test snapshots.
 
 ---
 
@@ -396,6 +397,14 @@ After this user guide, the deeper docs are:
 If you want the quick visual result of the automated tests, open:
 
 - `report/index.html`
+
+That report now includes:
+
+- plotter image suites
+- computer architecture SVG snapshots
+- PNG copies of those architecture snapshots
+- full-computer bootloader/Linux architecture runs
+- one architecture snapshot for every bundled C example
 
 ---
 

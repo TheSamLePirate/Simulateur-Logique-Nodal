@@ -17,31 +17,7 @@ export function PlotterPanel({
   onClear,
 }: PlotterPanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  const [viewportSize, setViewportSize] = useState(CANVAS_SIZE);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const updateViewportSize = () => {
-      const nextSize = Math.max(
-        1,
-        Math.floor(Math.min(container.clientWidth, container.clientHeight)),
-      );
-      setViewportSize(nextSize);
-    };
-
-    updateViewportSize();
-
-    const observer = new ResizeObserver(() => {
-      updateViewportSize();
-    });
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, [fullscreen]);
 
   // Redraw canvas whenever pixels change
   useEffect(() => {
@@ -123,11 +99,9 @@ export function PlotterPanel({
       ref={canvasRef}
       width={CANVAS_SIZE}
       height={CANVAS_SIZE}
-      className="block"
+      className="block h-full w-full"
       style={{
         imageRendering: "pixelated",
-        width: `${viewportSize}px`,
-        height: `${viewportSize}px`,
       }}
     />
   );
@@ -148,11 +122,10 @@ export function PlotterPanel({
         {/* Fullscreen overlay */}
         <div className="fixed inset-0 z-50 bg-slate-700 flex flex-col">
           {header}
-          <div
-            ref={containerRef}
-            className="flex-1 flex items-center justify-center p-2 min-h-0"
-          >
-            {canvas}
+          <div className="flex flex-1 min-h-0 items-center justify-center bg-slate-950 p-3">
+            <div className="aspect-square h-full max-w-full">
+              {canvas}
+            </div>
           </div>
           <div className="shrink-0 text-center pb-1">
             <span className="text-[10px] text-slate-500 font-mono">
@@ -168,11 +141,10 @@ export function PlotterPanel({
   return (
     <div className="flex flex-col h-full bg-slate-900 border border-slate-700 rounded-md overflow-hidden">
       {header}
-      <div
-        ref={containerRef}
-        className="flex-1 flex items-center justify-center bg-black p-1 min-h-[80px]"
-      >
-        {canvas}
+      <div className="flex flex-1 min-h-[80px] min-h-0 items-center justify-center bg-black p-1">
+        <div className="aspect-square h-full max-w-full">
+          {canvas}
+        </div>
       </div>
     </div>
   );
