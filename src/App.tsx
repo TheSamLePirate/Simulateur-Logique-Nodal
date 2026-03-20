@@ -62,6 +62,11 @@ import {
   DEFAULT_PLOTTER_COLOR,
   serializePlotterPixels,
 } from "./plotter";
+import { EmbeddedMarkdownDocument } from "./components/app/EmbeddedMarkdownDocument";
+import {
+  USER_GUIDE_EN_MARKDOWN,
+  USER_GUIDE_FR_MARKDOWN,
+} from "./content/generatedUserGuides";
 
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -1941,6 +1946,26 @@ export default function App() {
         >
           Logiciel
         </button>
+        <button
+          onClick={() => setActiveTab("userguide-en")}
+          className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "userguide-en"
+              ? "border-blue-500 text-white"
+              : "border-transparent text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          Guide EN
+        </button>
+        <button
+          onClick={() => setActiveTab("userguide-fr")}
+          className={`px-4 py-2 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "userguide-fr"
+              ? "border-blue-500 text-white"
+              : "border-transparent text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          Guide FR
+        </button>
       </div>
 
       {/* Main Workspace */}
@@ -1948,6 +1973,18 @@ export default function App() {
         <SoftwareView
           onHardwareSync={handleHardwareSync}
           onProgramLoaded={handleProgramLoaded}
+        />
+      ) : activeTab === "userguide-en" ? (
+        <EmbeddedMarkdownDocument
+          markdown={USER_GUIDE_EN_MARKDOWN}
+          title="User Guide (English)"
+          subtitle="Bundled directly into the application so the guide ships inside the same build as the simulator."
+        />
+      ) : activeTab === "userguide-fr" ? (
+        <EmbeddedMarkdownDocument
+          markdown={USER_GUIDE_FR_MARKDOWN}
+          title="Guide Utilisateur (Français)"
+          subtitle="Inclus directement dans l’application pour que la documentation fasse partie du build, au même titre que le simulateur."
         />
       ) : (
         <div className="flex-1 flex relative">

@@ -1,5 +1,7 @@
 # Easy User Guide
 
+French copy: `docs/userguide.fr.md`
+
 This app is a complete, understandable computer playground.
 
 It lets you explore computing from the bottom to the top:
@@ -12,6 +14,39 @@ It lets you explore computing from the bottom to the top:
 - to a bootloader and a tiny **Linux-like userland**
 
 The whole virtual machine is written in **TypeScript**, so you can understand every layer. It behaves like a small 1983-style computer, but with a few modern extras such as an HTTP bridge, a very fast simulator, and built-in visual tools.
+
+---
+
+## Quickstart
+
+The fastest way to understand the app is this:
+
+1. Open the `Matériel` tab
+2. Press the `Scènes` button
+3. Select `1. Va-et-vient`
+4. Follow the tutorial step by step
+5. Then go to the CPU/hardware side
+6. Then come back to `Logiciel`
+
+### Why this quickstart works well
+
+`1. Va-et-vient` is a very small and friendly first scene.
+
+It helps you understand the app in the right order:
+
+- first, how a simple circuit reacts
+- then, how signals move through the machine
+- then, what bigger hardware blocks are made of
+- then, how the software side sits on top of that hardware
+
+So the recommended path is:
+
+1. start with `Matériel -> Scènes -> 1. Va-et-vient`
+2. follow the tutorial until the behavior feels obvious
+3. switch to `Matériel` and inspect the CPU-oriented parts
+4. return to `Logiciel` and run real programs
+
+This gives a much better first experience than jumping directly into the full computer, because you first build intuition on a tiny example, then move up to the CPU, then to programming.
 
 ---
 

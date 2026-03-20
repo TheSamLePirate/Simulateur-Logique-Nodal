@@ -4,13 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "sync:userguides": "node scripts/sync-userguides.mjs",
+    "predev": "npm run sync:userguides",
+    "prebuild": "npm run sync:userguides",
+    "prelint": "npm run sync:userguides",
+    "pretest": "npm run sync:userguides",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "eslint . && tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "compare:c-sizes": "tsx scripts/compare-c-program-sizes.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

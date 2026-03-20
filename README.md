@@ -54,6 +54,8 @@ This is basically a 1983 computer that drank too much coffee and learned TypeScr
 
 [puter.com/app/1983-computer](https://puter.com/app/1983-computer)
 
+[1983-computer.puter.site](https://1983-computer.puter.site/)
+
 ## A few generated examples
 
 `glxnano` running from the bootloader disk:

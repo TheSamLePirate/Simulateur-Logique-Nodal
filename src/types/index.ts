@@ -72,4 +72,8 @@ export interface ScenePreset {
 }
 
 /** Active tab in the main UI */
-export type ActiveTab = "hardware" | "software";
+export type ActiveTab =
+  | "hardware"
+  | "software"
+  | "userguide-en"
+  | "userguide-fr";

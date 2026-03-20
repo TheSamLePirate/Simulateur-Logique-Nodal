@@ -416,6 +416,8 @@ The C suite is still the largest compiler-focused suite, but the total `npm test
 
 At the moment the full test run covers `11` test files and `513` passing checks.
 
+The recent compiler size work also has a dedicated historical comparison against commit `56f938c0df8094c15b2e4046e0e4a57c38a701f2`; see [docs/c-program-size-comparison-56f938c0-to-now.md](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/docs/c-program-size-comparison-56f938c0-to-now.md). You can regenerate that style of report with `npm run compare:c-sizes -- <baseline-commit>`.
+
 ### Test Suites
 
 #### 6.1 — C Examples: Compilation (all bundled examples)

@@ -1,7 +1,7 @@
 {
   "suiteName": "Bootloader Plotter Tests",
   "suiteKey": "bootloader",
-  "generatedAt": "20 Mar 2026, 02:09:24",
+  "generatedAt": "20 Mar 2026, 02:45:47",
   "notes": [
     "Generated at the end of bootloader.test.ts during vitest.",
     "Includes bootloader shell plotter cases, glxsh, and glxnano interaction frames."

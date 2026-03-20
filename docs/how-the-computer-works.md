@@ -558,7 +558,15 @@ The compiler now performs several code-size optimizations before emitting ASM:
 - statement-context cleanup: `x++;`, `drive_write(...)`, and similar expression statements no longer preserve a result value that nobody reads
 - stronger peephole cleanup: useless jumps, dead code after terminal instructions, some redundant loads/stores, and `LDA imm` + `OUTA` patterns are removed
 
-Measured against the baseline compiler from before this optimization pass, the current code generator reduces the total assembled size of the `36` bundled C examples from `35426` bytes to `31220` bytes, a gain of `4206` bytes overall (about `11.9%`). `35` examples got smaller, `1` got larger by `1` byte, and the biggest wins came from code-size-heavy programs such as `writeLetters` (`-576`), `Paysage RGB` (`-573`), `writeDigits` (`-496`), and `Meteo Ales` (`-450`).
+Measured against commit `56f938c0df8094c15b2e4046e0e4a57c38a701f2`, the current code generator reduces the total assembled size of the `36` bundled C examples from `45299` bytes to `31220` bytes, a gain of `14079` bytes overall (about `31.1%`). All `36` examples got smaller. The biggest wins came from large programs such as `Éditeur Multi-fichier FS` (`-1484`), `Mini Shell` (`-1429`), `FS Disque Externe` (`-1348`), and `Meteo Ales` (`-1233`). The full table lives in [docs/c-program-size-comparison-56f938c0-to-now.md](/Users/olivierveinand/Downloads/Simulateur%20Logique%20Nodal%20%281%29/docs/c-program-size-comparison-56f938c0-to-now.md).
+
+This comparison is now semi-automated by the repo command:
+
+```sh
+npm run compare:c-sizes -- <baseline-commit> [--md path] [--json path]
+```
+
+So if you want to compare another historical point, you no longer need to rebuild the ad-hoc script by hand.
 
 #### How If/Else Works
 
