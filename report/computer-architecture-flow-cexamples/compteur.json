@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:28.990Z",
+  "generatedAt": "2026-03-20T01:09:24.025Z",
   "name": "compteur",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -139,7 +139,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x0026 • cycles 127",
+        "subtitle": "NOP @ 0x0026 • cycles 127",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -172,7 +172,7 @@
           {
             "id": "mem-fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -443,7 +443,7 @@
           },
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "DATA BYTE",
@@ -489,7 +489,7 @@
           {
             "id": "fetch-data-in",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -540,7 +540,7 @@
           {
             "id": "fetch-out",
             "label": "FETCH -> CPU",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -577,7 +577,7 @@
         "metrics": [
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "OPERAND BYTE",
@@ -633,7 +633,7 @@
           {
             "id": "fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -1547,7 +1547,7 @@
         "color": "#fde047"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#fde047",
         "active": true,
         "pulseOn": true
@@ -1568,7 +1568,7 @@
         "color": "#facc15"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#facc15",
         "active": true,
         "pulseOn": true

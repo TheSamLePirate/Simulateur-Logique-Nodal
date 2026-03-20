@@ -414,35 +414,22 @@ The project now uses four coordinated Vitest suites:
 
 The C suite is still the largest compiler-focused suite, but the total `npm test` coverage also includes bootloader/userland behavior, ASM examples, and direct keyboard routing.
 
+At the moment the full test run covers `11` test files and `513` passing checks.
+
 ### Test Suites
 
-#### 6.1 — C Examples: Compilation (19 examples)
+#### 6.1 — C Examples: Compilation (all bundled examples)
 
-Tests that **every** C example compiles without errors and assembles within 4096 bytes.
+Tests that **every** bundled C example compiles without errors and assembles within 4096 bytes.
 
 ```
-"Hello World"               compiles → ✓  assembles → ✓
-"Compteur"                  compiles → ✓  assembles → ✓
-"Fibonacci"                 compiles → ✓  assembles → ✓
-"Factorielle"               compiles → ✓  assembles → ✓
-"Calcul"                    compiles → ✓  assembles → ✓
-"Plotter"                   compiles → ✓  assembles → ✓
-"Courbe"                    compiles → ✓  assembles → ✓
-"Echo (Saisie)"             compiles → ✓  assembles → ✓
-"Compteur de lettres"       compiles → ✓  assembles → ✓
-"Calculatrice"              compiles → ✓  assembles → ✓
-"Traceur de droite"         compiles → ✓  assembles → ✓
-"Cercle"                    compiles → ✓  assembles → ✓
-"Clavier"                   compiles → ✓  assembles → ✓
-"Horloge"                   compiles → ✓  assembles → ✓
-"Spirale"                   compiles → ✓  assembles → ✓
-"Tableau de nombres premiers" compiles → ✓  assembles → ✓
-"Étoiles"                   compiles → ✓  assembles → ✓
-"Test Mémoire"              compiles → ✓  assembles → ✓
-"Tableau (Tri)"             compiles → ✓  assembles → ✓
+For each bundled C example:
+  ✓ C compilation succeeds
+  ✓ ASM assembly succeeds when the optimized program still fits
+  ✓ oversize failures stay explicit and testable
 ```
 
-#### 6.2 — C Examples: Memory Layout (19 examples)
+#### 6.2 — C Examples: Memory Layout (all bundled examples)
 
 Validates the `MemoryLayout` structure for every example:
 

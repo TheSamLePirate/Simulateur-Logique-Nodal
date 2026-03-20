@@ -1,7 +1,7 @@
 {
   "suiteName": "C Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-cexamples",
-  "generatedAt": "19 Mar 2026, 20:55:59",
+  "generatedAt": "20 Mar 2026, 02:09:50",
   "notes": [
     "Generated during computerArchitectureFlow.cexamples.test.ts.",
     "Exports one architecture flow snapshot for every bundled C example program.",
@@ -114,7 +114,7 @@
     },
     {
       "testName": "echo-saisie",
-      "output": "JSON: report/computer-architecture-flow-cexamples/echo-saisie.json\nSVG: report/computer-architecture-flow-cexamples/echo-saisie.svg\nPNG: report/computer-architecture-flow-cexamples/png/echo-saisie.png\nActive edges: 9"
+      "output": "JSON: report/computer-architecture-flow-cexamples/echo-saisie.json\nSVG: report/computer-architecture-flow-cexamples/echo-saisie.svg\nPNG: report/computer-architecture-flow-cexamples/png/echo-saisie.png\nActive edges: 11"
     },
     {
       "testName": "compteur-de-lettres",
@@ -122,7 +122,7 @@
     },
     {
       "testName": "calculatrice",
-      "output": "JSON: report/computer-architecture-flow-cexamples/calculatrice.json\nSVG: report/computer-architecture-flow-cexamples/calculatrice.svg\nPNG: report/computer-architecture-flow-cexamples/png/calculatrice.png\nActive edges: 9"
+      "output": "JSON: report/computer-architecture-flow-cexamples/calculatrice.json\nSVG: report/computer-architecture-flow-cexamples/calculatrice.svg\nPNG: report/computer-architecture-flow-cexamples/png/calculatrice.png\nActive edges: 11"
     },
     {
       "testName": "traceur-de-droite",
@@ -134,7 +134,7 @@
     },
     {
       "testName": "clavier",
-      "output": "JSON: report/computer-architecture-flow-cexamples/clavier.json\nSVG: report/computer-architecture-flow-cexamples/clavier.svg\nPNG: report/computer-architecture-flow-cexamples/png/clavier.png\nActive edges: 9"
+      "output": "JSON: report/computer-architecture-flow-cexamples/clavier.json\nSVG: report/computer-architecture-flow-cexamples/clavier.svg\nPNG: report/computer-architecture-flow-cexamples/png/clavier.png\nActive edges: 15"
     },
     {
       "testName": "horloge",
@@ -178,7 +178,7 @@
     },
     {
       "testName": "mini-shell",
-      "output": "JSON: report/computer-architecture-flow-cexamples/mini-shell.json\nSVG: report/computer-architecture-flow-cexamples/mini-shell.svg\nPNG: report/computer-architecture-flow-cexamples/png/mini-shell.png\nActive edges: 9"
+      "output": "JSON: report/computer-architecture-flow-cexamples/mini-shell.json\nSVG: report/computer-architecture-flow-cexamples/mini-shell.svg\nPNG: report/computer-architecture-flow-cexamples/png/mini-shell.png\nActive edges: 11"
     },
     {
       "testName": "writedigits",
@@ -299,7 +299,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 9,
+      "pixelCount": 11,
       "href": "computer-architecture-flow-cexamples/echo-saisie.svg"
     },
     {
@@ -317,7 +317,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 9,
+      "pixelCount": 11,
       "href": "computer-architecture-flow-cexamples/calculatrice.svg"
     },
     {
@@ -344,7 +344,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 9,
+      "pixelCount": 15,
       "href": "computer-architecture-flow-cexamples/clavier.svg"
     },
     {
@@ -443,7 +443,7 @@
       "width": 1720,
       "height": 1776,
       "scale": 1,
-      "pixelCount": 9,
+      "pixelCount": 11,
       "href": "computer-architecture-flow-cexamples/mini-shell.svg"
     },
     {
@@ -642,7 +642,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 9
+      "activeEdgeCount": 11
     },
     {
       "name": "compteur-de-lettres",
@@ -664,7 +664,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 9
+      "activeEdgeCount": 11
     },
     {
       "name": "traceur-de-droite",
@@ -697,7 +697,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 9
+      "activeEdgeCount": 15
     },
     {
       "name": "horloge",
@@ -818,7 +818,7 @@
       "height": 1776,
       "nodeCount": 12,
       "edgeCount": 61,
-      "activeEdgeCount": 9
+      "activeEdgeCount": 11
     },
     {
       "name": "writedigits",

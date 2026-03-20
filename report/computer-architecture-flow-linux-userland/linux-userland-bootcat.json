@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:31.785Z",
+  "generatedAt": "2026-03-20T01:09:25.780Z",
   "name": "linux-userland-bootcat",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -11,7 +11,7 @@
   "consoleTail": "NodalLinux\nroot# \nThis is a tiny Linux-like environment for the simulator.\nPrograms live on the external drive and are launched with run NAME.\nUse run NAME FILE to pass one resolved file argument.\n\n",
   "halted": true,
   "plotterPixels": 0,
-  "drivePage": 83,
+  "drivePage": 81,
   "httpStatus": "Idle",
   "scenario": "bootcat",
   "nodes": [
@@ -357,14 +357,14 @@
           {
             "id": "drv-page",
             "label": "DRIVE PAGE",
-            "value": "0x53",
+            "value": "0x51",
             "handleType": "source",
             "active": false
           },
           {
             "id": "drv-addr",
             "label": "DRIVE ADDR",
-            "value": "0x53B2",
+            "value": "0x51B2",
             "handleType": "source",
             "active": false
           },
@@ -930,11 +930,11 @@
         "metrics": [
           {
             "label": "PAGE",
-            "value": "0x53"
+            "value": "0x51"
           },
           {
             "label": "ADDR",
-            "value": "0x53B2"
+            "value": "0x51B2"
           },
           {
             "label": "DATA OUT",
@@ -949,14 +949,14 @@
           {
             "id": "page-in",
             "label": "PAGE FROM CPU",
-            "value": "0x53",
+            "value": "0x51",
             "handleType": "target",
             "active": false
           },
           {
             "id": "addr-in",
             "label": "ADDR FROM CPU",
-            "value": "0x53B2",
+            "value": "0x51B2",
             "handleType": "target",
             "active": false
           },
@@ -993,14 +993,14 @@
           {
             "id": "page-out",
             "label": "PAGE -> DRIVE",
-            "value": "0x53",
+            "value": "0x51",
             "handleType": "source",
             "active": false
           },
           {
             "id": "addr-out",
             "label": "ADDR -> DRIVE",
-            "value": "0x53B2",
+            "value": "0x51B2",
             "handleType": "source",
             "active": false
           },
@@ -1058,11 +1058,11 @@
         "metrics": [
           {
             "label": "PAGE",
-            "value": "0x53"
+            "value": "0x51"
           },
           {
             "label": "ADDR",
-            "value": "0x53B2"
+            "value": "0x51B2"
           },
           {
             "label": "READ BYTE",
@@ -1077,14 +1077,14 @@
           {
             "id": "page",
             "label": "PAGE",
-            "value": "0x53",
+            "value": "0x51",
             "handleType": "target",
             "active": false
           },
           {
             "id": "addr",
             "label": "ADDR",
-            "value": "0x53B2",
+            "value": "0x51B2",
             "handleType": "target",
             "active": false
           },
@@ -2080,7 +2080,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x53",
+        "label": "0x51",
         "color": "#fbbf24",
         "active": false,
         "pulseOn": false
@@ -2101,7 +2101,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "0x53B2",
+        "label": "0x51B2",
         "color": "#f59e0b",
         "active": false,
         "pulseOn": false
@@ -2206,7 +2206,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x53",
+        "label": "0x51",
         "color": "#fbbf24",
         "active": false,
         "pulseOn": false
@@ -2227,7 +2227,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "0x53B2",
+        "label": "0x51B2",
         "color": "#f59e0b",
         "active": false,
         "pulseOn": false

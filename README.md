@@ -45,7 +45,7 @@ And who even uses modulo anymore, except absolutely everyone the moment pixels, 
 - the computer is visual
 - the bootloader is real
 - the disk tools are real
-- the mini C compiler is real
+- the mini C compiler is real, and it now does real code-size optimization to stay under the 4096-byte cap
 - yes, it even has HTTP
 
 This is basically a 1983 computer that drank too much coffee and learned TypeScript.

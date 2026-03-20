@@ -1,7 +1,7 @@
 {
   "suiteName": "Linux Userland Direct CPU Tests",
   "suiteKey": "linux-userland-direct-cpu",
-  "generatedAt": "19 Mar 2026, 20:55:28",
+  "generatedAt": "20 Mar 2026, 02:09:23",
   "notes": [
     "Generated during linuxUserlandPrograms.test.ts.",
     "Runs every bootloader-runnable Linux-like userland program directly on the CPU and records console output.",
@@ -12,10 +12,10 @@
     "[program] sysinfo: halted=true plotter=0 drivePage=5 httpStatus=Idle",
     "[program] uname: halted=true plotter=0 drivePage=6 httpStatus=Idle",
     "[program] pwd: halted=true plotter=0 drivePage=7 httpStatus=Idle",
-    "[program] bootcat: halted=true plotter=0 drivePage=83 httpStatus=Idle",
+    "[program] bootcat: halted=true plotter=0 drivePage=81 httpStatus=Idle",
     "[program] argdump: halted=true plotter=0 drivePage=9 httpStatus=Idle",
-    "[program] wc: halted=true plotter=0 drivePage=84 httpStatus=Idle",
-    "[program] head: halted=true plotter=0 drivePage=83 httpStatus=Idle",
+    "[program] wc: halted=true plotter=0 drivePage=82 httpStatus=Idle",
+    "[program] head: halted=true plotter=0 drivePage=81 httpStatus=Idle",
     "[program] wget: halted=true plotter=0 drivePage=1 httpStatus=HTTP 200 OK",
     "[program] ascii: halted=true plotter=0 drivePage=14 httpStatus=Idle",
     "[program] upper: halted=false plotter=0 drivePage=15 httpStatus=Idle",
@@ -23,14 +23,14 @@
     "[program] plot: halted=true plotter=65536 drivePage=17 httpStatus=Idle",
     "[snapshot] linux-userland-plot: report/linux-userland-direct-cpu/linux-userland-plot.png (256x256, scale 2, pixels 65536)",
     "[program] nano: halted=true plotter=0 drivePage=1 httpStatus=Idle",
-    "[program] glxnano: halted=false plotter=3397 drivePage=86 httpStatus=Idle",
+    "[program] glxnano: halted=false plotter=3397 drivePage=84 httpStatus=Idle",
     "[snapshot] linux-userland-glxnano: report/linux-userland-direct-cpu/linux-userland-glxnano.png (256x256, scale 2, pixels 3397)",
-    "[program] glxsh: halted=false plotter=1297 drivePage=86 httpStatus=Idle",
+    "[program] glxsh: halted=false plotter=1297 drivePage=84 httpStatus=Idle",
     "[snapshot] linux-userland-glxsh: report/linux-userland-direct-cpu/linux-userland-glxsh.png (256x256, scale 2, pixels 1297)",
     "[program] cp: halted=true plotter=0 drivePage=1 httpStatus=Idle",
     "[program] mv: halted=true plotter=0 drivePage=1 httpStatus=Idle",
-    "[program] grep: halted=true plotter=0 drivePage=84 httpStatus=Idle",
-    "[program] jsonp: halted=true plotter=0 drivePage=89 httpStatus=Idle"
+    "[program] grep: halted=true plotter=0 drivePage=82 httpStatus=Idle",
+    "[program] jsonp: halted=true plotter=0 drivePage=87 httpStatus=Idle"
   ],
   "tests": [
     "runs \"hello\" from the bootloader Linux userland",
@@ -77,7 +77,7 @@
     },
     {
       "testName": "argdump",
-      "output": "NodalLinux\nroot# \ntype file page 83 size 179b"
+      "output": "NodalLinux\nroot# \ntype file page 81 size 179b"
     },
     {
       "testName": "wc",

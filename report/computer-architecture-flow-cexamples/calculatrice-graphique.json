@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:48.386Z",
+  "generatedAt": "2026-03-20T01:09:39.632Z",
   "name": "calculatrice-graphique",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -144,7 +144,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "CMP @ 0x063D • cycles 5000000",
+        "subtitle": "LDA @ 0x0651 • cycles 5000000",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -158,11 +158,11 @@
           },
           {
             "label": "PC",
-            "value": "0x063D"
+            "value": "0x0651"
           },
           {
             "label": "OPERAND",
-            "value": "0x0040"
+            "value": "0x0004"
           },
           {
             "label": "SP",
@@ -170,35 +170,35 @@
           },
           {
             "label": "PULSE",
-            "value": "LOW"
+            "value": "HIGH"
           }
         ],
         "leftPins": [
           {
             "id": "mem-fetch",
             "label": "FETCH BYTE",
-            "value": "0x87",
+            "value": "0x80",
             "handleType": "target",
             "active": true
           },
           {
             "id": "mem-read",
             "label": "MEM DATA",
-            "value": "0x10",
+            "value": "0x87",
             "handleType": "target",
             "active": false
           },
           {
             "id": "alu-out",
             "label": "ALU RESULT",
-            "value": "0xC0",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
           {
             "id": "alu-flags",
             "label": "FLAGS",
-            "value": "0/1/1",
+            "value": "1/0/0",
             "handleType": "target",
             "active": true
           },
@@ -235,14 +235,14 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x063D",
+            "value": "0x0651",
             "handleType": "source",
             "active": true
           },
           {
             "id": "mem-addr",
             "label": "MEM ADDR",
-            "value": "IMM 0x0040",
+            "value": "IMM 0x0004",
             "handleType": "source",
             "active": false
           },
@@ -277,14 +277,14 @@
           {
             "id": "alu-b",
             "label": "ALU B",
-            "value": "0x40",
+            "value": "0x7E",
             "handleType": "source",
             "active": true
           },
           {
             "id": "alu-op",
             "label": "ALU OP",
-            "value": "SUB",
+            "value": "PASS",
             "handleType": "source",
             "active": true
           },
@@ -396,7 +396,7 @@
           {
             "id": "net-addr",
             "label": "HTTP PTR",
-            "value": "IMM 0x0040",
+            "value": "IMM 0x0004",
             "handleType": "source",
             "active": false
           },
@@ -440,33 +440,33 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x063D"
+            "value": "0x0651"
           },
           {
             "label": "OPERAND @",
-            "value": "IMM 0x0040"
+            "value": "IMM 0x0004"
           },
           {
             "label": "FETCH BYTE",
-            "value": "0x87"
+            "value": "0x80"
           },
           {
             "label": "DATA BYTE",
-            "value": "0x10"
+            "value": "0x87"
           }
         ],
         "leftPins": [
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x063D",
+            "value": "0x0651",
             "handleType": "target",
             "active": true
           },
           {
             "id": "addr-in",
             "label": "OPERAND ADDR",
-            "value": "0x0040",
+            "value": "0x0004",
             "handleType": "target",
             "active": false
           },
@@ -494,14 +494,14 @@
           {
             "id": "fetch-data-in",
             "label": "FETCH BYTE",
-            "value": "0x87",
+            "value": "0x80",
             "handleType": "target",
             "active": true
           },
           {
             "id": "read-data-in",
             "label": "READ BYTE",
-            "value": "0x10",
+            "value": "0x87",
             "handleType": "target",
             "active": false
           }
@@ -510,14 +510,14 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x063D",
+            "value": "0x0651",
             "handleType": "source",
             "active": true
           },
           {
             "id": "addr-out",
             "label": "OPERAND ADDR",
-            "value": "0x0040",
+            "value": "0x0004",
             "handleType": "source",
             "active": false
           },
@@ -545,21 +545,21 @@
           {
             "id": "fetch-out",
             "label": "FETCH -> CPU",
-            "value": "0x87",
+            "value": "0x80",
             "handleType": "source",
             "active": true
           },
           {
             "id": "operand-out",
             "label": "DATA -> CPU",
-            "value": "0x10",
+            "value": "0x87",
             "handleType": "source",
             "active": false
           },
           {
             "id": "cstring-out",
             "label": "RAM -> URL/BODY",
-            "value": "IMM 0x0040",
+            "value": "IMM 0x0004",
             "handleType": "source",
             "active": false
           }
@@ -582,11 +582,11 @@
         "metrics": [
           {
             "label": "FETCH BYTE",
-            "value": "0x87"
+            "value": "0x80"
           },
           {
             "label": "OPERAND BYTE",
-            "value": "0x10"
+            "value": "0x87"
           },
           {
             "label": "READ",
@@ -601,14 +601,14 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x063D",
+            "value": "0x0651",
             "handleType": "target",
             "active": true
           },
           {
             "id": "addr",
             "label": "OPERAND ADDR",
-            "value": "0x0040",
+            "value": "0x0004",
             "handleType": "target",
             "active": false
           },
@@ -638,14 +638,14 @@
           {
             "id": "fetch",
             "label": "FETCH BYTE",
-            "value": "0x87",
+            "value": "0x80",
             "handleType": "source",
             "active": true
           },
           {
             "id": "operand",
             "label": "READ BYTE",
-            "value": "0x10",
+            "value": "0x87",
             "handleType": "source",
             "active": false
           }
@@ -662,13 +662,13 @@
       "draggable": false,
       "data": {
         "title": "ALU State",
-        "subtitle": "immediate operand in B lane",
+        "subtitle": "register-to-register lane",
         "tone": "alu",
         "icon": "alu",
         "metrics": [
           {
             "label": "OP",
-            "value": "SUB"
+            "value": "PASS"
           },
           {
             "label": "A",
@@ -676,15 +676,15 @@
           },
           {
             "label": "B",
-            "value": "0x40"
+            "value": "0x7E"
           },
           {
             "label": "RESULT",
-            "value": "0xC0"
+            "value": "0x00"
           },
           {
             "label": "ZERO/CARRY/NEG",
-            "value": "0/1/1"
+            "value": "1/0/0"
           }
         ],
         "leftPins": [
@@ -698,14 +698,14 @@
           {
             "id": "b-in",
             "label": "B IN",
-            "value": "0x40",
+            "value": "0x7E",
             "handleType": "target",
             "active": true
           },
           {
             "id": "op-in",
             "label": "OP IN",
-            "value": "SUB",
+            "value": "PASS",
             "handleType": "target",
             "active": true
           }
@@ -714,14 +714,14 @@
           {
             "id": "result",
             "label": "RESULT",
-            "value": "0xC0",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
           {
             "id": "flags",
             "label": "FLAGS",
-            "value": "0/1/1",
+            "value": "1/0/0",
             "handleType": "source",
             "active": true
           }
@@ -4377,7 +4377,7 @@
         "metrics": [
           {
             "label": "REQ PTR",
-            "value": "IMM 0x0040"
+            "value": "IMM 0x0004"
           },
           {
             "label": "URL",
@@ -4396,14 +4396,14 @@
           {
             "id": "addr-in",
             "label": "PTR FROM CPU",
-            "value": "IMM 0x0040",
+            "value": "IMM 0x0004",
             "handleType": "target",
             "active": false
           },
           {
             "id": "ram-in",
             "label": "RAM CSTRING",
-            "value": "0x10",
+            "value": "0x87",
             "handleType": "target",
             "active": false
           },
@@ -4578,10 +4578,10 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x063D",
+        "label": "PC 0x0651",
         "color": "#f59e0b",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4599,10 +4599,10 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "ADDR 0x0040",
+        "label": "ADDR 0x0004",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4623,7 +4623,7 @@
         "label": "WRITE 0x00",
         "color": "#f97316",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4644,7 +4644,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4665,7 +4665,7 @@
         "label": "WRITE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4683,10 +4683,10 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x063D",
+        "label": "0x0651",
         "color": "#fbbf24",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4704,10 +4704,10 @@
         "color": "#10b981"
       },
       "data": {
-        "label": "0x0040",
+        "label": "0x0004",
         "color": "#10b981",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4728,7 +4728,7 @@
         "label": "RD",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4749,7 +4749,7 @@
         "label": "0x00",
         "color": "#22c55e",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4770,7 +4770,7 @@
         "label": "WE",
         "color": "#f43f5e",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4788,10 +4788,10 @@
         "color": "#fde047"
       },
       "data": {
-        "label": "0x87",
+        "label": "0x80",
         "color": "#fde047",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4809,10 +4809,10 @@
         "color": "#facc15"
       },
       "data": {
-        "label": "0x87",
+        "label": "0x80",
         "color": "#facc15",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4830,10 +4830,10 @@
         "color": "#22d3ee"
       },
       "data": {
-        "label": "0x10",
+        "label": "0x87",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4851,10 +4851,10 @@
         "color": "#22d3ee"
       },
       "data": {
-        "label": "0x10",
+        "label": "0x87",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4875,7 +4875,7 @@
         "label": "A 0x00",
         "color": "#a78bfa",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4893,10 +4893,10 @@
         "color": "#d946ef"
       },
       "data": {
-        "label": "B 0x40",
+        "label": "B 0x7E",
         "color": "#d946ef",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4914,10 +4914,10 @@
         "color": "#f472b6"
       },
       "data": {
-        "label": "SUB",
+        "label": "PASS",
         "color": "#f472b6",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4935,10 +4935,10 @@
         "color": "#e879f9"
       },
       "data": {
-        "label": "0xC0",
+        "label": "0x00",
         "color": "#e879f9",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4956,10 +4956,10 @@
         "color": "#c084fc"
       },
       "data": {
-        "label": "0/1/1",
+        "label": "1/0/0",
         "color": "#c084fc",
         "active": true,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -4980,7 +4980,7 @@
         "label": "\\n",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5001,7 +5001,7 @@
         "label": "READ",
         "color": "#60a5fa",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5022,7 +5022,7 @@
         "label": "idle",
         "color": "#93c5fd",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5043,7 +5043,7 @@
         "label": "slot 0x00",
         "color": "#22c55e",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5064,7 +5064,7 @@
         "label": "SCAN",
         "color": "#4ade80",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5085,7 +5085,7 @@
         "label": "idle",
         "color": "#86efac",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5106,7 +5106,7 @@
         "label": "X 0x00",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5127,7 +5127,7 @@
         "label": "Y 0x7E",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5148,7 +5148,7 @@
         "label": "0x22/0xD3/0xEE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5169,7 +5169,7 @@
         "label": "DRAW",
         "color": "#f97316",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5190,7 +5190,7 @@
         "label": "CLEAR",
         "color": "#e11d48",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5211,7 +5211,7 @@
         "label": "0x00",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5232,7 +5232,7 @@
         "label": "0x7E",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5253,7 +5253,7 @@
         "label": "0x22/0xD3/0xEE",
         "color": "#fb7185",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5274,7 +5274,7 @@
         "label": "DRAW",
         "color": "#f97316",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5295,7 +5295,7 @@
         "label": "CLEAR",
         "color": "#e11d48",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5316,7 +5316,7 @@
         "label": "0x00",
         "color": "#fbbf24",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5337,7 +5337,7 @@
         "label": "0x0000",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5358,7 +5358,7 @@
         "label": "0x7E",
         "color": "#f97316",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5379,7 +5379,7 @@
         "label": "READ",
         "color": "#fdba74",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5400,7 +5400,7 @@
         "label": "WRITE",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5421,7 +5421,7 @@
         "label": "CLEAR",
         "color": "#ef4444",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5442,7 +5442,7 @@
         "label": "0x00",
         "color": "#fbbf24",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5463,7 +5463,7 @@
         "label": "0x0000",
         "color": "#f59e0b",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5484,7 +5484,7 @@
         "label": "0x7E",
         "color": "#f97316",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5505,7 +5505,7 @@
         "label": "READ",
         "color": "#fdba74",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5526,7 +5526,7 @@
         "label": "WRITE",
         "color": "#fb923c",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5547,7 +5547,7 @@
         "label": "CLEAR",
         "color": "#ef4444",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5568,7 +5568,7 @@
         "label": "0x00",
         "color": "#fde68a",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5589,7 +5589,7 @@
         "label": "0x00",
         "color": "#fef3c7",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5607,10 +5607,10 @@
         "color": "#06b6d4"
       },
       "data": {
-        "label": "IMM 0x0040",
+        "label": "IMM 0x0004",
         "color": "#06b6d4",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5631,7 +5631,7 @@
         "label": "idle",
         "color": "#22d3ee",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5652,7 +5652,7 @@
         "label": "GET",
         "color": "#0891b2",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5673,7 +5673,7 @@
         "label": "POST",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5694,7 +5694,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5715,7 +5715,7 @@
         "label": "idle",
         "color": "#06b6d4",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5736,7 +5736,7 @@
         "label": "idle",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5757,7 +5757,7 @@
         "label": "GET",
         "color": "#0891b2",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5778,7 +5778,7 @@
         "label": "POST",
         "color": "#0ea5e9",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5799,7 +5799,7 @@
         "label": "READ",
         "color": "#38bdf8",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5820,7 +5820,7 @@
         "label": "0x00",
         "color": "#67e8f9",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     },
     {
@@ -5841,7 +5841,7 @@
         "label": "idle",
         "color": "#a5f3fc",
         "active": false,
-        "pulseOn": false
+        "pulseOn": true
       }
     }
   ]

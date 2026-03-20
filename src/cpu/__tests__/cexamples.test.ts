@@ -700,6 +700,7 @@ describe("C Examples — Output Verification", () => {
     });
     // Game loop runs continuously — does not halt in limited cycles
     expect(r.halted).toBe(false);
+    waitForVisibleFrame(r.cpu);
     // Should have drawn pixels (paddles + ball)
     expect(r.cpu.plotterPixels.size).toBeGreaterThan(0);
     savePlotterSequence(r.cpu, "c-pong", 4, 180_000);
@@ -1313,6 +1314,469 @@ describe("Compiler — Edge Cases", () => {
     expect(r.halted).toBe(true);
   });
 
+  it("peephole-folds constant putchar into a single OUT immediate", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        putchar('A');
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("OUT 65");
+    expect(cr.assembly).not.toContain("LDA 65\n  OUTA");
+  });
+
+  it("removes dead code after return in both main and helper functions", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int helper() {
+        return 1;
+        putchar('B');
+      }
+      int main() {
+        print_num(helper());
+        return 0;
+        putchar('A');
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).not.toContain("OUT 66");
+    expect(cr.assembly).not.toContain("OUT 65");
+    expect((cr.assembly.match(/\bHLT\b/g) ?? []).length).toBe(1);
+  });
+
+  it("uses direct B loads for simple variable addition without stack traffic", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        print_num(a + b);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1021");
+    expect(cr.assembly).toContain("ADDB");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1021\n  TAB\n  POP\n  ADDB");
+  });
+
+  it("uses direct B loads for simple variable comparisons without stack traffic", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int a = 7;
+        int b = 9;
+        if (a < b) {
+          putchar('Y');
+        } else {
+          putchar('N');
+        }
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1021");
+    expect(cr.assembly).toContain("CMPB");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1021\n  TAB\n  POP\n  CMPB");
+  });
+
+  it("strength-reduces power-of-two multiply divide and modulo", () => {
+    const r = compileAndRun(`
+      int main() {
+        int x = 29;
+        print_num(x * 8);
+        putchar(32);
+        print_num(x / 4);
+        putchar(32);
+        print_num(x % 8);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 29;
+        print_num(x * 8);
+        putchar(32);
+        print_num(x / 4);
+        putchar(32);
+        print_num(x % 8);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("232 7 5");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("SHL\n  SHL\n  SHL");
+    expect(cr.assembly).toContain("SHR\n  SHR");
+    expect(cr.assembly).toContain("AND 7");
+    expect(cr.assembly).not.toContain("LDB 8\n  MULB");
+    expect(cr.assembly).not.toContain("LDB 4\n  DIVB");
+    expect(cr.assembly).not.toContain("LDB 8\n  MODB");
+  });
+
+  it("uses direct memory reads for constant array indices", () => {
+    const r = compileAndRun(`
+      int main() {
+        int values[4] = {9, 8, 7, 6};
+        print_num(values[2]);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int values[4] = {9, 8, 7, 6};
+        print_num(values[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("7");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LDM 0x1022");
+    expect(cr.assembly).not.toContain("LDA 2\n  LDAI 0x1020");
+  });
+
+  it("uses direct memory writes for constant array indices", () => {
+    const r = compileAndRun(`
+      int main() {
+        int values[4] = {0, 0, 0, 0};
+        values[2] = 77;
+        print_num(values[2]);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int values[4] = {0, 0, 0, 0};
+        values[2] = 77;
+        print_num(values[2]);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("77");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LDA 77\n  STA 0x1022");
+    expect(cr.assembly).not.toContain("LDA 77\n  LDB 2\n  STAI 0x1020");
+  });
+
+  it("uses direct B loads for draw when y is a simple variable", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 10;
+        int y = 20;
+        draw(x, y);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1021");
+    expect(cr.assembly).toContain("DRAW");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1021\n  TAB\n  POP\n  DRAW");
+  });
+
+  it("uses direct B loads for array writes when the index is a simple variable", () => {
+    const r = compileAndRun(`
+      int main() {
+        int values[4] = {0, 0, 0, 0};
+        int index = 2;
+        int value = 77;
+        values[index] = value;
+        print_num(values[2]);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int values[4] = {0, 0, 0, 0};
+        int index = 2;
+        int value = 77;
+        values[index] = value;
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("77");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1024");
+    expect(cr.assembly).toContain("STAI 0x1020");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1024\n  TAB\n  POP\n  STAI 0x1020");
+  });
+
+  it("uses direct B loads for drive_write when the value is a simple variable", () => {
+    const r = compileAndRun(`
+      int main() {
+        int addr = 7;
+        int value = 88;
+        drive_write(addr, value);
+        print_num(drive_read(7));
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int addr = 7;
+        int value = 88;
+        drive_write(addr, value);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("88");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1021");
+    expect(cr.assembly).toContain("DRVWR");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1021\n  TAB\n  POP\n  DRVWR");
+  });
+
+  it("does not preserve drive_write result when used as a plain statement", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        drive_write(10, 65);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("DRVWR");
+    expect(cr.assembly).not.toContain("DRVWR\n  TBA");
+  });
+
+  it("still preserves drive_write result when used as an expression", () => {
+    const r = compileAndRun(`
+      int main() {
+        print_num(drive_write(10, 65));
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        print_num(drive_write(10, 65));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("65");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("DRVWR\n  TBA");
+  });
+
+  it("does not preserve drive_write_at result when used as a plain statement", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        drive_write_at(3, 10, 90);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("DRVPG");
+    expect(cr.assembly).toContain("DRVWR");
+    expect(cr.assembly).not.toContain("DRVWR\n  TBA");
+  });
+
+  it("does not preserve postfix results when used as plain statements", () => {
+    const r = compileAndRun(`
+      int main() {
+        int x = 5;
+        x++;
+        x--;
+        x++;
+        print_num(x);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 5;
+        x++;
+        x--;
+        x++;
+        print_num(x);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("6");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).not.toContain("PUSH\n  INC\n  STA 0x1020\n  POP");
+    expect(cr.assembly).not.toContain("PUSH\n  DEC\n  STA 0x1020\n  POP");
+  });
+
+  it("still preserves postfix results when used inside expressions", () => {
+    const r = compileAndRun(`
+      int main() {
+        int x = 5;
+        print_num(x++);
+        putchar(32);
+        print_num(x);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 5;
+        print_num(x++);
+        putchar(32);
+        print_num(x);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("5 6");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("PUSH");
+    expect(cr.assembly).toContain("POP");
+  });
+
+  it("uses immediate arithmetic for compound assignment with a constant rhs", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 10;
+        x += 5;
+        x -= 3;
+        print_num(x);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("ADD 5\n  STA 0x1020");
+    expect(cr.assembly).toContain("LDM 0x1020\n  SUB 3\n  STA 0x1020");
+    expect(cr.assembly).not.toContain("STA 0x1011");
+  });
+
+  it("uses direct B loads for compound assignment with a simple variable rhs", () => {
+    const r = compileAndRun(`
+      int main() {
+        int x = 10;
+        int y = 7;
+        x += y;
+        print_num(x);
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        int x = 10;
+        int y = 7;
+        x += y;
+        print_num(x);
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("17");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LBM 0x1021");
+    expect(cr.assembly).toContain("ADDB");
+    expect(cr.assembly).not.toContain("STA 0x1010");
+  });
+
+  it("stores simple scalar call arguments directly into callee slots when later args are call-free", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int helper(int a, int b) {
+        return a + b;
+      }
+      int main() {
+        int x = 3;
+        int y = 4;
+        print_num(helper(x, y));
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LDM 0x1022\n  STA 0x1020");
+    expect(cr.assembly).toContain("LDM 0x1023\n  STA 0x1021");
+    expect(cr.assembly).toContain("CALL __helper");
+    expect(cr.assembly).not.toContain("PUSH\n  LDM 0x1023\n  STA 0x1020");
+    expect(cr.assembly).not.toContain("POP\n  STA 0x1021");
+  });
+
+  it("keeps stack-based scalar argument staging when a later argument contains a user call", () => {
+    const r = compileAndRun(`
+      int id(int value) {
+        return value;
+      }
+      int helper(int a, int b) {
+        print_num(a);
+        putchar(32);
+        print_num(b);
+        return 0;
+      }
+      int main() {
+        int x = 3;
+        int y = 4;
+        helper(x, id(y));
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int id(int value) {
+        return value;
+      }
+      int helper(int a, int b) {
+        return a + b;
+      }
+      int main() {
+        int x = 3;
+        int y = 4;
+        print_num(helper(x, id(y)));
+        return 0;
+      }
+    `);
+    expect(r.output).toBe("3 4");
+    expect(r.halted).toBe(true);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("LDM 0x1022\n  PUSH");
+    expect(cr.assembly).toContain("POP\n  STA 0x1020");
+  });
+
+  it("shares a runtime helper when the same buffer is printed multiple times", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        string msg = "OK";
+        print(msg);
+        print(msg);
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("__rt_print_buf_");
+    expect((cr.assembly.match(/CALL __rt_print_buf_/g) ?? []).length).toBe(2);
+  });
+
+  it("shares a runtime helper when string_len is used repeatedly on the same buffer", () => {
+    const { compile: cr, asm: ar } = compileOnly(`
+      int main() {
+        string msg = "HELLO";
+        print_num(string_len(msg));
+        putchar(32);
+        print_num(string_len(msg));
+        return 0;
+      }
+    `);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(cr.assembly).toContain("__rt_strlen_buf_");
+    expect((cr.assembly.match(/CALL __rt_strlen_buf_/g) ?? []).length).toBe(2);
+  });
+
   it("recursion works correctly", () => {
     const r = compileAndRun(`
       int sum(int n) {
@@ -1817,6 +2281,43 @@ describe("Compiler — Edge Cases", () => {
     expect(r.output).toBe("183 61 122");
     expect(r.halted).toBe(true);
     expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+  });
+
+  it("skips useless self-copy code for recursive array parameters that stay in the same frame", () => {
+    const r = compileAndRun(`
+      int forward(int values[2], int n) {
+        if (n == 0) {
+          return values[0];
+        }
+        return forward(values, n - 1);
+      }
+      int main() {
+        int data[2] = {7, 9};
+        print_num(forward(data, 3));
+        return 0;
+      }
+    `);
+    const { compile: cr, asm: ar } = compileOnly(`
+      int forward(int values[2], int n) {
+        if (n == 0) {
+          return values[0];
+        }
+        return forward(values, n - 1);
+      }
+      int main() {
+        int data[2] = {7, 9};
+        print_num(forward(data, 3));
+        return 0;
+      }
+    `);
+    const forwardSection = cr.assembly.split("__main:")[0];
+    expect(r.output).toBe("7");
+    expect(r.halted).toBe(true);
+    expect(r.cpu.state.sp).toBe(MEMORY_SIZE - 1);
+    expect(cr.success).toBe(true);
+    expect(ar?.success).toBe(true);
+    expect(forwardSection).toContain("LDM 0x1022\n  SUB 1\n  STA 0x1022\n  CALL __forward");
+    expect(forwardSection).not.toContain("LDM 0x1020\n  LDM 0x1021\n  LDM 0x1022\n  SUB 1");
   });
 
   it("supports multiple local declarations in one statement", () => {

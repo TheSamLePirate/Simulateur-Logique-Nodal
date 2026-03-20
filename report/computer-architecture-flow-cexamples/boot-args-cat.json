@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:58.680Z",
+  "generatedAt": "2026-03-20T01:09:49.452Z",
   "name": "boot-args-cat",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/boot-args-cat.png",
   "exampleName": "Boot Args - Cat",
   "halted": true,
-  "cycles": 4812,
+  "cycles": 4806,
   "consoleTail": "NodalLinux\nroot# \nhello",
   "plotterPixels": 0,
   "nodes": [
@@ -141,7 +141,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x004F • cycles 4812",
+        "subtitle": "NOP @ 0x0051 • cycles 4806",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -155,7 +155,7 @@
           },
           {
             "label": "PC",
-            "value": "0x004F"
+            "value": "0x0051"
           },
           {
             "label": "OPERAND",
@@ -174,7 +174,7 @@
           {
             "id": "mem-fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -232,7 +232,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x004F",
+            "value": "0x0051",
             "handleType": "source",
             "active": true
           },
@@ -437,7 +437,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x004F"
+            "value": "0x0051"
           },
           {
             "label": "OPERAND @",
@@ -445,7 +445,7 @@
           },
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "DATA BYTE",
@@ -456,7 +456,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x004F",
+            "value": "0x0051",
             "handleType": "target",
             "active": true
           },
@@ -491,7 +491,7 @@
           {
             "id": "fetch-data-in",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -507,7 +507,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x004F",
+            "value": "0x0051",
             "handleType": "source",
             "active": true
           },
@@ -542,7 +542,7 @@
           {
             "id": "fetch-out",
             "label": "FETCH -> CPU",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -579,7 +579,7 @@
         "metrics": [
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "OPERAND BYTE",
@@ -598,7 +598,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x004F",
+            "value": "0x0051",
             "handleType": "target",
             "active": true
           },
@@ -635,7 +635,7 @@
           {
             "id": "fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -1339,7 +1339,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x004F",
+        "label": "PC 0x0051",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": false
@@ -1444,7 +1444,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x004F",
+        "label": "0x0051",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": false
@@ -1549,7 +1549,7 @@
         "color": "#fde047"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#fde047",
         "active": true,
         "pulseOn": false
@@ -1570,7 +1570,7 @@
         "color": "#facc15"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#facc15",
         "active": true,
         "pulseOn": false

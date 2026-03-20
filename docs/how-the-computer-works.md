@@ -534,23 +534,31 @@ For example, `x + 5` can compile directly to:
   ADD 5          ; A = x + 5
 ```
 
-And `x + y` still uses both registers:
+And for simple operands such as `x + y`, the compiler now often avoids the stack completely:
 
 ```asm
   LDM 0x1020     ; A = x
-  PUSH
-  LDM 0x1021     ; A = y
-  TAB            ; B = y
-  POP            ; A = x
+  LBM 0x1021     ; B = y
   ADDB           ; A = x + y
 ```
 
-The compiler also performs small optimizations before emitting ASM:
+More complex expressions still fall back to `PUSH` / `TAB` / `POP` when they really need to preserve evaluation order.
+
+The compiler now performs several code-size optimizations before emitting ASM:
 
 - constant folding: `2 + 3` becomes `LDA 5`
 - dead branch removal: `if (0) { ... }` disappears
-- immediate specialization: `x & 1`, `x + 3`, `x == 0` use immediate opcodes
-- tiny peephole cleanup: useless jumps like `JMP next_label` are removed
+- dead function elimination: helpers unreachable from `main` are not emitted at all
+- direct branch lowering: `if`, `while`, and `for` branch directly on comparisons instead of materializing useless `0/1` temporaries first
+- immediate specialization: `x & 1`, `x + 3`, `x == 0`, `x += 5`, and similar cases use immediate opcodes
+- strength reduction: `x * 8`, `x / 4`, and `x % 8` become `SHL`, `SHR`, and `AND`
+- direct simple-operand lowering: many `x + y`, `x < y`, `draw(x, y)`, `drive_write(a, v)`, and similar forms now load `B` directly instead of using stack traffic
+- direct constant-index array access: `arr[2]` and `arr[2] = v` can become direct `LDM` / `STA`
+- shared runtime helpers: repeated `print(buf)` and `string_len(buf)` on the same buffer base reuse one helper instead of duplicating the scan loop
+- statement-context cleanup: `x++;`, `drive_write(...)`, and similar expression statements no longer preserve a result value that nobody reads
+- stronger peephole cleanup: useless jumps, dead code after terminal instructions, some redundant loads/stores, and `LDA imm` + `OUTA` patterns are removed
+
+Measured against the baseline compiler from before this optimization pass, the current code generator reduces the total assembled size of the `36` bundled C examples from `35426` bytes to `31220` bytes, a gain of `4206` bytes overall (about `11.9%`). `35` examples got smaller, `1` got larger by `1` byte, and the biggest wins came from code-size-heavy programs such as `writeLetters` (`-576`), `Paysage RGB` (`-573`), `writeDigits` (`-496`), and `Meteo Ales` (`-450`).
 
 #### How If/Else Works
 
@@ -634,6 +642,8 @@ For a recursive call, the compiler does:
 
 For a non-recursive helper call, steps 1 and 5 are skipped completely. That makes ordinary helper functions much cheaper in both code size and stack usage.
 
+When the callee arguments are simple and later arguments cannot clobber them, the compiler also writes scalar arguments straight into the callee frame slots instead of staging them on the stack first.
+
 This means stack use is now mostly:
 `recursive frame size + number of args + 2 (16-bit return address)`
 
@@ -697,6 +707,8 @@ Arrays are allocated as contiguous bytes in the same memory regions as scalars (
 Local arrays live inside the same reusable frames as scalars. For recursive calls, the current frame is saved first, so **recursion with arrays** still works correctly.
 
 Fixed-size arrays can also be used as **function arguments**. The compiler gives the callee its own contiguous array parameter space, copies the requested elements in before `CALL`, then copies them back after `RET`, so indexed reads and writes still look natural in C code.
+
+If a recursive call passes the same array storage back into the same frame slot, the compiler now skips that useless self-copy entirely.
 
 One important limitation: the compiler does **not** inject bounds checks for `arr[i]` or `msg[i]`. If your index goes past the declared size, the generated `LDAI` / `STAI` instructions will read or write neighboring memory instead.
 
@@ -1336,7 +1348,7 @@ That report includes:
 
 ### What Is Tested
 
-The exact count changes over time, but the current suite covers hundreds of end-to-end compiler, bootloader, and runtime checks.
+The current suite covers `11` test files and `513` end-to-end checks across the compiler, bootloader, Linux-like userland, plotter, and computer architecture views.
 
 #### Compilation
 
@@ -1361,6 +1373,21 @@ For each example:
   ✓ stack = 2048 (always)
   ✓ globals + scratch + locals fit in the 0x1000-0x17FF data area
   ✓ frame packing keeps local RAM much smaller than the old per-function-unique layout
+```
+
+#### Code Size Optimizations
+
+Dedicated compiler tests now also verify that major size-saving rewrites keep working:
+
+```
+✓ unreachable helper functions are removed
+✓ direct control-flow lowering avoids useless boolean temporaries
+✓ repeated buffer helpers reuse shared runtime code
+✓ simple binary ops avoid unnecessary PUSH/POP traffic
+✓ power-of-two multiply/divide/modulo become SHL/SHR/AND
+✓ constant array indices become direct memory accesses
+✓ statement-only postfix and drive write operations do not preserve dead results
+✓ compound assignments use immediate ops or direct B loads when possible
 ```
 
 #### Output Verification

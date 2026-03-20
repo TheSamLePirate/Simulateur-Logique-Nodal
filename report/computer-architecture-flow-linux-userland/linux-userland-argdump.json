@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:32.593Z",
+  "generatedAt": "2026-03-20T01:09:26.382Z",
   "name": "linux-userland-argdump",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-linux-userland/png/linux-userland-argdump.png",
   "programName": "argdump",
   "exampleName": "Linux - argdump",
-  "consoleTail": "NodalLinux\nroot# \ntype file page 83 size 179b\n",
+  "consoleTail": "NodalLinux\nroot# \ntype file page 81 size 179b\n",
   "halted": true,
   "plotterPixels": 0,
   "drivePage": 9,
@@ -31,7 +31,7 @@
         "metrics": [
           {
             "label": "OUTPUT",
-            "value": "e page 83 size 179b\n"
+            "value": "e page 81 size 179b\n"
           },
           {
             "label": "INPUT",
@@ -50,7 +50,7 @@
           "lines": [
             "NodalLinux",
             "root# ",
-            "type file page 83 size 179b",
+            "type file page 81 size 179b",
             " ",
             " "
           ]

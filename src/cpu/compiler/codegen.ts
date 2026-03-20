@@ -109,6 +109,8 @@ export function generate(program: Program): {
   const globalConstArrays = new Set<string>();
   const funcTable = new Map<string, FuncInfo>();
   const runtimeHelpersUsed = new Set<string>();
+  const runtimePrintBufferBases = new Set<number>();
+  const runtimeStringLenBases = new Set<number>();
   const constantData: { label: string; bytes: number[] }[] = [];
   const cStringPool = new Map<string, string>();
   const httpPostPool = new Map<string, string>();
@@ -169,8 +171,22 @@ export function generate(program: Program): {
     return "0x" + (addr & 0xffff).toString(16).padStart(4, "0");
   }
 
+  function isPowerOfTwo(value: number): boolean {
+    return value > 0 && (value & (value - 1)) === 0;
+  }
+
+  function log2Pow2(value: number): number {
+    let shifts = 0;
+    while (value > 1) {
+      value >>= 1;
+      shifts++;
+    }
+    return shifts;
+  }
+
   function emitCopyBytes(srcBase: number, destBase: number, size: number) {
     if (size <= 0) return;
+    if (srcBase === destBase) return;
 
     if (srcBase < destBase && srcBase + size > destBase) {
       for (let i = size - 1; i >= 0; i--) {
@@ -314,6 +330,32 @@ export function generate(program: Program): {
         break;
       default:
         break;
+    }
+  }
+
+  function exprContainsUserCall(expr: Expr): boolean {
+    switch (expr.kind) {
+      case "BinaryExpr":
+        return (
+          exprContainsUserCall(expr.left) || exprContainsUserCall(expr.right)
+        );
+      case "UnaryExpr":
+      case "PostfixExpr":
+        return exprContainsUserCall(expr.operand);
+      case "AssignExpr":
+      case "CompoundAssignExpr":
+        return exprContainsUserCall(expr.value);
+      case "IndexExpr":
+        return exprContainsUserCall(expr.index);
+      case "IndexAssignExpr":
+        return (
+          exprContainsUserCall(expr.index) || exprContainsUserCall(expr.value)
+        );
+      case "CallExpr":
+        if (!builtins.has(expr.name)) return true;
+        return expr.args.some(exprContainsUserCall);
+      default:
+        return false;
     }
   }
 
@@ -482,6 +524,18 @@ export function generate(program: Program): {
     return reachable;
   }
 
+  function runtimeBufferHelperLabel(kind: "print" | "strlen", baseAddr: number): string {
+    return `__rt_${kind}_buf_${baseAddr.toString(16).padStart(4, "0")}`;
+  }
+
+  function lookupArrayInfo(name: string, ctx: FuncInfo): ArrayInfo | null {
+    const localArr = ctx.arrays.get(name);
+    if (localArr) return localArr;
+    const globalArr = globalArrays.get(name);
+    if (globalArr) return globalArr;
+    return null;
+  }
+
   // ═══════════════════════════════════════
   //  Phase 1 — Allocate globals
   // ═══════════════════════════════════════
@@ -622,6 +676,128 @@ export function generate(program: Program): {
     });
   }
 
+  function collectBufferBuiltinUsageExpr(
+    expr: Expr,
+    ctx: FuncInfo,
+    printCounts: Map<number, number>,
+    stringLenCounts: Map<number, number>,
+  ) {
+    switch (expr.kind) {
+      case "BinaryExpr":
+        collectBufferBuiltinUsageExpr(expr.left, ctx, printCounts, stringLenCounts);
+        collectBufferBuiltinUsageExpr(expr.right, ctx, printCounts, stringLenCounts);
+        break;
+      case "UnaryExpr":
+      case "PostfixExpr":
+        collectBufferBuiltinUsageExpr(expr.operand, ctx, printCounts, stringLenCounts);
+        break;
+      case "AssignExpr":
+      case "CompoundAssignExpr":
+        collectBufferBuiltinUsageExpr(expr.value, ctx, printCounts, stringLenCounts);
+        break;
+      case "IndexExpr":
+        collectBufferBuiltinUsageExpr(expr.index, ctx, printCounts, stringLenCounts);
+        break;
+      case "IndexAssignExpr":
+        collectBufferBuiltinUsageExpr(expr.index, ctx, printCounts, stringLenCounts);
+        collectBufferBuiltinUsageExpr(expr.value, ctx, printCounts, stringLenCounts);
+        break;
+      case "CallExpr": {
+        for (const arg of expr.args) {
+          collectBufferBuiltinUsageExpr(arg, ctx, printCounts, stringLenCounts);
+        }
+        if (expr.args.length >= 1 && expr.args[0].kind === "Identifier") {
+          const info = lookupArrayInfo(expr.args[0].name, ctx);
+          if (info) {
+            if (expr.name === "print") {
+              printCounts.set(info.baseAddr, (printCounts.get(info.baseAddr) ?? 0) + 1);
+            } else if (expr.name === "string_len") {
+              stringLenCounts.set(info.baseAddr, (stringLenCounts.get(info.baseAddr) ?? 0) + 1);
+            }
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  function collectBufferBuiltinUsageStmt(
+    stmt: Stmt,
+    ctx: FuncInfo,
+    printCounts: Map<number, number>,
+    stringLenCounts: Map<number, number>,
+  ) {
+    switch (stmt.kind) {
+      case "VarDecl":
+        if (stmt.initializer && stmt.initializer.kind !== "ArrayInitializer") {
+          collectBufferBuiltinUsageExpr(stmt.initializer, ctx, printCounts, stringLenCounts);
+        }
+        break;
+      case "VarDeclList":
+        for (const decl of stmt.declarations) {
+          if (decl.initializer && decl.initializer.kind !== "ArrayInitializer") {
+            collectBufferBuiltinUsageExpr(decl.initializer, ctx, printCounts, stringLenCounts);
+          }
+        }
+        break;
+      case "ExprStmt":
+        collectBufferBuiltinUsageExpr(stmt.expression, ctx, printCounts, stringLenCounts);
+        break;
+      case "ReturnStmt":
+        if (stmt.value) {
+          collectBufferBuiltinUsageExpr(stmt.value, ctx, printCounts, stringLenCounts);
+        }
+        break;
+      case "IfStmt":
+        collectBufferBuiltinUsageExpr(stmt.condition, ctx, printCounts, stringLenCounts);
+        collectBufferBuiltinUsageStmt(stmt.thenBranch, ctx, printCounts, stringLenCounts);
+        if (stmt.elseBranch) {
+          collectBufferBuiltinUsageStmt(stmt.elseBranch, ctx, printCounts, stringLenCounts);
+        }
+        break;
+      case "WhileStmt":
+        collectBufferBuiltinUsageExpr(stmt.condition, ctx, printCounts, stringLenCounts);
+        collectBufferBuiltinUsageStmt(stmt.body, ctx, printCounts, stringLenCounts);
+        break;
+      case "ForStmt":
+        if (stmt.init) collectBufferBuiltinUsageStmt(stmt.init, ctx, printCounts, stringLenCounts);
+        if (stmt.condition) {
+          collectBufferBuiltinUsageExpr(stmt.condition, ctx, printCounts, stringLenCounts);
+        }
+        if (stmt.update) {
+          collectBufferBuiltinUsageExpr(stmt.update, ctx, printCounts, stringLenCounts);
+        }
+        collectBufferBuiltinUsageStmt(stmt.body, ctx, printCounts, stringLenCounts);
+        break;
+      case "BreakStmt":
+      case "ContinueStmt":
+        break;
+      case "Block":
+        for (const inner of stmt.statements) {
+          collectBufferBuiltinUsageStmt(inner, ctx, printCounts, stringLenCounts);
+        }
+        break;
+    }
+  }
+
+  {
+    const printCounts = new Map<number, number>();
+    const stringLenCounts = new Map<number, number>();
+    for (const fn of emittedFunctions) {
+      const ctx = funcTable.get(fn.name);
+      if (!ctx) continue;
+      collectBufferBuiltinUsageStmt(fn.body, ctx, printCounts, stringLenCounts);
+    }
+    for (const [baseAddr, count] of printCounts) {
+      if (count > 1) runtimePrintBufferBases.add(baseAddr);
+    }
+    for (const [baseAddr, count] of stringLenCounts) {
+      if (count > 1) runtimeStringLenBases.add(baseAddr);
+    }
+  }
+
   // ═══════════════════════════════════════
   //  Phase 3 — Emit code
   // ═══════════════════════════════════════
@@ -656,30 +832,95 @@ export function generate(program: Program): {
   // ═══════════════════════════════════════
 
   function optimizeAssembly(rawLines: string[]): string[] {
-    const optimized: string[] = [];
-
-    function nextSignificantLine(start: number): string | null {
-      for (let i = start; i < rawLines.length; i++) {
-        const trimmed = rawLines[i].trim();
-        if (!trimmed || trimmed.startsWith(";")) continue;
-        return trimmed;
-      }
-      return null;
+    function isIgnorable(line: string): boolean {
+      const trimmed = line.trim();
+      return !trimmed || trimmed.startsWith(";");
     }
 
-    for (let i = 0; i < rawLines.length; i++) {
-      const trimmed = rawLines[i].trim();
-      const jmp = trimmed.match(/^JMP\s+([A-Za-z_]\w*)$/);
-      if (jmp) {
-        const next = nextSignificantLine(i + 1);
-        if (next === `${jmp[1]}:`) {
+    function isLabel(line: string): boolean {
+      return /^[A-Za-z_]\w*:$/.test(line.trim());
+    }
+
+    function nextSignificantIndex(lines: string[], start: number): number {
+      for (let i = start; i < lines.length; i++) {
+        if (!isIgnorable(lines[i])) return i;
+      }
+      return -1;
+    }
+
+    let current = [...rawLines];
+
+    while (true) {
+      let changed = false;
+      const optimized: string[] = [];
+
+      for (let i = 0; i < current.length; i++) {
+        const line = current[i];
+        const trimmed = line.trim();
+
+        if (isIgnorable(line) || isLabel(line)) {
+          optimized.push(line);
           continue;
         }
-      }
-      optimized.push(rawLines[i]);
-    }
 
-    return optimized;
+        const nextSig = nextSignificantIndex(current, i + 1);
+        const nextLine = nextSig >= 0 ? current[nextSig].trim() : null;
+
+        const jmp = trimmed.match(/^JMP\s+([A-Za-z_]\w*)$/);
+        if (jmp && nextLine === `${jmp[1]}:`) {
+          changed = true;
+          continue;
+        }
+
+        const ldaOut = trimmed.match(/^LDA\s+(\d+)$/);
+        if (ldaOut && nextSig === i + 1 && nextLine === "OUTA") {
+          optimized.push(`  OUT ${ldaOut[1]}`);
+          i = nextSig;
+          changed = true;
+          continue;
+        }
+
+        const loadStoreSame = trimmed.match(/^LDM\s+(0x[0-9a-f]+)$/i);
+        if (loadStoreSame && nextSig === i + 1 && nextLine === `STA ${loadStoreSame[1]}`) {
+          optimized.push(line);
+          i = nextSig;
+          changed = true;
+          continue;
+        }
+
+        const ldmStaLdm = trimmed.match(/^LDA\s+(\d+)$/);
+        if (ldmStaLdm && nextSig === i + 1) {
+          const mid = current[nextSig].trim().match(/^STA\s+(0x[0-9a-f]+)$/i);
+          const nextNextSig = mid ? nextSignificantIndex(current, nextSig + 1) : -1;
+          const nextNextLine = nextNextSig >= 0 ? current[nextNextSig].trim() : null;
+          if (mid && nextNextSig === nextSig + 1 && nextNextLine === `LDM ${mid[1]}`) {
+            optimized.push(line);
+            optimized.push(current[nextSig]);
+            i = nextNextSig;
+            changed = true;
+            continue;
+          }
+        }
+
+        optimized.push(line);
+
+        if (/^(JMP\s+[A-Za-z_]\w*|RET|HLT)$/u.test(trimmed)) {
+          let j = i + 1;
+          let removed = false;
+          while (j < current.length && !isLabel(current[j])) {
+            if (!isIgnorable(current[j])) removed = true;
+            j++;
+          }
+          if (removed) {
+            changed = true;
+            i = j - 1;
+          }
+        }
+      }
+
+      if (!changed) return optimized;
+      current = optimized;
+    }
   }
 
   function tryEvalConst(expr: Expr): number | null {
@@ -794,6 +1035,46 @@ export function generate(program: Program): {
       emit(`  STA ${fmt(TEMP_BASE + 1)}`);
       emit(`  JMP __rt_shr_loop`);
       emit(`__rt_shr_end:`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  RET`);
+    }
+
+    for (const baseAddr of [...runtimePrintBufferBases].sort((a, b) => a - b)) {
+      emit("");
+      emitComment(`--- runtime helper ${runtimeBufferHelperLabel("print", baseAddr)} ---`);
+      emit(`${runtimeBufferHelperLabel("print", baseAddr)}:`);
+      emit(`  LDA 0`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`${runtimeBufferHelperLabel("print", baseAddr)}_loop:`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  LDAI ${fmt(baseAddr)}`);
+      emit(`  CMP 0`);
+      emit(`  JZ ${runtimeBufferHelperLabel("print", baseAddr)}_end`);
+      emit(`  OUTA`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  INC`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  JMP ${runtimeBufferHelperLabel("print", baseAddr)}_loop`);
+      emit(`${runtimeBufferHelperLabel("print", baseAddr)}_end:`);
+      emit(`  RET`);
+    }
+
+    for (const baseAddr of [...runtimeStringLenBases].sort((a, b) => a - b)) {
+      emit("");
+      emitComment(`--- runtime helper ${runtimeBufferHelperLabel("strlen", baseAddr)} ---`);
+      emit(`${runtimeBufferHelperLabel("strlen", baseAddr)}:`);
+      emit(`  LDA 0`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`${runtimeBufferHelperLabel("strlen", baseAddr)}_loop:`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  LDAI ${fmt(baseAddr)}`);
+      emit(`  CMP 0`);
+      emit(`  JZ ${runtimeBufferHelperLabel("strlen", baseAddr)}_end`);
+      emit(`  LDM ${fmt(TEMP_BASE)}`);
+      emit(`  INC`);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emit(`  JMP ${runtimeBufferHelperLabel("strlen", baseAddr)}_loop`);
+      emit(`${runtimeBufferHelperLabel("strlen", baseAddr)}_end:`);
       emit(`  LDM ${fmt(TEMP_BASE)}`);
       emit(`  RET`);
     }
@@ -920,6 +1201,10 @@ export function generate(program: Program): {
   }
 
   function emitPrintBuffer(baseAddr: number) {
+    if (runtimePrintBufferBases.has(baseAddr)) {
+      emit(`  CALL ${runtimeBufferHelperLabel("print", baseAddr)}`);
+      return;
+    }
     const idxAddr = TEMP_BASE;
     const chAddr = TEMP_BASE + 1;
     const loopLabel = newLabel();
@@ -958,7 +1243,13 @@ export function generate(program: Program): {
         }
         break;
       case "ExprStmt":
-        emitExpr(stmt.expression, ctx);
+        if (stmt.expression.kind === "CallExpr") {
+          emitCallExpr(stmt.expression, ctx, false);
+        } else if (stmt.expression.kind === "PostfixExpr") {
+          emitPostfixExpr(stmt.expression, ctx, false);
+        } else {
+          emitExpr(stmt.expression, ctx);
+        }
         break;
       case "ReturnStmt":
         if (stmt.value) {
@@ -1110,13 +1401,24 @@ export function generate(program: Program): {
         break;
 
       case "CompoundAssignExpr": {
-        // Load current value, compute RHS, combine
-        emitExpr(expr.value, ctx);
-        emit(`  STA ${fmt(TEMP_BASE)}`); // temp = RHS
+        const rhsConst = tryEvalConst(expr.value);
         loadVar(expr.name, ctx, expr.line); // A = current value
-        emit(`  LBM ${fmt(TEMP_BASE)}`); // B = RHS
-        if (expr.op === "+=") emit(`  ADDB`);
-        else emit(`  SUBB`);
+        if (rhsConst !== null) {
+          if (expr.op === "+=") emit(`  ADD ${rhsConst}`);
+          else emit(`  SUB ${rhsConst}`);
+        } else if (expr.value.kind === "Identifier") {
+          tryEmitExprIntoB(expr.value, ctx); // B = RHS
+          if (expr.op === "+=") emit(`  ADDB`);
+          else emit(`  SUBB`);
+        } else {
+          emit(`  STA ${fmt(TEMP_BASE)}`); // temp = current value
+          emitExpr(expr.value, ctx);
+          emit(`  STA ${fmt(TEMP_BASE + 1)}`); // temp = RHS
+          emit(`  LDM ${fmt(TEMP_BASE)}`); // A = current value
+          emit(`  LBM ${fmt(TEMP_BASE + 1)}`); // B = RHS
+          if (expr.op === "+=") emit(`  ADDB`);
+          else emit(`  SUBB`);
+        }
         storeVar(expr.name, ctx, expr.line);
         break;
       }
@@ -1145,8 +1447,13 @@ export function generate(program: Program): {
         // arr[i] read: evaluate index → A, then LDAI base
         const base = resolveArray(expr.arrayName, ctx, expr.line);
         if (base !== null) {
-          emitExpr(expr.index, ctx); // A = index
-          emit(`  LDAI ${fmt(base)}`); // A = MEM[base + A]
+          const indexConst = tryEvalConst(expr.index);
+          if (indexConst !== null) {
+            emit(`  LDM ${fmt(base + indexConst)}`); // A = MEM[base + const]
+          } else {
+            emitExpr(expr.index, ctx); // A = index
+            emit(`  LDAI ${fmt(base)}`); // A = MEM[base + A]
+          }
         }
         break;
       }
@@ -1166,12 +1473,22 @@ export function generate(program: Program): {
             });
             break;
           }
-          emitExpr(expr.value, ctx); // A = value
-          emit(`  PUSH`); // save value
-          emitExpr(expr.index, ctx); // A = index
-          emit(`  TAB`); // B = index
-          emit(`  POP`); // A = value
-          emit(`  STAI ${fmt(base2)}`); // MEM[base + B] = A
+          const indexConst = tryEvalConst(expr.index);
+          if (indexConst !== null) {
+            emitExpr(expr.value, ctx); // A = value
+            emit(`  STA ${fmt(base2 + indexConst)}`); // MEM[base + const] = A
+          } else if (expr.index.kind === "Identifier") {
+            emitExpr(expr.value, ctx); // A = value
+            tryEmitExprIntoB(expr.index, ctx); // B = index
+            emit(`  STAI ${fmt(base2)}`); // MEM[base + B] = A
+          } else {
+            emitExpr(expr.value, ctx); // A = value
+            emit(`  PUSH`); // save value
+            emitExpr(expr.index, ctx); // A = index
+            emit(`  TAB`); // B = index
+            emit(`  POP`); // A = value
+            emit(`  STAI ${fmt(base2)}`); // MEM[base + B] = A
+          }
         }
         break;
       }
@@ -1256,6 +1573,32 @@ export function generate(program: Program): {
     emit(`  JZ ${label}`);
   }
 
+  function tryEmitExprIntoB(expr: Expr, ctx: FuncInfo): boolean {
+    const folded = tryEvalConst(expr);
+    if (folded !== null) {
+      emit(`  LDB ${folded}`);
+      return true;
+    }
+
+    switch (expr.kind) {
+      case "Identifier": {
+        const local = ctx.localAddrs.get(expr.name) ?? ctx.paramAddrs.get(expr.name);
+        if (local !== undefined) {
+          emit(`  LBM ${fmt(local)}`);
+          return true;
+        }
+        const global = globals.get(expr.name);
+        if (global !== undefined) {
+          emit(`  LBM ${fmt(global)}`);
+          return true;
+        }
+        return false;
+      }
+      default:
+        return false;
+    }
+  }
+
   function emitComparisonJump(
     expr: Expr & { kind: "BinaryExpr" },
     jumpIfTrue: boolean,
@@ -1267,6 +1610,16 @@ export function generate(program: Program): {
     if (rightConst !== null) {
       emitExpr(expr.left, ctx);
       emit(`  CMP ${rightConst}`);
+    } else if (tryEvalConst(expr.right) !== null || expr.right.kind === "Identifier") {
+      emitExpr(expr.left, ctx);
+      tryEmitExprIntoB(expr.right, ctx);
+      emit(`  CMPB`);
+    } else if (tryEvalConst(expr.left) !== null || expr.left.kind === "Identifier") {
+      emitExpr(expr.right, ctx);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emitExpr(expr.left, ctx);
+      emit(`  LBM ${fmt(TEMP_BASE)}`);
+      emit(`  CMPB`);
     } else {
       emitExpr(expr.left, ctx);
       emit(`  PUSH`);
@@ -1406,6 +1759,20 @@ export function generate(program: Program): {
         emitExpr(expr.right, ctx);
         return;
       }
+      if (rightConst !== null && isPowerOfTwo(rightConst)) {
+        emitExpr(expr.left, ctx);
+        for (let i = 0; i < log2Pow2(rightConst); i++) {
+          emit(`  SHL`);
+        }
+        return;
+      }
+      if (leftConst !== null && isPowerOfTwo(leftConst)) {
+        emitExpr(expr.right, ctx);
+        for (let i = 0; i < log2Pow2(leftConst); i++) {
+          emit(`  SHL`);
+        }
+        return;
+      }
       if (rightConst !== null) {
         emitExpr(expr.left, ctx);
         emit(`  LDB ${rightConst}`);
@@ -1427,6 +1794,17 @@ export function generate(program: Program): {
       }
       if (op === "%" && rightConst === 1) {
         emit(`  LDA 0`);
+        return;
+      }
+      if (rightConst !== null && isPowerOfTwo(rightConst)) {
+        emitExpr(expr.left, ctx);
+        if (op === "/") {
+          for (let i = 0; i < log2Pow2(rightConst); i++) {
+            emit(`  SHR`);
+          }
+        } else {
+          emit(`  AND ${rightConst - 1}`);
+        }
         return;
       }
       if (rightConst !== null) {
@@ -1462,12 +1840,21 @@ export function generate(program: Program): {
       return;
     }
 
-    // Standard binary: evaluate left → save, evaluate right → B, then op
-    emitExpr(expr.left, ctx);
-    emit(`  PUSH`);
-    emitExpr(expr.right, ctx);
-    emit(`  TAB`); // B = right
-    emit(`  POP`); // A = left
+    if (tryEvalConst(expr.right) !== null || expr.right.kind === "Identifier") {
+      emitExpr(expr.left, ctx);
+      tryEmitExprIntoB(expr.right, ctx);
+    } else if (tryEvalConst(expr.left) !== null || expr.left.kind === "Identifier") {
+      emitExpr(expr.right, ctx);
+      emit(`  STA ${fmt(TEMP_BASE)}`);
+      emitExpr(expr.left, ctx);
+      emit(`  LBM ${fmt(TEMP_BASE)}`);
+    } else {
+      emitExpr(expr.left, ctx);
+      emit(`  PUSH`);
+      emitExpr(expr.right, ctx);
+      emit(`  TAB`); // B = right
+      emit(`  POP`); // A = left
+    }
 
     switch (op) {
       case "+":
@@ -1750,14 +2137,15 @@ export function generate(program: Program): {
   function emitPostfixExpr(
     expr: Expr & { kind: "PostfixExpr" },
     ctx: FuncInfo,
+    preserveResult = true,
   ) {
     if (expr.operand.kind === "Identifier") {
       // Return old value, then increment/decrement
       loadVar(expr.operand.name, ctx, expr.line);
-      emit(`  PUSH`); // save old value as result
+      if (preserveResult) emit(`  PUSH`); // save old value as result
       emit(expr.op === "++" ? "  INC" : "  DEC");
       storeVar(expr.operand.name, ctx, expr.line);
-      emit(`  POP`); // restore old value as expression result
+      if (preserveResult) emit(`  POP`); // restore old value as expression result
     } else {
       errors.push({
         line: expr.line,
@@ -1769,7 +2157,11 @@ export function generate(program: Program): {
 
   // ─── Function calls ───
 
-  function emitCallExpr(expr: Expr & { kind: "CallExpr" }, ctx: FuncInfo) {
+  function emitCallExpr(
+    expr: Expr & { kind: "CallExpr" },
+    ctx: FuncInfo,
+    preserveResult = true,
+  ) {
     // ── Built-in: putchar(expr) ──
     if (expr.name === "putchar") {
       if (expr.args.length >= 1) {
@@ -1825,6 +2217,11 @@ export function generate(program: Program): {
         const info = resolveArrayInfo(arg.name, ctx, arg.line);
         if (!info) {
           emit(`  LDA 0`);
+          return;
+        }
+
+        if (runtimeStringLenBases.has(info.baseAddr)) {
+          emit(`  CALL ${runtimeBufferHelperLabel("strlen", info.baseAddr)}`);
           return;
         }
 
@@ -1896,11 +2293,16 @@ export function generate(program: Program): {
     // ── Built-in: draw(x, y) ──
     if (expr.name === "draw") {
       if (expr.args.length >= 2) {
-        emitExpr(expr.args[0], ctx); // x → A
-        emit(`  PUSH`); // save x
-        emitExpr(expr.args[1], ctx); // y → A
-        emit(`  TAB`); // y → B
-        emit(`  POP`); // x → A
+        if (tryEvalConst(expr.args[1]) !== null || expr.args[1].kind === "Identifier") {
+          emitExpr(expr.args[0], ctx); // x → A
+          tryEmitExprIntoB(expr.args[1], ctx); // y → B
+        } else {
+          emitExpr(expr.args[0], ctx); // x → A
+          emit(`  PUSH`); // save x
+          emitExpr(expr.args[1], ctx); // y → A
+          emit(`  TAB`); // y → B
+          emit(`  POP`); // x → A
+        }
         emit(`  DRAW`);
       }
       return;
@@ -1970,13 +2372,18 @@ export function generate(program: Program): {
     // ── Built-in: drive_write(addr, value) — external_drive[addr] ← value ──
     if (expr.name === "drive_write") {
       if (expr.args.length >= 2) {
-        emitExpr(expr.args[0], ctx); // addr → A
-        emit(`  PUSH`);
-        emitExpr(expr.args[1], ctx); // value → A
-        emit(`  TAB`); // value → B
-        emit(`  POP`); // addr → A
+        if (tryEvalConst(expr.args[1]) !== null || expr.args[1].kind === "Identifier") {
+          emitExpr(expr.args[0], ctx); // addr → A
+          tryEmitExprIntoB(expr.args[1], ctx); // value → B
+        } else {
+          emitExpr(expr.args[0], ctx); // addr → A
+          emit(`  PUSH`);
+          emitExpr(expr.args[1], ctx); // value → A
+          emit(`  TAB`); // value → B
+          emit(`  POP`); // addr → A
+        }
         emit(`  DRVWR`);
-        emit(`  TBA`); // expression result = written value
+        if (preserveResult) emit(`  TBA`); // expression result = written value
       }
       return;
     }
@@ -2012,13 +2419,18 @@ export function generate(program: Program): {
       if (expr.args.length >= 3) {
         emitExpr(expr.args[0], ctx); // page → A
         emit(`  DRVPG`);
-        emitExpr(expr.args[1], ctx); // offset → A
-        emit(`  PUSH`);
-        emitExpr(expr.args[2], ctx); // value → A
-        emit(`  TAB`); // value → B
-        emit(`  POP`); // offset → A
+        if (tryEvalConst(expr.args[2]) !== null || expr.args[2].kind === "Identifier") {
+          emitExpr(expr.args[1], ctx); // offset → A
+          tryEmitExprIntoB(expr.args[2], ctx); // value → B
+        } else {
+          emitExpr(expr.args[1], ctx); // offset → A
+          emit(`  PUSH`);
+          emitExpr(expr.args[2], ctx); // value → A
+          emit(`  TAB`); // value → B
+          emit(`  POP`); // offset → A
+        }
         emit(`  DRVWR`);
-        emit(`  TBA`); // expression result = written value
+        if (preserveResult) emit(`  TBA`); // expression result = written value
       }
       return;
     }
@@ -2137,6 +2549,15 @@ export function generate(program: Program): {
     const arrayCopyBacks: { srcBase: number; destBase: number; size: number }[] =
       [];
     const skippedRestoreAddrs = new Set<number>();
+    const laterArgsHaveUserCall = new Array(expr.args.length).fill(false);
+    let seenLaterUserCall = false;
+
+    for (let i = expr.args.length - 1; i >= 0; i--) {
+      laterArgsHaveUserCall[i] = seenLaterUserCall;
+      if (exprContainsUserCall(expr.args[i])) {
+        seenLaterUserCall = true;
+      }
+    }
 
     // 1. Save current function's frame only for recursive callers
     if (saveCallerFrame) {
@@ -2203,8 +2624,10 @@ export function generate(program: Program): {
       }
 
       emitExpr(arg, ctx);
-      emit(`  PUSH`);
-      if (param.addr !== undefined) {
+      if (param.addr !== undefined && !laterArgsHaveUserCall[i]) {
+        emit(`  STA ${fmt(param.addr)}`);
+      } else if (param.addr !== undefined) {
+        emit(`  PUSH`);
         scalarParamTargets.push(param.addr);
       }
     }
@@ -2248,10 +2671,8 @@ export function generate(program: Program): {
     ctx: FuncInfo,
     line: number,
   ): ArrayInfo | null {
-    const localArr = ctx.arrays.get(name);
-    if (localArr) return localArr;
-    const globalArr = globalArrays.get(name);
-    if (globalArr) return globalArr;
+    const info = lookupArrayInfo(name, ctx);
+    if (info) return info;
     errors.push({ line, message: `Tableau non défini: "${name}"` });
     return null;
   }

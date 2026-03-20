@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:31.251Z",
+  "generatedAt": "2026-03-20T01:09:25.437Z",
   "name": "linux-wget-url",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -219,7 +219,7 @@
           {
             "id": "drv-in",
             "label": "DRIVE IN",
-            "value": "0x57",
+            "value": "0x55",
             "handleType": "target",
             "active": false
           },
@@ -1032,7 +1032,7 @@
           {
             "id": "data-back",
             "label": "DATA -> CPU",
-            "value": "0x57",
+            "value": "0x55",
             "handleType": "source",
             "active": false
           }
@@ -1063,7 +1063,7 @@
           },
           {
             "label": "READ BYTE",
-            "value": "0x57"
+            "value": "0x55"
           },
           {
             "label": "WRITE BYTE",
@@ -1118,7 +1118,7 @@
           {
             "id": "read-data",
             "label": "READ BYTE",
-            "value": "0x57",
+            "value": "0x55",
             "handleType": "source",
             "active": false
           }
@@ -2329,7 +2329,7 @@
         "color": "#fde68a"
       },
       "data": {
-        "label": "0x57",
+        "label": "0x55",
         "color": "#fde68a",
         "active": false,
         "pulseOn": false
@@ -2350,7 +2350,7 @@
         "color": "#fef3c7"
       },
       "data": {
-        "label": "0x57",
+        "label": "0x55",
         "color": "#fef3c7",
         "active": false,
         "pulseOn": false

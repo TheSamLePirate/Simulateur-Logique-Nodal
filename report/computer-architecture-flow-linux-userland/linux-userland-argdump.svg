@@ -448,7 +448,7 @@
       <g transform="translate(36, 106)">
         <rect width="130" height="30" rx="10" fill="#020617" stroke="#1e293b" />
         <text x="10" y="12" fill="#64748b" font-size="9" font-family="system-ui">OUTPUT</text>
-        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">e page 83 size 179b
+        <text x="10" y="24" fill="#f8fafc" font-size="11" font-family="monospace">e page 81 size 179b
 </text>
       </g>
     
@@ -483,7 +483,7 @@
       
         <text x="12" y="52" fill="#dbeafe" font-size="10" font-family="monospace">root# </text>
       
-        <text x="12" y="64" fill="#dbeafe" font-size="10" font-family="monospace">type file page 83 size 179b</text>
+        <text x="12" y="64" fill="#dbeafe" font-size="10" font-family="monospace">type file page 81 size 179b</text>
       
         <text x="12" y="76" fill="#dbeafe" font-size="10" font-family="monospace"> </text>
       

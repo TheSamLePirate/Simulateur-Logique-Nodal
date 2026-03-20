@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:45.788Z",
+  "generatedAt": "2026-03-20T01:09:37.143Z",
   "name": "demo-ultime",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -8,7 +8,7 @@
   "pngPath": "report/computer-architecture-flow-cexamples/png/demo-ultime.png",
   "exampleName": "Démo Ultime",
   "halted": true,
-  "cycles": 53559,
+  "cycles": 35615,
   "consoleTail": "=== DEMO ULTIME ===\nEntrez un chiffre 0-9: 7\nMode clavier=21\nSomme recursive=28\nBrut: 39 37 42 26 26 78 12 40 \nTrie: 12 26 26 37 39 40 42 78 \nMoy=5 R=4 Amp=66\nMix=7\nChecksum=82\nFIN",
   "plotterPixels": 666,
   "nodes": [
@@ -144,7 +144,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "HLT @ 0x07F1 • cycles 53559",
+        "subtitle": "NOP @ 0x0700 • cycles 35615",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -158,7 +158,7 @@
           },
           {
             "label": "PC",
-            "value": "0x07F1"
+            "value": "0x0700"
           },
           {
             "label": "OPERAND",
@@ -177,7 +177,7 @@
           {
             "id": "mem-fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -235,7 +235,7 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x07F1",
+            "value": "0x0700",
             "handleType": "source",
             "active": true
           },
@@ -440,7 +440,7 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x07F1"
+            "value": "0x0700"
           },
           {
             "label": "OPERAND @",
@@ -448,7 +448,7 @@
           },
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "DATA BYTE",
@@ -459,7 +459,7 @@
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x07F1",
+            "value": "0x0700",
             "handleType": "target",
             "active": true
           },
@@ -494,7 +494,7 @@
           {
             "id": "fetch-data-in",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
@@ -510,7 +510,7 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x07F1",
+            "value": "0x0700",
             "handleType": "source",
             "active": true
           },
@@ -545,7 +545,7 @@
           {
             "id": "fetch-out",
             "label": "FETCH -> CPU",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -582,7 +582,7 @@
         "metrics": [
           {
             "label": "FETCH BYTE",
-            "value": "0x0F"
+            "value": "0x00"
           },
           {
             "label": "OPERAND BYTE",
@@ -601,7 +601,7 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x07F1",
+            "value": "0x0700",
             "handleType": "target",
             "active": true
           },
@@ -638,7 +638,7 @@
           {
             "id": "fetch",
             "label": "FETCH BYTE",
-            "value": "0x0F",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
@@ -1913,7 +1913,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x07F1",
+        "label": "PC 0x0700",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": true
@@ -2018,7 +2018,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x07F1",
+        "label": "0x0700",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": true
@@ -2123,7 +2123,7 @@
         "color": "#fde047"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#fde047",
         "active": true,
         "pulseOn": true
@@ -2144,7 +2144,7 @@
         "color": "#facc15"
       },
       "data": {
-        "label": "0x0F",
+        "label": "0x00",
         "color": "#facc15",
         "active": true,
         "pulseOn": true

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-19T19:55:34.818Z",
+  "generatedAt": "2026-03-20T01:09:28.411Z",
   "name": "compteur-de-lettres",
   "nodeCount": 12,
   "edgeCount": 61,
@@ -141,7 +141,7 @@
       "draggable": false,
       "data": {
         "title": "CPU Core",
-        "subtitle": "JZ @ 0x0010 • cycles 100000",
+        "subtitle": "CMP @ 0x000D • cycles 100000",
         "tone": "cpu",
         "icon": "cpu",
         "metrics": [
@@ -151,15 +151,15 @@
           },
           {
             "label": "B",
-            "value": "0x01"
+            "value": "0x00"
           },
           {
             "label": "PC",
-            "value": "0x0010"
+            "value": "0x000D"
           },
           {
             "label": "OPERAND",
-            "value": "0x000C"
+            "value": "0x0000"
           },
           {
             "label": "SP",
@@ -174,14 +174,14 @@
           {
             "id": "mem-fetch",
             "label": "FETCH BYTE",
-            "value": "0xA1",
+            "value": "0x87",
             "handleType": "target",
             "active": true
           },
           {
             "id": "mem-read",
             "label": "MEM DATA",
-            "value": "0x0A",
+            "value": "0x80",
             "handleType": "target",
             "active": false
           },
@@ -232,14 +232,14 @@
           {
             "id": "fetch-pc",
             "label": "FETCH PC",
-            "value": "0x0010",
+            "value": "0x000D",
             "handleType": "source",
             "active": true
           },
           {
             "id": "mem-addr",
             "label": "MEM ADDR",
-            "value": "IMM 0x000C",
+            "value": "IMM 0x0000",
             "handleType": "source",
             "active": false
           },
@@ -274,14 +274,14 @@
           {
             "id": "alu-b",
             "label": "ALU B",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "source",
             "active": true
           },
           {
             "id": "alu-op",
             "label": "ALU OP",
-            "value": "PASS",
+            "value": "SUB",
             "handleType": "source",
             "active": true
           },
@@ -323,7 +323,7 @@
           {
             "id": "plot-y",
             "label": "PLOT Y",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "source",
             "active": false
           },
@@ -365,7 +365,7 @@
           {
             "id": "drv-data",
             "label": "DRIVE DATA",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "source",
             "active": false
           },
@@ -393,7 +393,7 @@
           {
             "id": "net-addr",
             "label": "HTTP PTR",
-            "value": "IMM 0x000C",
+            "value": "IMM 0x0000",
             "handleType": "source",
             "active": false
           },
@@ -437,33 +437,33 @@
         "metrics": [
           {
             "label": "FETCH @",
-            "value": "0x0010"
+            "value": "0x000D"
           },
           {
             "label": "OPERAND @",
-            "value": "IMM 0x000C"
+            "value": "IMM 0x0000"
           },
           {
             "label": "FETCH BYTE",
-            "value": "0xA1"
+            "value": "0x87"
           },
           {
             "label": "DATA BYTE",
-            "value": "0x0A"
+            "value": "0x80"
           }
         ],
         "leftPins": [
           {
             "id": "fetch-in",
             "label": "FETCH ADDR",
-            "value": "0x0010",
+            "value": "0x000D",
             "handleType": "target",
             "active": true
           },
           {
             "id": "addr-in",
             "label": "OPERAND ADDR",
-            "value": "0x000C",
+            "value": "0x0000",
             "handleType": "target",
             "active": false
           },
@@ -491,14 +491,14 @@
           {
             "id": "fetch-data-in",
             "label": "FETCH BYTE",
-            "value": "0xA1",
+            "value": "0x87",
             "handleType": "target",
             "active": true
           },
           {
             "id": "read-data-in",
             "label": "READ BYTE",
-            "value": "0x0A",
+            "value": "0x80",
             "handleType": "target",
             "active": false
           }
@@ -507,14 +507,14 @@
           {
             "id": "fetch-addr-out",
             "label": "FETCH ADDR",
-            "value": "0x0010",
+            "value": "0x000D",
             "handleType": "source",
             "active": true
           },
           {
             "id": "addr-out",
             "label": "OPERAND ADDR",
-            "value": "0x000C",
+            "value": "0x0000",
             "handleType": "source",
             "active": false
           },
@@ -542,21 +542,21 @@
           {
             "id": "fetch-out",
             "label": "FETCH -> CPU",
-            "value": "0xA1",
+            "value": "0x87",
             "handleType": "source",
             "active": true
           },
           {
             "id": "operand-out",
             "label": "DATA -> CPU",
-            "value": "0x0A",
+            "value": "0x80",
             "handleType": "source",
             "active": false
           },
           {
             "id": "cstring-out",
             "label": "RAM -> URL/BODY",
-            "value": "IMM 0x000C",
+            "value": "IMM 0x0000",
             "handleType": "source",
             "active": false
           }
@@ -579,11 +579,11 @@
         "metrics": [
           {
             "label": "FETCH BYTE",
-            "value": "0xA1"
+            "value": "0x87"
           },
           {
             "label": "OPERAND BYTE",
-            "value": "0x0A"
+            "value": "0x80"
           },
           {
             "label": "READ",
@@ -598,14 +598,14 @@
           {
             "id": "fetch-addr",
             "label": "FETCH ADDR",
-            "value": "0x0010",
+            "value": "0x000D",
             "handleType": "target",
             "active": true
           },
           {
             "id": "addr",
             "label": "OPERAND ADDR",
-            "value": "0x000C",
+            "value": "0x0000",
             "handleType": "target",
             "active": false
           },
@@ -635,14 +635,14 @@
           {
             "id": "fetch",
             "label": "FETCH BYTE",
-            "value": "0xA1",
+            "value": "0x87",
             "handleType": "source",
             "active": true
           },
           {
             "id": "operand",
             "label": "READ BYTE",
-            "value": "0x0A",
+            "value": "0x80",
             "handleType": "source",
             "active": false
           }
@@ -659,13 +659,13 @@
       "draggable": false,
       "data": {
         "title": "ALU State",
-        "subtitle": "register-to-register lane",
+        "subtitle": "immediate operand in B lane",
         "tone": "alu",
         "icon": "alu",
         "metrics": [
           {
             "label": "OP",
-            "value": "PASS"
+            "value": "SUB"
           },
           {
             "label": "A",
@@ -673,7 +673,7 @@
           },
           {
             "label": "B",
-            "value": "0x01"
+            "value": "0x00"
           },
           {
             "label": "RESULT",
@@ -695,14 +695,14 @@
           {
             "id": "b-in",
             "label": "B IN",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "target",
             "active": true
           },
           {
             "id": "op-in",
             "label": "OP IN",
-            "value": "PASS",
+            "value": "SUB",
             "handleType": "target",
             "active": true
           }
@@ -745,7 +745,7 @@
           },
           {
             "label": "Y",
-            "value": "0x01"
+            "value": "0x00"
           },
           {
             "label": "RGB",
@@ -767,7 +767,7 @@
           {
             "id": "y-in",
             "label": "Y FROM CPU",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "target",
             "active": false
           },
@@ -804,7 +804,7 @@
           {
             "id": "y-out",
             "label": "Y -> FB",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "source",
             "active": false
           },
@@ -852,7 +852,7 @@
           },
           {
             "label": "X/Y",
-            "value": "0x00/0x01"
+            "value": "0x00/0x00"
           },
           {
             "label": "RGB",
@@ -879,7 +879,7 @@
           {
             "id": "y",
             "label": "Y",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "target",
             "active": false
           },
@@ -932,7 +932,7 @@
           },
           {
             "label": "DATA OUT",
-            "value": "0x01"
+            "value": "0x00"
           },
           {
             "label": "MODE",
@@ -957,7 +957,7 @@
           {
             "id": "data-in",
             "label": "DATA FROM B",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "target",
             "active": false
           },
@@ -1001,7 +1001,7 @@
           {
             "id": "data-out",
             "label": "DATA -> DRIVE",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "source",
             "active": false
           },
@@ -1085,7 +1085,7 @@
           {
             "id": "data",
             "label": "DATA IN",
-            "value": "0x01",
+            "value": "0x00",
             "handleType": "target",
             "active": false
           },
@@ -1138,7 +1138,7 @@
         "metrics": [
           {
             "label": "REQ PTR",
-            "value": "IMM 0x000C"
+            "value": "IMM 0x0000"
           },
           {
             "label": "URL",
@@ -1157,14 +1157,14 @@
           {
             "id": "addr-in",
             "label": "PTR FROM CPU",
-            "value": "IMM 0x000C",
+            "value": "IMM 0x0000",
             "handleType": "target",
             "active": false
           },
           {
             "id": "ram-in",
             "label": "RAM CSTRING",
-            "value": "0x0A",
+            "value": "0x80",
             "handleType": "target",
             "active": false
           },
@@ -1339,7 +1339,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "PC 0x0010",
+        "label": "PC 0x000D",
         "color": "#f59e0b",
         "active": true,
         "pulseOn": false
@@ -1360,7 +1360,7 @@
         "color": "#f59e0b"
       },
       "data": {
-        "label": "ADDR 0x000C",
+        "label": "ADDR 0x0000",
         "color": "#f59e0b",
         "active": false,
         "pulseOn": false
@@ -1444,7 +1444,7 @@
         "color": "#fbbf24"
       },
       "data": {
-        "label": "0x0010",
+        "label": "0x000D",
         "color": "#fbbf24",
         "active": true,
         "pulseOn": false
@@ -1465,7 +1465,7 @@
         "color": "#10b981"
       },
       "data": {
-        "label": "0x000C",
+        "label": "0x0000",
         "color": "#10b981",
         "active": false,
         "pulseOn": false
@@ -1549,7 +1549,7 @@
         "color": "#fde047"
       },
       "data": {
-        "label": "0xA1",
+        "label": "0x87",
         "color": "#fde047",
         "active": true,
         "pulseOn": false
@@ -1570,7 +1570,7 @@
         "color": "#facc15"
       },
       "data": {
-        "label": "0xA1",
+        "label": "0x87",
         "color": "#facc15",
         "active": true,
         "pulseOn": false
@@ -1591,7 +1591,7 @@
         "color": "#22d3ee"
       },
       "data": {
-        "label": "0x0A",
+        "label": "0x80",
         "color": "#22d3ee",
         "active": false,
         "pulseOn": false
@@ -1612,7 +1612,7 @@
         "color": "#22d3ee"
       },
       "data": {
-        "label": "0x0A",
+        "label": "0x80",
         "color": "#22d3ee",
         "active": false,
         "pulseOn": false
@@ -1654,7 +1654,7 @@
         "color": "#d946ef"
       },
       "data": {
-        "label": "B 0x01",
+        "label": "B 0x00",
         "color": "#d946ef",
         "active": true,
         "pulseOn": false
@@ -1675,7 +1675,7 @@
         "color": "#f472b6"
       },
       "data": {
-        "label": "PASS",
+        "label": "SUB",
         "color": "#f472b6",
         "active": true,
         "pulseOn": false
@@ -1885,7 +1885,7 @@
         "color": "#fb923c"
       },
       "data": {
-        "label": "Y 0x01",
+        "label": "Y 0x00",
         "color": "#fb923c",
         "active": false,
         "pulseOn": false
@@ -1990,7 +1990,7 @@
         "color": "#fb923c"
       },
       "data": {
-        "label": "0x01",
+        "label": "0x00",
         "color": "#fb923c",
         "active": false,
         "pulseOn": false
@@ -2116,7 +2116,7 @@
         "color": "#f97316"
       },
       "data": {
-        "label": "0x01",
+        "label": "0x00",
         "color": "#f97316",
         "active": false,
         "pulseOn": false
@@ -2242,7 +2242,7 @@
         "color": "#f97316"
       },
       "data": {
-        "label": "0x01",
+        "label": "0x00",
         "color": "#f97316",
         "active": false,
         "pulseOn": false
@@ -2368,7 +2368,7 @@
         "color": "#06b6d4"
       },
       "data": {
-        "label": "IMM 0x000C",
+        "label": "IMM 0x0000",
         "color": "#06b6d4",
         "active": false,
         "pulseOn": false

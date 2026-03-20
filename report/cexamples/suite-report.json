@@ -1,7 +1,7 @@
 {
   "suiteName": "C Example Plotter Tests",
   "suiteKey": "cexamples",
-  "generatedAt": "19 Mar 2026, 20:55:50",
+  "generatedAt": "20 Mar 2026, 02:09:41",
   "notes": [
     "Generated at the end of cexamples.test.ts during vitest.",
     "Includes visual captures from plotter-oriented bundled C examples and compiler feature checks that draw pixels."
@@ -139,9 +139,9 @@
     "[test] C Examples — Output Verification > \"Traceur de droite\" handles b=0 error",
     "[snapshot] c-cercle: report/cexamples/c-cercle.png (256x256, scale 2, pixels 7104)",
     "[test] C Examples — Output Verification > \"Cercle\" draws a circle ring on plotter",
-    "[snapshot] c-clavier-f1: report/cexamples/c-clavier-f1.png (256x256, scale 2, pixels 4)",
-    "[snapshot] c-clavier-f2: report/cexamples/c-clavier-f2.png (256x256, scale 2, pixels 1)",
-    "[snapshot] c-clavier-f3: report/cexamples/c-clavier-f3.png (256x256, scale 2, pixels 4)",
+    "[snapshot] c-clavier-f1: report/cexamples/c-clavier-f1.png (256x256, scale 2, pixels 5)",
+    "[snapshot] c-clavier-f2: report/cexamples/c-clavier-f2.png (256x256, scale 2, pixels 4)",
+    "[snapshot] c-clavier-f3: report/cexamples/c-clavier-f3.png (256x256, scale 2, pixels 5)",
     "[snapshot] c-clavier-f4: report/cexamples/c-clavier-f4.png (256x256, scale 2, pixels 4)",
     "[test] C Examples — Output Verification > \"Clavier\" draws triangle + laser with arrow keys",
     "[test] C Examples — Output Verification > \"Horloge\" starts at 00:00 and increments",
@@ -154,10 +154,10 @@
     "[test] C Examples — Output Verification > \"Tableau (Tri)\" sorts 8 elements correctly",
     "[test] C Examples — Output Verification > \"Tableau (Nouvelles Fonctionnalites)\" demonstrates array params and multi declarations",
     "[test] C Examples — Output Verification > \"Const et String\" demonstrates const data, array initializers, and string declarations",
-    "[snapshot] c-pong-f1: report/cexamples/c-pong-f1.png (256x256, scale 2, pixels 27)",
-    "[snapshot] c-pong-f2: report/cexamples/c-pong-f2.png (256x256, scale 2, pixels 33)",
-    "[snapshot] c-pong-f3: report/cexamples/c-pong-f3.png (256x256, scale 2, pixels 10)",
-    "[snapshot] c-pong-f4: report/cexamples/c-pong-f4.png (256x256, scale 2, pixels 28)",
+    "[snapshot] c-pong-f1: report/cexamples/c-pong-f1.png (256x256, scale 2, pixels 41)",
+    "[snapshot] c-pong-f2: report/cexamples/c-pong-f2.png (256x256, scale 2, pixels 29)",
+    "[snapshot] c-pong-f3: report/cexamples/c-pong-f3.png (256x256, scale 2, pixels 41)",
+    "[snapshot] c-pong-f4: report/cexamples/c-pong-f4.png (256x256, scale 2, pixels 6)",
     "[test] C Examples — Output Verification > \"Pong\" runs game loop with plotter output",
     "[snapshot] c-demo-ultime: report/cexamples/c-demo-ultime.png (256x256, scale 2, pixels 666)",
     "[test] C Examples — Output Verification > \"Démo Ultime\" combines console, keyboard, arrays, recursion and plotter",
@@ -174,9 +174,9 @@
     "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" reports disk full but still reopens existing files",
     "[test] C Examples — Output Verification > \"Éditeur Multi-fichier FS\" moves the cursor with arrow keys before deleting",
     "[snapshot] c-systeme-solaire-255-f1: report/cexamples/c-systeme-solaire-255-f1.png (256x256, scale 2, pixels 53)",
-    "[snapshot] c-systeme-solaire-255-f2: report/cexamples/c-systeme-solaire-255-f2.png (256x256, scale 2, pixels 52)",
-    "[snapshot] c-systeme-solaire-255-f3: report/cexamples/c-systeme-solaire-255-f3.png (256x256, scale 2, pixels 53)",
-    "[snapshot] c-systeme-solaire-255-f4: report/cexamples/c-systeme-solaire-255-f4.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f2: report/cexamples/c-systeme-solaire-255-f2.png (256x256, scale 2, pixels 53)",
+    "[snapshot] c-systeme-solaire-255-f3: report/cexamples/c-systeme-solaire-255-f3.png (256x256, scale 2, pixels 46)",
+    "[snapshot] c-systeme-solaire-255-f4: report/cexamples/c-systeme-solaire-255-f4.png (256x256, scale 2, pixels 52)",
     "[snapshot] c-systeme-solaire-255-f5: report/cexamples/c-systeme-solaire-255-f5.png (256x256, scale 2, pixels 53)",
     "[test] C Examples — Output Verification > \"Système Solaire 255\" draws a sun and one orbiting planet",
     "[test] Compiler — Edge Cases > empty main halts immediately",
@@ -187,6 +187,27 @@
     "[test] Compiler — Edge Cases > shrinks code size and local frame usage when a helper is unreachable",
     "[test] Compiler — Edge Cases > branches directly on comparisons in if conditions with smaller code",
     "[test] Compiler — Edge Cases > branches directly on short-circuit && conditions with smaller code",
+    "[test] Compiler — Edge Cases > peephole-folds constant putchar into a single OUT immediate",
+    "[test] Compiler — Edge Cases > removes dead code after return in both main and helper functions",
+    "[test] Compiler — Edge Cases > uses direct B loads for simple variable addition without stack traffic",
+    "[test] Compiler — Edge Cases > uses direct B loads for simple variable comparisons without stack traffic",
+    "[test] Compiler — Edge Cases > strength-reduces power-of-two multiply divide and modulo",
+    "[test] Compiler — Edge Cases > uses direct memory reads for constant array indices",
+    "[test] Compiler — Edge Cases > uses direct memory writes for constant array indices",
+    "[test] Compiler — Edge Cases > uses direct B loads for draw when y is a simple variable",
+    "[test] Compiler — Edge Cases > uses direct B loads for array writes when the index is a simple variable",
+    "[test] Compiler — Edge Cases > uses direct B loads for drive_write when the value is a simple variable",
+    "[test] Compiler — Edge Cases > does not preserve drive_write result when used as a plain statement",
+    "[test] Compiler — Edge Cases > still preserves drive_write result when used as an expression",
+    "[test] Compiler — Edge Cases > does not preserve drive_write_at result when used as a plain statement",
+    "[test] Compiler — Edge Cases > does not preserve postfix results when used as plain statements",
+    "[test] Compiler — Edge Cases > still preserves postfix results when used inside expressions",
+    "[test] Compiler — Edge Cases > uses immediate arithmetic for compound assignment with a constant rhs",
+    "[test] Compiler — Edge Cases > uses direct B loads for compound assignment with a simple variable rhs",
+    "[test] Compiler — Edge Cases > stores simple scalar call arguments directly into callee slots when later args are call-free",
+    "[test] Compiler — Edge Cases > keeps stack-based scalar argument staging when a later argument contains a user call",
+    "[test] Compiler — Edge Cases > shares a runtime helper when the same buffer is printed multiple times",
+    "[test] Compiler — Edge Cases > shares a runtime helper when string_len is used repeatedly on the same buffer",
     "[test] Compiler — Edge Cases > recursion works correctly",
     "[test] Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "[test] Compiler — Edge Cases > while loop with break condition",
@@ -214,6 +235,7 @@
     "[test] Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
     "[test] Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
     "[test] Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
+    "[test] Compiler — Edge Cases > skips useless self-copy code for recursive array parameters that stay in the same frame",
     "[test] Compiler — Edge Cases > supports multiple local declarations in one statement",
     "[test] Compiler — Edge Cases > supports multiple global declarations in one statement",
     "[test] Compiler — Edge Cases > supports multiple declarations in for-loop init",
@@ -330,7 +352,7 @@
     "[test] C Examples — Interactive Halt > \"Éditeur Multi-fichier FS\" halts when @ is entered",
     "[test] C Examples — Interactive Halt > \"Système Solaire 255\" halts when @ is entered",
     "[test] C Examples — Bootloader Args > \"Boot Args - Cat\" reads the file passed by the bootloader",
-    "[suite] 299 tests recorded"
+    "[suite] 321 tests recorded"
   ],
   "tests": [
     "C Examples — Compilation > \"Hello World\" compiles without errors",
@@ -491,6 +513,27 @@
     "Compiler — Edge Cases > shrinks code size and local frame usage when a helper is unreachable",
     "Compiler — Edge Cases > branches directly on comparisons in if conditions with smaller code",
     "Compiler — Edge Cases > branches directly on short-circuit && conditions with smaller code",
+    "Compiler — Edge Cases > peephole-folds constant putchar into a single OUT immediate",
+    "Compiler — Edge Cases > removes dead code after return in both main and helper functions",
+    "Compiler — Edge Cases > uses direct B loads for simple variable addition without stack traffic",
+    "Compiler — Edge Cases > uses direct B loads for simple variable comparisons without stack traffic",
+    "Compiler — Edge Cases > strength-reduces power-of-two multiply divide and modulo",
+    "Compiler — Edge Cases > uses direct memory reads for constant array indices",
+    "Compiler — Edge Cases > uses direct memory writes for constant array indices",
+    "Compiler — Edge Cases > uses direct B loads for draw when y is a simple variable",
+    "Compiler — Edge Cases > uses direct B loads for array writes when the index is a simple variable",
+    "Compiler — Edge Cases > uses direct B loads for drive_write when the value is a simple variable",
+    "Compiler — Edge Cases > does not preserve drive_write result when used as a plain statement",
+    "Compiler — Edge Cases > still preserves drive_write result when used as an expression",
+    "Compiler — Edge Cases > does not preserve drive_write_at result when used as a plain statement",
+    "Compiler — Edge Cases > does not preserve postfix results when used as plain statements",
+    "Compiler — Edge Cases > still preserves postfix results when used inside expressions",
+    "Compiler — Edge Cases > uses immediate arithmetic for compound assignment with a constant rhs",
+    "Compiler — Edge Cases > uses direct B loads for compound assignment with a simple variable rhs",
+    "Compiler — Edge Cases > stores simple scalar call arguments directly into callee slots when later args are call-free",
+    "Compiler — Edge Cases > keeps stack-based scalar argument staging when a later argument contains a user call",
+    "Compiler — Edge Cases > shares a runtime helper when the same buffer is printed multiple times",
+    "Compiler — Edge Cases > shares a runtime helper when string_len is used repeatedly on the same buffer",
     "Compiler — Edge Cases > recursion works correctly",
     "Compiler — Edge Cases > mutual recursion is detected and preserves correct results",
     "Compiler — Edge Cases > while loop with break condition",
@@ -516,6 +559,7 @@
     "Compiler — Edge Cases > deep recursion with a large local frame still computes the wrapped result correctly",
     "Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
     "Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
+    "Compiler — Edge Cases > skips useless self-copy code for recursive array parameters that stay in the same frame",
     "Compiler — Edge Cases > supports multiple local declarations in one statement",
     "Compiler — Edge Cases > supports multiple global declarations in one statement",
     "Compiler — Edge Cases > supports multiple declarations in for-loop init",
@@ -803,6 +847,46 @@
       "output": "[compileAndRun]\nY"
     },
     {
+      "testName": "Compiler — Edge Cases > strength-reduces power-of-two multiply divide and modulo",
+      "output": "[compileAndRun]\n232 7 5"
+    },
+    {
+      "testName": "Compiler — Edge Cases > uses direct memory reads for constant array indices",
+      "output": "[compileAndRun]\n7"
+    },
+    {
+      "testName": "Compiler — Edge Cases > uses direct memory writes for constant array indices",
+      "output": "[compileAndRun]\n77"
+    },
+    {
+      "testName": "Compiler — Edge Cases > uses direct B loads for array writes when the index is a simple variable",
+      "output": "[compileAndRun]\n77"
+    },
+    {
+      "testName": "Compiler — Edge Cases > uses direct B loads for drive_write when the value is a simple variable",
+      "output": "[compileAndRun]\n88"
+    },
+    {
+      "testName": "Compiler — Edge Cases > still preserves drive_write result when used as an expression",
+      "output": "[compileAndRun]\n65"
+    },
+    {
+      "testName": "Compiler — Edge Cases > does not preserve postfix results when used as plain statements",
+      "output": "[compileAndRun]\n6"
+    },
+    {
+      "testName": "Compiler — Edge Cases > still preserves postfix results when used inside expressions",
+      "output": "[compileAndRun]\n5 6"
+    },
+    {
+      "testName": "Compiler — Edge Cases > uses direct B loads for compound assignment with a simple variable rhs",
+      "output": "[compileAndRun]\n17"
+    },
+    {
+      "testName": "Compiler — Edge Cases > keeps stack-based scalar argument staging when a later argument contains a user call",
+      "output": "[compileAndRun]\n3 4"
+    },
+    {
       "testName": "Compiler — Edge Cases > recursion works correctly",
       "output": "[compileAndRun]\n55"
     },
@@ -891,8 +975,16 @@
       "output": "[compileAndRun]\n127 0 1"
     },
     {
+      "testName": "Compiler — Edge Cases > very deep recursion with a huge local frame has no runtime stack-overflow protection yet",
+      "output": "[compileAndRun]\n¿¿¿¿¿¿¿¿¿¿¿\u0001À"
+    },
+    {
       "testName": "Compiler — Edge Cases > recursive array copy-back still works across many recursive calls",
       "output": "[compileAndRun]\n183 61 122"
+    },
+    {
+      "testName": "Compiler — Edge Cases > skips useless self-copy code for recursive array parameters that stay in the same frame",
+      "output": "[compileAndRun]\n7"
     },
     {
       "testName": "Compiler — Edge Cases > supports multiple local declarations in one statement",
@@ -1279,7 +1371,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 4,
+      "pixelCount": 5,
       "href": "cexamples/c-clavier-f1.png"
     },
     {
@@ -1288,7 +1380,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 1,
+      "pixelCount": 4,
       "href": "cexamples/c-clavier-f2.png"
     },
     {
@@ -1297,7 +1389,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 4,
+      "pixelCount": 5,
       "href": "cexamples/c-clavier-f3.png"
     },
     {
@@ -1333,7 +1425,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 27,
+      "pixelCount": 41,
       "href": "cexamples/c-pong-f1.png"
     },
     {
@@ -1342,7 +1434,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 33,
+      "pixelCount": 29,
       "href": "cexamples/c-pong-f2.png"
     },
     {
@@ -1351,7 +1443,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 10,
+      "pixelCount": 41,
       "href": "cexamples/c-pong-f3.png"
     },
     {
@@ -1360,7 +1452,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 28,
+      "pixelCount": 6,
       "href": "cexamples/c-pong-f4.png"
     },
     {
@@ -1396,7 +1488,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 52,
+      "pixelCount": 53,
       "href": "cexamples/c-systeme-solaire-255-f2.png"
     },
     {
@@ -1405,7 +1497,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 53,
+      "pixelCount": 46,
       "href": "cexamples/c-systeme-solaire-255-f3.png"
     },
     {
@@ -1414,7 +1506,7 @@
       "width": 256,
       "height": 256,
       "scale": 2,
-      "pixelCount": 53,
+      "pixelCount": 52,
       "href": "cexamples/c-systeme-solaire-255-f4.png"
     },
     {

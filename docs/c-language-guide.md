@@ -1173,6 +1173,19 @@ This machine does not pretend to protect you from classic low-level bugs.
 
 This is inconvenient, but also educational: the tests intentionally document these breakages so the project stays honest about them.
 
+### The compiler is now much better at fitting under the code cap
+
+Recent optimizer work made the generated programs noticeably smaller without changing the language surface.
+
+- dead helpers that `main` never reaches are removed
+- repeated `print(buf)` and `string_len(buf)` scans can share runtime helpers
+- simple expressions often avoid `PUSH` / `POP`
+- powers of two are compiled with `SHL`, `SHR`, and `AND`
+- constant array indices can compile to direct memory loads/stores
+- statement-only operations such as `x++;` or `drive_write(...)` stop preserving dead results
+
+In practice, this means many bundled examples now fit more comfortably inside the `4096`-byte code area than before.
+
 ---
 
 ## 14. Programming Patterns
