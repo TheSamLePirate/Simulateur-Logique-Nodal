@@ -962,6 +962,8 @@ src/cpu/
 
 src/components/software/
   SoftwareView.tsx    Main view with controls (assemble, step, run, reset)
+  hardwareSyncTypes.ts
+                     Shared type for software -> hardware computer mirroring
   ASMEditor.tsx       Code editor with syntax highlighting
   CPUState.tsx        Register and flag display
   MemoryView.tsx      2048-byte memory hex viewer
@@ -993,6 +995,12 @@ src/components/software/
                      CPU -> Computer panel adapter reused by architecture suites
   computerArchitectureFlowSnapshot.ts
                      Writes architecture JSON + SVG + PNG artifacts for the report
+
+src/app/
+  hardwareSync.ts     Pure helpers that map CPU/runtime state onto hardware nodes
+  nodeFactories.ts    Pure helpers for creating nodes and saved-module instances
+  grouping.ts         Pure helpers for group / ungroup transforms in the hardware editor
+  useStoredState.ts   Small localStorage-backed state helper for the main app
 
 src/components/nodes/
   DriveNode.tsx       External 8 KB drive with read/write/clear controls

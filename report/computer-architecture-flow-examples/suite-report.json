@@ -1,7 +1,7 @@
 {
   "suiteName": "ASM Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-examples",
-  "generatedAt": "20 Mar 2026, 02:46:08",
+  "generatedAt": "20 Mar 2026, 04:17:08",
   "notes": [
     "Generated during computerArchitectureFlow.examples.test.ts.",
     "Exports one architecture flow snapshot for every bundled ASM example.",

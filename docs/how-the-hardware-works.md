@@ -195,7 +195,7 @@ The function `simulateNodes(nodes, edges)` visits every node in the circuit and 
     5. Store the new output in the node's data
 ```
 
-**Note:** When a program is loaded from the Software tab onto the hardware CPU (`hwCpuLoaded=true`), `simulateNodes` is **skipped** — instead, a dedicated `syncHwCpuToNodes` function derives all node data directly from the CPU state and the last executed opcode. Only `updateEdgeStyles` still runs to color/animate the wires.
+**Note:** When a program is loaded from the Software tab onto the hardware CPU (`hwCpuLoaded=true`), `simulateNodes` is **skipped** for the CPU-driven hardware scene — instead, a dedicated `syncHwCpuToNodes` path mirrors the software CPU into the hardware nodes. The React callback still lives in `src/App.tsx`, but the heavy node-mapping logic now lives in `src/app/hardwareSync.ts`. Only `updateEdgeStyles` still runs to color/animate the wires.
 
 This is also how the hardware page mirrors the software bootloader flow:
 
@@ -572,6 +572,8 @@ The clock uses a **threshold-based tick counter**: it counts simulation ticks (a
 ## 9. Grouping — Making Your Own Modules
 
 One of the most powerful features. You can select several nodes, press **Ctrl+G**, and combine them into a single **group node** (a custom module).
+
+The grouping / ungrouping flow is still orchestrated from `src/App.tsx`, but the actual graph transformation code now lives in `src/app/grouping.ts` so the behavior stays easier to read and maintain.
 
 ### How Grouping Works
 
@@ -974,7 +976,13 @@ src/
     circuits.ts           Internal circuit diagrams for inspection
     initialScene.ts       Default scene (working 8-bit computer)
 
-  App.tsx                 Main application (simulation loop, grouping, UI)
+  app/
+    grouping.ts          Pure grouping / ungrouping graph transforms
+    hardwareSync.ts      Software CPU -> hardware node mirroring helpers
+    nodeFactories.ts     Node and saved-module instantiation helpers
+    useStoredState.ts    localStorage-backed React state helper
+
+  App.tsx                 Main application shell (wires modules, state, UI)
 ```
 
 ---
