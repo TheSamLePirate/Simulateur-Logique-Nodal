@@ -4,33 +4,16 @@ import { DEFAULT_PLOTTER_COLOR } from "../plotter";
 /**
  * Initial scene: A complete 8-bit von Neumann computer
  *
- * Architecture (data flow left → right):
+ * Layout: Left-to-right data flow
  *
- *   ┌──────┐   ┌──────────┐   ┌──────┐   ┌──────┐
- *   │  PC  │──→│ ADDR MUX │──→│ SRAM  │──→│  IR  │
- *   └──────┘   └──────────┘   │2048×8│   └──────┘
- *       ↑           ↑         └──────┘
- *   [PC+1]    [OPERAND]          │ ↑
- *                                │ │
- *                                ↓ │
- *                ┌──────────┐  ┌───┴──┐     ┌─────┐
- *                │ DATA MUX │  │  A   │────→│     │
- *                └──────────┘→→│(ACC) │     │ ALU │──→ FLAGS
- *                    ↑         └──────┘     │     │
- *                 ALU.R        ┌──────┐────→│     │
- *                              │  B   │     └─────┘
- *                              └──────┘
+ *   FETCH          ADDRESS       MEMORY      DECODE       DATA PATH     REGISTERS      ALU         FLAGS
+ *   PC ──────────→ ADDR MUX ──→ SRAM ──────→ IR          DATA MUX ──→  A (ACC) ────→ ALU ──────→ Z,C,N
+ *   PC+1 ↻        SP/OP MUX ↗               IR_LOAD     sel           B             ALU B MUX
+ *   PC SRC MUX     OPERAND                                             A_LOAD        OP0,OP1,OP2
+ *                  SP                                                   B_LOAD
  *
- *   CLOCK ──→ all registers (CLK)
- *   Control switches: LOAD enables, MUX selects, MEM_WE, ALU_OP, RST
- *
- *   I/O Peripherals:
- *   ┌──────────┐     ┌──────────┐
- *   │ CONSOLE  │     │ PLOTTER  │
- *   │ (text)   │     │ (256×256)│
- *   └──────────┘     └──────────┘
- *     A → DATA         A → X, B → Y
- *     WR strobe        DRAW strobe
+ *   I/O PERIPHERALS (below CPU):
+ *   CONSOLE    PLOTTER    KEYBOARD    DRIVE    NETWORK
  */
 
 // ── Helper: generate 8 edges for an 8-bit bus connection ──
@@ -73,90 +56,105 @@ const wire = (
 // ═══════════════════════════════════════════
 
 export const initialNodes: Node[] = [
-  // ─── SYSTEM CLOCK ───
+  // ─── SYSTEM CLOCK (top center) ───
   {
     id: "clk",
     type: "clock",
-    position: { x: 700, y: -180 },
+    position: { x: 1500, y: -400 },
     data: { label: "CLK", value: 0, frequency: 2, tickCounter: 0 },
   },
 
   // ═════════════════════════════════
-  //  FETCH UNIT (left section)
+  //  FETCH UNIT (x ≈ -350 to 0)
   // ═════════════════════════════════
 
   // Program Counter register
   {
     id: "pc",
     type: "register8",
-    position: { x: 50, y: 20 },
+    position: { x: 0, y: 0 },
     data: { label: "PC", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // PC value display
   {
     id: "pcDisp",
     type: "outputNumber",
-    position: { x: 50, y: -100 },
+    position: { x: 30, y: -230 },
     data: { label: "PC", value: 0 },
   },
-  // PC load enable (for jumps)
+  // PC load enable
   {
     id: "pcLoad",
     type: "input",
-    position: { x: -80, y: 120 },
+    position: { x: -30, y: 310 },
     data: { label: "PC_LOAD", value: 1 },
   },
 
   // ─── PC INCREMENTER ───
-  // Adder adds 1 to current PC value
   {
     id: "pcInc",
     type: "adder8",
-    position: { x: -200, y: 280 },
+    position: { x: -350, y: 0 },
     data: { sum: Array(8).fill(0), cout: 0 },
   },
   // Constant 1 for PC increment
   {
     id: "pcOne",
     type: "inputNumber",
-    position: { x: -200, y: 480 },
+    position: { x: -350, y: 400 },
     data: { label: "CONST_1", value: 1 },
   },
 
+  // ─── PC SOURCE MUX ───
+  // sel=0 → PC+1 (sequential), sel=1 → OPERAND (jump/call target)
+  {
+    id: "pcSrcMux",
+    type: "mux8",
+    position: { x: -50, y: 420 },
+    data: { label: "PC SRC MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
+  },
+  // PC jump select control
+  {
+    id: "pcJmp",
+    type: "input",
+    position: { x: -200, y: 380 },
+    data: { label: "PC_JMP", value: 0 },
+  },
+
   // ═════════════════════════════════
-  //  ADDRESS SELECTION
+  //  ADDRESS SELECTION (x ≈ 550)
   // ═════════════════════════════════
 
-  // Address MUX: sel=0 → PC (fetch), sel=1 → OPERAND (data access)
+  // Address MUX: sel=0 → PC (fetch), sel=1 → SP/OP MUX (data access)
   {
     id: "addrMux",
     type: "mux8",
-    position: { x: 400, y: 60 },
+    position: { x: 550, y: 0 },
     data: { label: "ADDR MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // Address source select switch
   {
     id: "addrSel",
     type: "input",
-    position: { x: 300, y: -20 },
+    position: { x: 400, y: -50 },
     data: { label: "ADDR_SEL", value: 0 },
   },
-  // Manual operand address input (for LDM/STA addresses)
+  // Manual operand address input
   {
     id: "operand",
     type: "inputNumber",
-    position: { x: 300, y: 480 },
+    position: { x: 350, y: 750 },
     data: { label: "OPERAND", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  MEMORY (SRAM 1024×8)
+  //  MEMORY (SRAM 1024×8) (x ≈ 1150)
   // ═════════════════════════════════
 
   {
     id: "sram",
     type: "sram8",
-    position: { x: 680, y: 60 },
+    position: { x: 1150, y: 0 },
     data: {
       memory: Array(2048).fill(0),
       q: Array(8).fill(0),
@@ -167,85 +165,84 @@ export const initialNodes: Node[] = [
   {
     id: "memWE",
     type: "input",
-    position: { x: 600, y: 280 },
+    position: { x: 1000, y: 460 },
     data: { label: "MEM_WE", value: 0 },
   },
   // Memory read display
   {
     id: "memDisp",
     type: "outputNumber",
-    position: { x: 680, y: -60 },
+    position: { x: 1180, y: -230 },
     data: { label: "MEM_OUT", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  DECODE (Instruction Register)
+  //  DECODE — Instruction Register (x ≈ 1750)
   // ═════════════════════════════════
 
-  // IR captures the opcode fetched from memory
   {
     id: "ir",
     type: "register8",
-    position: { x: 1000, y: 60 },
+    position: { x: 1750, y: 0 },
     data: { label: "IR", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // IR load enable
   {
     id: "irLoad",
     type: "input",
-    position: { x: 920, y: 260 },
+    position: { x: 1600, y: 310 },
     data: { label: "IR_LOAD", value: 1 },
   },
   // IR value display
   {
     id: "irDisp",
     type: "outputNumber",
-    position: { x: 1000, y: -60 },
+    position: { x: 1780, y: -230 },
     data: { label: "IR", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  DATA PATH MUX
+  //  DATA PATH MUX (x ≈ 1750, below IR)
   // ═════════════════════════════════
 
   // Data MUX: sel=0 → ALU result, sel=1 → Memory data
   {
     id: "dataMux",
     type: "mux8",
-    position: { x: 1250, y: 60 },
+    position: { x: 1750, y: 450 },
     data: { label: "DATA MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // Data source select switch
   {
     id: "dataSel",
     type: "input",
-    position: { x: 1150, y: -20 },
+    position: { x: 1600, y: 410 },
     data: { label: "DATA_SEL", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  REGISTERS
+  //  REGISTERS (x ≈ 2350)
   // ═════════════════════════════════
 
   // Accumulator — the main register
   {
     id: "aReg",
     type: "register8",
-    position: { x: 1450, y: 20 },
+    position: { x: 2350, y: 0 },
     data: { label: "A (ACC)", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // A load enable
   {
     id: "aLoad",
     type: "input",
-    position: { x: 1350, y: 180 },
+    position: { x: 2200, y: 310 },
     data: { label: "A_LOAD", value: 1 },
   },
   // A value display
   {
     id: "aDisp",
     type: "outputNumber",
-    position: { x: 1450, y: -100 },
+    position: { x: 2380, y: -230 },
     data: { label: "A (ACC)", value: 0 },
   },
 
@@ -253,32 +250,32 @@ export const initialNodes: Node[] = [
   {
     id: "bReg",
     type: "register8",
-    position: { x: 1450, y: 420 },
+    position: { x: 2350, y: 600 },
     data: { label: "B", value: 0, q: Array(8).fill(0), prevClk: 0 },
   },
   // B load enable
   {
     id: "bLoad",
     type: "input",
-    position: { x: 1350, y: 580 },
+    position: { x: 2200, y: 910 },
     data: { label: "B_LOAD", value: 0 },
   },
   // B value display
   {
     id: "bDisp",
     type: "outputNumber",
-    position: { x: 1450, y: 330 },
+    position: { x: 2380, y: 370 },
     data: { label: "B", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  ALU — Arithmetic Logic Unit
+  //  ALU — Arithmetic Logic Unit (x ≈ 2950)
   // ═════════════════════════════════
 
   {
     id: "alu",
     type: "alu8",
-    position: { x: 1750, y: 60 },
+    position: { x: 2950, y: 0 },
     data: {
       a: 0,
       b: 0,
@@ -294,47 +291,47 @@ export const initialNodes: Node[] = [
   {
     id: "op0",
     type: "input",
-    position: { x: 1700, y: 280 },
+    position: { x: 2950, y: 500 },
     data: { label: "ALU_OP0", value: 0 },
   },
   {
     id: "op1",
     type: "input",
-    position: { x: 1700, y: 340 },
+    position: { x: 2950, y: 590 },
     data: { label: "ALU_OP1", value: 0 },
   },
   {
     id: "op2",
     type: "input",
-    position: { x: 1700, y: 400 },
+    position: { x: 2950, y: 680 },
     data: { label: "ALU_OP2", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  FLAGS — ALU Status Outputs
+  //  FLAGS — ALU Status Outputs (x ≈ 3350)
   // ═════════════════════════════════
 
   {
     id: "flagZ",
     type: "output",
-    position: { x: 2000, y: 60 },
+    position: { x: 3350, y: 60 },
     data: { label: "ZERO", value: 0 },
   },
   {
     id: "flagC",
     type: "output",
-    position: { x: 2000, y: 130 },
+    position: { x: 3350, y: 180 },
     data: { label: "CARRY", value: 0 },
   },
   {
     id: "flagN",
     type: "output",
-    position: { x: 2000, y: 200 },
+    position: { x: 3350, y: 300 },
     data: { label: "NEG", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  STACK POINTER
+  //  STACK POINTER (x ≈ 200, below address group)
   // ═════════════════════════════════
 
   {
@@ -352,116 +349,94 @@ export const initialNodes: Node[] = [
   {
     id: "spLoad",
     type: "input",
-    position: { x: 100, y: 600 },
+    position: { x: 50, y: 600 },
     data: { label: "SP_LOAD", value: 0 },
   },
   // SP value display
   {
     id: "spDisp",
     type: "outputNumber",
-    position: { x: 200, y: 400 },
+    position: { x: 200, y: 270 },
     data: { label: "SP", value: 255 },
   },
 
   // ═════════════════════════════════
-  //  PC SOURCE MUX
-  // ═════════════════════════════════
-  // sel=0 → PC+1 (sequential), sel=1 → OPERAND (jump/call target)
-  {
-    id: "pcSrcMux",
-    type: "mux8",
-    position: { x: 50, y: 280 },
-    data: { label: "PC SRC MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
-  },
-  // PC jump select control
-  {
-    id: "pcJmp",
-    type: "input",
-    position: { x: -80, y: 200 },
-    data: { label: "PC_JMP", value: 0 },
-  },
-
-  // ═════════════════════════════════
-  //  ALU B SOURCE MUX
+  //  ALU B SOURCE MUX (x ≈ 2800)
   // ═════════════════════════════════
   // sel=0 → B register, sel=1 → OPERAND (immediate value)
   {
     id: "aluBMux",
     type: "mux8",
-    position: { x: 1650, y: 360 },
+    position: { x: 2800, y: 500 },
     data: { label: "ALU B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // ALU immediate select control
   {
     id: "aluImm",
     type: "input",
-    position: { x: 1600, y: 280 },
+    position: { x: 2650, y: 460 },
     data: { label: "ALU_IMM", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  SP/OPERAND MUX (Address B source)
+  //  SP/OPERAND MUX (x ≈ 550, below address MUX)
   // ═════════════════════════════════
   // sel=0 → OPERAND (data address), sel=1 → SP (stack address)
   {
     id: "spOpMux",
     type: "mux8",
-    position: { x: 400, y: 320 },
+    position: { x: 550, y: 430 },
     data: { label: "ADDR B MUX", sel: 0, outVal: 0, out: Array(8).fill(0) },
   },
   // SP/Operand select control
   {
     id: "spSel",
     type: "input",
-    position: { x: 300, y: 250 },
+    position: { x: 400, y: 390 },
     data: { label: "SP_SEL", value: 0 },
   },
 
   // ═════════════════════════════════
-  //  I/O PERIPHERALS
+  //  I/O PERIPHERALS (below CPU, y ≈ 1300+)
   // ═════════════════════════════════
 
-  // Console output — displays characters from A register
+  // ─── CONSOLE ───
   {
     id: "console",
     type: "console",
-    position: { x: 2100, y: -180 },
+    position: { x: 200, y: 1300 },
     data: { label: "CONSOLE", text: "", lastChar: 0, prevWr: 0 },
   },
-  // Console write strobe
   {
     id: "consoleWr",
     type: "input",
-    position: { x: 2000, y: -40 },
+    position: { x: 50, y: 1680 },
     data: { label: "CON_WR", value: 0 },
   },
-  // Console mode (0=ASCII, 1=decimal)
   {
     id: "consoleMode",
     type: "input",
-    position: { x: 2000, y: 30 },
+    position: { x: 50, y: 1770 },
     data: { label: "CON_MODE", value: 0 },
   },
-  // Console clear
   {
     id: "consoleClear",
     type: "input",
-    position: { x: 2000, y: 100 },
+    position: { x: 50, y: 1860 },
     data: { label: "CON_CLR", value: 0 },
   },
-  // Console read strobe (for INA instruction)
   {
     id: "consoleRd",
     type: "input",
-    position: { x: 2350, y: -40 },
+    position: { x: 500, y: 1680 },
     data: { label: "CON_RD", value: 0 },
   },
 
-  // Plotter output — plots pixels at (A, B) coordinates
+  // ─── PLOTTER ───
   {
     id: "plotter",
     type: "plotter",
-    position: { x: 2100, y: 340 },
+    position: { x: 900, y: 1300 },
     data: {
       label: "PLOTTER",
       pixels: [],
@@ -470,59 +445,56 @@ export const initialNodes: Node[] = [
       currentColor: DEFAULT_PLOTTER_COLOR,
     },
   },
-  // Plotter draw strobe
   {
     id: "plotDraw",
     type: "input",
-    position: { x: 2000, y: 540 },
+    position: { x: 750, y: 2100 },
     data: { label: "DRAW", value: 0 },
   },
-  // Plotter clear
   {
     id: "plotClear",
     type: "input",
-    position: { x: 2000, y: 610 },
+    position: { x: 750, y: 2190 },
     data: { label: "PLOT_CLR", value: 0 },
   },
   {
     id: "plotColorR",
     type: "inputNumber",
-    position: { x: 1710, y: 250 },
+    position: { x: 650, y: 1300 },
     data: { label: "PLOT_R", value: DEFAULT_PLOTTER_COLOR.r },
   },
   {
     id: "plotColorG",
     type: "inputNumber",
-    position: { x: 1710, y: 430 },
+    position: { x: 650, y: 1530 },
     data: { label: "PLOT_G", value: DEFAULT_PLOTTER_COLOR.g },
   },
   {
     id: "plotColorB",
     type: "inputNumber",
-    position: { x: 1710, y: 610 },
+    position: { x: 650, y: 1760 },
     data: { label: "PLOT_B", value: DEFAULT_PLOTTER_COLOR.b },
   },
 
-  // Keyboard controller — reads arrow keys and Enter
+  // ─── KEYBOARD ───
   {
     id: "keyboard",
     type: "keyboard",
-    position: { x: 2100, y: 940 },
+    position: { x: 1400, y: 1300 },
     data: { label: "KEYBOARD", keys: [0, 0, 0, 0, 0] },
   },
-  // Keyboard read strobe (for GETKEY instruction)
   {
     id: "keyRd",
     type: "input",
-    position: { x: 2350, y: 1120 },
+    position: { x: 1650, y: 1580 },
     data: { label: "KEY_RD", value: 0 },
   },
 
-  // External drive — 64K byte-addressed peripheral
+  // ─── EXTERNAL DRIVE ───
   {
     id: "drive",
     type: "drive",
-    position: { x: 2100, y: 1280 },
+    position: { x: 1950, y: 1300 },
     data: {
       label: "EXT DRIVE",
       bytes: Array(65536).fill(0),
@@ -537,30 +509,32 @@ export const initialNodes: Node[] = [
   {
     id: "driveRd",
     type: "input",
-    position: { x: 2350, y: 1430 },
+    position: { x: 2280, y: 1790 },
     data: { label: "DRV_RD", value: 0 },
   },
   {
     id: "driveWr",
     type: "input",
-    position: { x: 2000, y: 1430 },
+    position: { x: 1800, y: 1790 },
     data: { label: "DRV_WR", value: 0 },
   },
   {
     id: "driveClear",
     type: "input",
-    position: { x: 2000, y: 1500 },
+    position: { x: 1800, y: 1880 },
     data: { label: "DRV_CLR", value: 0 },
   },
+
+  // ─── NETWORK ───
   {
     id: "network",
     type: "network",
-    position: { x: 2100, y: 1710 },
+    position: { x: 2550, y: 1300 },
     data: {
       label: "NETWORK",
       method: "GET",
       url: "https://jsonplaceholder.typicode.com/todos/1",
-      body: "{\"title\":\"foo\"}",
+      body: '{"title":"foo"}',
       q: Array(8).fill(0),
       avail: 0,
       pending: 0,
@@ -576,25 +550,25 @@ export const initialNodes: Node[] = [
   {
     id: "netGet",
     type: "input",
-    position: { x: 1980, y: 1750 },
+    position: { x: 2400, y: 1730 },
     data: { label: "NET_GET", value: 0 },
   },
   {
     id: "netPost",
     type: "input",
-    position: { x: 1980, y: 1820 },
+    position: { x: 2400, y: 1820 },
     data: { label: "NET_POST", value: 0 },
   },
   {
     id: "netRd",
     type: "input",
-    position: { x: 2390, y: 1820 },
+    position: { x: 2880, y: 1730 },
     data: { label: "NET_RD", value: 0 },
   },
   {
     id: "netClear",
     type: "input",
-    position: { x: 1980, y: 1890 },
+    position: { x: 2400, y: 1910 },
     data: { label: "NET_CLR", value: 0 },
   },
 
@@ -606,7 +580,7 @@ export const initialNodes: Node[] = [
   {
     id: "rst",
     type: "input",
-    position: { x: 820, y: 280 },
+    position: { x: 1000, y: 550 },
     data: { label: "RST", value: 0 },
   },
 ];

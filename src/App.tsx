@@ -33,7 +33,11 @@ import {
   USER_GUIDE_FR_MARKDOWN,
 } from "./content/generatedUserGuides";
 import { useStoredState } from "./app/useStoredState";
-import { createNode, instantiateSavedModuleNode, type AppNodeType } from "./app/nodeFactories";
+import {
+  createNode,
+  instantiateSavedModuleNode,
+  type AppNodeType,
+} from "./app/nodeFactories";
 import {
   applyGroupToEdges,
   applyGroupToNodes,
@@ -260,7 +264,8 @@ export default function App() {
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id !== nodeId || node.type !== "network") return node;
-          if ((node.data.requestSerial as number) !== requestSerial) return node;
+          if ((node.data.requestSerial as number) !== requestSerial)
+            return node;
           return {
             ...node,
             data: {
@@ -716,7 +721,9 @@ export default function App() {
             onToggleScenes={() => setScenesOpen((open) => !open)}
             onLoadScene={loadScene}
             onDeleteScene={(sceneId) =>
-              setSavedScenes((prev) => prev.filter((scene) => scene.id !== sceneId))
+              setSavedScenes((prev) =>
+                prev.filter((scene) => scene.id !== sceneId),
+              )
             }
             onSaveScene={saveCurrentScene}
             onAddNode={addNode}

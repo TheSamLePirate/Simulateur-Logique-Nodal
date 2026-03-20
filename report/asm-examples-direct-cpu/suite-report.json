@@ -1,7 +1,7 @@
 {
   "suiteName": "ASM Examples Direct CPU Tests",
   "suiteKey": "asm-examples-direct-cpu",
-  "generatedAt": "20 Mar 2026, 04:16:51",
+  "generatedAt": "20 Mar 2026, 14:52:15",
   "notes": [
     "Generated during asmExamplesCoverage.test.ts.",
     "Runs every bundled ASM example through a real runnable workflow and records console and plotter state.",

@@ -1,7 +1,7 @@
 {
   "suiteName": "Computer Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow",
-  "generatedAt": "20 Mar 2026, 04:16:52",
+  "generatedAt": "20 Mar 2026, 14:52:16",
   "notes": [
     "Generated during computerArchitectureFlow.test.ts.",
     "This suite exports JSON and SVG architecture snapshots for structural verification.",

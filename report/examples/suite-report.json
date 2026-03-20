@@ -1,7 +1,7 @@
 {
   "suiteName": "ASM Example Plotter Tests",
   "suiteKey": "examples",
-  "generatedAt": "20 Mar 2026, 04:16:52",
+  "generatedAt": "20 Mar 2026, 14:52:16",
   "notes": [
     "Generated at the end of examples.test.ts during vitest.",
     "Covers Super Unix Shell Plotter visual states captured from the ASM example suite."

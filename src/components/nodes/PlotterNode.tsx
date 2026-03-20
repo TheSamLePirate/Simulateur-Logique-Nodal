@@ -1,7 +1,11 @@
 import { Handle, Position, useUpdateNodeInternals } from "@xyflow/react";
 import { useEffect, useMemo, useRef } from "react";
 import { Grid3X3 } from "lucide-react";
-import { DEFAULT_PLOTTER_COLOR, type PlotterColor, type PlotterPixel } from "../../plotter";
+import {
+  DEFAULT_PLOTTER_COLOR,
+  type PlotterColor,
+  type PlotterPixel,
+} from "../../plotter";
 
 const CANVAS_SIZE = 128; // display size in CSS pixels
 const GRID_SIZE = 256; // logical pixel grid (256×256)
@@ -13,8 +17,14 @@ export const PlotterNode = ({ id, data }: any) => {
     () => (data.pixels as PlotterPixel[]) || [],
     [data.pixels],
   );
-  const currentColor = (data.currentColor as PlotterColor) || DEFAULT_PLOTTER_COLOR;
+  const currentColor =
+    (data.currentColor as PlotterColor) || DEFAULT_PLOTTER_COLOR;
   const pixelCount = pixels.length;
+
+  // Register handles with React Flow after mount
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, updateNodeInternals]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,10 +42,6 @@ export const PlotterNode = ({ id, data }: any) => {
       ctx.fillRect(x, y, 1, 1);
     }
   }, [pixels]);
-
-  useEffect(() => {
-    updateNodeInternals(id);
-  }, [id, updateNodeInternals]);
 
   return (
     <div className="bg-slate-800 border-2 border-cyan-600 rounded-md p-2 min-w-[180px] shadow-lg flex flex-col">
@@ -91,11 +97,14 @@ export const PlotterNode = ({ id, data }: any) => {
                 {label} [0..7]
               </div>
               {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <div key={`${prefix}${i}`} className="relative h-3 flex items-center">
+                <div
+                  key={`${prefix}${i}`}
+                  className="relative h-3 flex items-center"
+                >
                   <Handle
                     type="target"
                     position={Position.Left}
-                    id={`${prefix.toLowerCase()}${i}`}
+                    id={`${label.toLowerCase()}${i}`}
                     className={`w-2 h-2 -ml-3 ${dotClass}`}
                   />
                   <span className="text-[8px] text-slate-500 font-mono ml-1">

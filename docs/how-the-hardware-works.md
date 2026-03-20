@@ -703,34 +703,25 @@ Stores one byte. 8 copies of the 1-bit D-Latch sharing one Write Enable.
 
 When you open the simulator, you see a pre-built circuit that forms a **complete 8-bit von Neumann computer**. Here's what it contains:
 
+The current default scene is laid out as a **left-to-right teaching flow** so you can read the machine by stages:
+
+- **Fetch** on the left (`PC`, incrementer, `PC SRC MUX`)
+- **Address selection** next (`ADDR MUX`, `SP/OP MUX`, `OPERAND`)
+- **Memory** and **decode** in the middle (`SRAM`, `IR`)
+- **Data path**, **registers**, **ALU**, and **flags** to the right
+- **Peripherals** grouped below the CPU (`CONSOLE`, `PLOTTER`, `KEYBOARD`, `DRIVE`, `NETWORK`)
+
 ### Architecture
 
 ```
-  ┌──────┐   ┌──────────┐   ┌────────┐   ┌──────┐
-  │  PC  │──→│ ADDR MUX │──→│  SRAM  │──→│  IR  │
-  └──────┘   └──────────┘   │1024×8  │   └──────┘
-      ↑           ↑         └────────┘
-  [PC+1]    [SP/OP MUX]        │ ↑
-                               │ │
-                               ↓ │
-               ┌──────────┐  ┌───┴──┐     ┌─────┐
-               │ DATA MUX │  │  A   │────→│     │
-               └──────────┘→→│(ACC) │     │ ALU │──→ FLAGS (Z, C, N)
-                   ↑         └──────┘     │     │
-                ALU.R        ┌──────┐────→│     │
-                             │  B   │     └─────┘
-                             └──────┘
+  FETCH          ADDRESS       MEMORY      DECODE       DATA PATH     REGISTERS      ALU         FLAGS
+  PC ──────────→ ADDR MUX ──→ SRAM ──────→ IR          DATA MUX ──→  A (ACC) ────→ ALU ──────→ Z,C,N
+  PC+1 ↻        SP/OP MUX ↗               IR_LOAD     sel           B             ALU B MUX
+  PC SRC MUX     OPERAND                                             A_LOAD        OP0,OP1,OP2
+                 SP                                                   B_LOAD
 
-  CLOCK ──→ all registers (CLK)
-  Control switches: LOAD enables, MUX selects, MEM_WE, ALU_OP, RST
-
-  I/O Peripherals:
-  ┌──────────────┐     ┌──────────┐
-  │   CONSOLE    │     │ PLOTTER  │
-  │ (text I/O)   │     │256×256 RGB│
-  │ D0-D7 → text │     └──────────┘
-  │ Q0-Q7 ← input│       A → X, B → Y
-  └──────────────┘       DRAW strobe
+  I/O PERIPHERALS (below CPU):
+  CONSOLE    PLOTTER    KEYBOARD    DRIVE    NETWORK
 ```
 
 ### Components
@@ -743,10 +734,10 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **pcInc** | Adder8 | PC + 1 incrementer |
 | **pcOne** | InputNumber (=1) | Constant 1 for PC increment |
 | **pcSrcMux** | MUX8 | Selects PC source: PC+1 (sequential) or operand (jump) |
-| **addrMux** | MUX8 | Selects memory address: PC (fetch) or operand (data access) |
+| **addrMux** | MUX8 | Selects memory address: PC (fetch) or the SP/operand address path |
 | **addrSel** | Input | Address MUX select control |
 | **operand** | InputNumber | Manual operand address / immediate value |
-| **sram** | SRAM8 (1024×8) | Main memory (code + data + stack) |
+| **sram** | SRAM8 (2048×8 in the default scene) | Main memory node used by the hardware computer scene |
 | **memWE** | Input | Memory write enable |
 | **memDisp** | OutputNumber | Shows SRAM read value |
 | **ir** | Register8 | Instruction Register — holds current opcode |
@@ -786,7 +777,9 @@ When you open the simulator, you see a pre-built circuit that forms a **complete
 | **plotDraw** | Input | Plotter draw strobe |
 | **plotClear** | Input | Clear plotter display |
 | **plotColorR/G/B** | InputNumber | 8-bit RGB color buses for the plotter |
-| **drive** | Drive | 8 KB external storage peripheral |
+| **keyboard** | Keyboard | Arrow-key + Enter input peripheral |
+| **keyRd** | Input | Keyboard read strobe (for GETKEY instruction) |
+| **drive** | Drive | 64 KB paged external storage peripheral |
 | **driveRd** | Input | Drive read strobe |
 | **driveWr** | Input | Drive write strobe |
 | **driveClear** | Input | Clear the external drive |
@@ -820,10 +813,24 @@ The plotter stores a full **RGB color** for each pixel.
 - **R0-R7**, **G0-G7**, and **B0-B7** provide 8-bit red/green/blue color inputs
 - **DRAW** plots one pixel on the rising edge
 - **CLR** clears the whole screen
+- In the default computer scene, `A` feeds `X`, `B` feeds `Y`, and the `plotColorR`, `plotColorG`, and `plotColorB` nodes drive the RGB buses directly
 - When the software CPU is driving the hardware view, the current plotter color is latched by the `COLR`, `COLG`, and `COLB` instructions (these are what C `color(r, g, b)` compiles to)
 - A later `DRAW` uses that latched color for the pixel it writes
 
 If no RGB wires are attached, the plotter keeps its current color. That keeps older scenes compatible while letting hardware circuits drive colors directly.
+
+### Keyboard Node Details
+
+The keyboard node exposes five live key lines:
+
+- **K0** = Left
+- **K1** = Right
+- **K2** = Up
+- **K3** = Down
+- **K4** = Enter
+- **RD** is the read strobe used by the hardware-side `GETKEY` path
+
+The node listens to your real keyboard while the hardware page is open, so it acts like a small directional controller wired straight into the scene.
 
 ### Network Controller Node Details
 
@@ -852,19 +859,21 @@ When the software CPU is driving the hardware view, `HTTPGET`, `HTTPPOST`, and `
 
 ### External Drive Node Details
 
-The external drive node is a **persistent 8 KB storage device**. It supports a full **13-bit address** (`0..8191`) and is used both for raw byte access and for the bootloader's disk file system.
+The external drive node is a **persistent 64 KB storage device** with **256-byte pages**. It is used both for raw byte access and for the bootloader's disk file system.
 
 **Left side (inputs):**
-- **A0-A12**: 13-bit address bus
+- **A0-A15**: 16-bit address bus
 - **D0-D7**: 8-bit data input bus for writes
 - **RD**: Read strobe — on rising edge, loads the selected byte onto Q0-Q7
 - **WR**: Write strobe — on rising edge, stores D0-D7 into the selected drive address
-- **CLR**: Clear strobe — zeroes the whole 8 KB drive
+- **CLR**: Clear strobe — zeroes the whole drive
 
 **Right side (outputs):**
 - **Q0-Q7**: 8-bit data output bus containing the last byte read
 
 The node shows the current absolute address, the current page preview, and the last read/write values, which makes it easier to debug the shared disk file system and bootloader programs visually.
+
+In the default computer scene, only the low 8 address bits are wired directly from register `A`; larger addresses are reached through the drive page mechanism used by the software CPU.
 
 In the software CPU, the matching instructions are:
 
@@ -877,21 +886,25 @@ The external drive is intentionally **not cleared by CPU reset**, so it behaves 
 
 ### How to Use It
 
-1. **Simple addition:** Set DATA to 5, OP to 000 (ADD), LOAD to 1. Each clock tick, ACC = ACC + 5. Watch it count: 5, 10, 15, 20...
+1. **Follow the main data path visually:** Read the scene left to right: `PC` and `PC SRC MUX`, then `ADDR MUX`, then `SRAM`, then `IR`, `DATA MUX`, registers `A`/`B`, the ALU, and finally the flag outputs.
 
-2. **Subtraction:** Set OP to 001 (SUB). Set DATA to 3. Each tick subtracts 3.
+2. **Watch sequential execution:** Leave `pcJmp=0`, `addrSel=0`, and `pcLoad=1`, then tick the clock. `PC` will follow the `PC+1` path through `pcInc` and `pcSrcMux`.
 
-3. **Reset:** Set RST to 1 for one tick, then back to 0. ACC goes to 0.
+3. **Experiment with jumps manually:** Change `operand` to a target address, set `pcJmp=1`, and tick with `pcLoad=1`. The next `PC` value will come from the operand path instead of `PC+1`.
 
-4. **Store to memory:** Set memAddr to an address, memWE to 1. The current ACC value is written to SRAM at that address.
+4. **Switch memory addressing modes:** Use `addrSel` to choose between instruction fetch (`PC`) and the alternate address path. Then use `spSel` to decide whether that alternate path comes from `operand` or `SP`.
 
-5. **Read from memory:** Set memAddr, memWE to 0. memOut shows the stored value.
+5. **Read and write memory:** Watch `memDisp` for the current SRAM output. To store a byte, place the value in `A`, select the target address path, and pulse `memWE`.
 
-6. **Load a program from Software tab:** Switch to the "Logiciel" (Software) tab, write/load an ASM or C program, assemble it, then switch back to Hardware. In direct mode the program is loaded normally. In bootloader mode, compile prepares the current program artifact, `Run` or `Step` loads the Unix-like shell if needed, and compiled programs can be stored on the external drive, listed, and launched from there without interrupting a live shell.
+6. **Drive the plotter directly:** `A` already feeds plotter `X`, `B` feeds plotter `Y`, and the RGB number inputs feed the color buses. Pulse `DRAW` to place one pixel or `PLOT_CLR` to erase the image.
 
-7. **Bootloader lifecycle on Hardware page:** If a disk program halts, the software view automatically returns to the bootloader prompt and the Hardware page mirrors that change as well. The external drive node keeps its contents because the disk is persistent across reset.
+7. **Use live peripherals:** The console can be written or read by strobing its control pins, the keyboard reflects your arrow keys and Enter, the drive shows a paged byte preview, and the network node exposes host-backed `GET`/`POST` requests.
 
-8. **Bootloader file arguments:** The shell now supports `run program file`. When you launch a program that way, the bootloader resolves the file entry first and writes its metadata to RAM at `0x1018..0x101F` before jumping to the program. That same RAM state is mirrored on the Hardware page, so you can watch a bootloader-launched ASM or C tool consume the already-resolved file pointer without doing its own directory scan.
+8. **Load a program from the Software tab:** Switch to the "Logiciel" (Software) tab, write or load an ASM/C program, assemble it, then switch back to Hardware. In direct mode the program is loaded normally. In bootloader mode, compile prepares the current program artifact, `Run` or `Step` loads the Unix-like shell if needed, and compiled programs can be stored on the external drive, listed, and launched from there without interrupting a live shell.
+
+9. **Watch the bootloader lifecycle:** If a disk program halts, the software view automatically returns to the bootloader prompt and the Hardware page mirrors that change as well. The external drive node keeps its contents because the disk is persistent across reset.
+
+10. **Inspect bootloader file arguments:** The shell now supports `run program file`. When you launch a program that way, the bootloader resolves the file entry first and writes its metadata to RAM at `0x1018..0x101F` before jumping to the program. That same RAM state is mirrored on the Hardware page, so you can watch a bootloader-launched ASM or C tool consume the already-resolved file pointer without doing its own directory scan.
 
 ---
 
