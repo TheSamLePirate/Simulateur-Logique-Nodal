@@ -33,6 +33,10 @@ const CEXAMPLES_ARCHITECTURE_REPORT_DIR = join(
 
 const suiteArtifacts: ComputerArchitectureFlowArtifact[] = [];
 
+function formatPngPath(pngPath: string | null) {
+  return pngPath ?? "(not generated)";
+}
+
 interface RunArtifactContext {
   cpu: CPU;
   codeSize: number;
@@ -357,15 +361,15 @@ afterAll(() => {
     notes: [
       "Generated during computerArchitectureFlow.cexamples.test.ts.",
       "Exports one architecture flow snapshot for every bundled C example program.",
-      "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory.",
+      "PNG copies are generated alongside the SVG snapshots when a local SVG rasterizer is available.",
     ],
     consoleLines: suiteArtifacts.map((artifact) =>
-      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${artifact.pngPath} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
+      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${formatPngPath(artifact.pngPath)} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
     ),
     tests: suiteArtifacts.map((artifact) => artifact.name),
     testConsoleOutputs: suiteArtifacts.map((artifact) => ({
       testName: artifact.name,
-      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${artifact.pngPath}\nActive edges: ${artifact.activeEdgeCount}`,
+      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${formatPngPath(artifact.pngPath)}\nActive edges: ${artifact.activeEdgeCount}`,
     })),
   });
   const suiteReportPath = join(CEXAMPLES_ARCHITECTURE_REPORT_DIR, "suite-report.json");

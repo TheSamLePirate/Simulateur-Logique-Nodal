@@ -1,11 +1,11 @@
 {
   "suiteName": "C Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-cexamples",
-  "generatedAt": "20 Mar 2026, 14:52:53",
+  "generatedAt": "20 Mar 2026, 15:18:04",
   "notes": [
     "Generated during computerArchitectureFlow.cexamples.test.ts.",
     "Exports one architecture flow snapshot for every bundled C example program.",
-    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+    "PNG copies are generated alongside the SVG snapshots when a local SVG rasterizer is available."
   ],
   "consoleLines": [
     "[artifact] hello-world: report/computer-architecture-flow-cexamples/hello-world.json | report/computer-architecture-flow-cexamples/hello-world.svg | report/computer-architecture-flow-cexamples/png/hello-world.png (12 nodes, 61 edges)",

@@ -1,11 +1,11 @@
 {
   "suiteName": "ASM Examples Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-examples",
-  "generatedAt": "20 Mar 2026, 14:52:37",
+  "generatedAt": "20 Mar 2026, 15:17:50",
   "notes": [
     "Generated during computerArchitectureFlow.examples.test.ts.",
     "Exports one architecture flow snapshot for every bundled ASM example.",
-    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+    "PNG copies are generated alongside the SVG snapshots when a local SVG rasterizer is available."
   ],
   "consoleLines": [
     "[artifact] hello-world: report/computer-architecture-flow-examples/hello-world.json | report/computer-architecture-flow-examples/hello-world.svg | report/computer-architecture-flow-examples/png/hello-world.png (12 nodes, 61 edges)",

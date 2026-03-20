@@ -94,6 +94,57 @@ Then:
 npm test
 ```
 
+Test suite requirements:
+
+- Node.js and npm
+- `npm install` must have been run first
+- a writable checkout, because `npm test` regenerates `src/content/generatedUserGuides.ts` and writes reports under `report/`
+- the repository docs used by the pretest step must be present, especially `docs/userguide.md` and `docs/userguide.fr.md`
+
+The `npm test` suite is OS-independent and does not require external command-line tools.
+If `rsvg-convert` or ImageMagick `magick` are installed, some architecture-flow reports will also include PNG copies.
+Without them, the suite still passes and still generates the SVG/JSON artifacts.
+
+Optional PNG export helpers for architecture-flow reports:
+
+- check whether one is available with `rsvg-convert --version` or `magick -version`
+- macOS with Homebrew:
+  `brew install librsvg`
+  or
+  `brew install imagemagick`
+- Debian / Ubuntu:
+  `sudo apt install librsvg2-bin`
+  or
+  `sudo apt install imagemagick`
+- Fedora:
+  `sudo dnf install librsvg2-tools`
+  or
+  `sudo dnf install ImageMagick`
+- Windows:
+  easiest option for `magick`:
+  `winget install -e --id ImageMagick.ImageMagick`
+  or install ImageMagick from the official Windows binary release and make sure `magick` is on your `PATH`
+- Windows with Chocolatey:
+  `choco install imagemagick`
+- Windows with MSYS2 for `rsvg-convert`:
+  `pacman -S mingw-w64-ucrt-x86_64-librsvg`
+  then add `C:\msys64\ucrt64\bin` to your `PATH`
+
+Verified references:
+
+- [Homebrew `librsvg`](https://formulae.brew.sh/formula/librsvg)
+- [Homebrew `imagemagick`](https://formulae.brew.sh/formula/imagemagick)
+- [Debian `librsvg2-bin`](https://packages.debian.org/trixie/librsvg2-bin)
+- [Debian `imagemagick`](https://packages.debian.org/stable/imagemagick)
+- [Fedora `librsvg2-tools`](https://packages.fedoraproject.org/pkgs/librsvg2/librsvg2-tools)
+- [Fedora `ImageMagick`](https://packages.fedoraproject.org/pkgs/ImageMagick/ImageMagick)
+- [ImageMagick install docs](https://imagemagick.org/script/install-source.php)
+- [ImageMagick Windows binaries](https://imagemagick.org/archive/windows/)
+- [WinGet install command docs](https://learn.microsoft.com/en-us/windows/package-manager/winget/install)
+- [Chocolatey `imagemagick`](https://community.chocolatey.org/packages/imagemagick)
+- [MSYS2 `mingw-w64-ucrt-x86_64-librsvg`](https://packages.msys2.org/package/mingw-w64-ucrt-x86_64-librsvg)
+- [ImageMagick Windows binary release notes](https://legacy.imagemagick.org/script/download.php)
+
 Then open:
 
 ```text
@@ -232,6 +283,57 @@ Ensuite :
 ```bash
 npm test
 ```
+
+Pré-requis pour la suite de tests :
+
+- Node.js et npm
+- `npm install` doit avoir été exécuté avant
+- un dépôt accessible en écriture, car `npm test` régénère `src/content/generatedUserGuides.ts` et écrit les rapports dans `report/`
+- les fichiers de documentation utilisés par l'étape `pretest` doivent être présents, en particulier `docs/userguide.md` et `docs/userguide.fr.md`
+
+La suite `npm test` est indépendante de l'OS et ne dépend d'aucun utilitaire externe en ligne de commande.
+Si `rsvg-convert` ou ImageMagick `magick` sont installés, certains rapports d'architecture incluront aussi des copies PNG.
+Sans eux, la suite passe quand même et génère toujours les artefacts SVG/JSON.
+
+Outils optionnels pour exporter aussi des PNG dans les rapports d'architecture :
+
+- vérifiez leur présence avec `rsvg-convert --version` ou `magick -version`
+- macOS avec Homebrew :
+  `brew install librsvg`
+  ou
+  `brew install imagemagick`
+- Debian / Ubuntu :
+  `sudo apt install librsvg2-bin`
+  ou
+  `sudo apt install imagemagick`
+- Fedora :
+  `sudo dnf install librsvg2-tools`
+  ou
+  `sudo dnf install ImageMagick`
+- Windows :
+  option la plus simple pour `magick` :
+  `winget install -e --id ImageMagick.ImageMagick`
+  ou installez ImageMagick depuis la distribution binaire officielle Windows et vérifiez que `magick` est bien dans le `PATH`
+- Windows avec Chocolatey :
+  `choco install imagemagick`
+- Windows avec MSYS2 pour `rsvg-convert` :
+  `pacman -S mingw-w64-ucrt-x86_64-librsvg`
+  puis ajoutez `C:\msys64\ucrt64\bin` dans le `PATH`
+
+Références vérifiées :
+
+- [Homebrew `librsvg`](https://formulae.brew.sh/formula/librsvg)
+- [Homebrew `imagemagick`](https://formulae.brew.sh/formula/imagemagick)
+- [Debian `librsvg2-bin`](https://packages.debian.org/trixie/librsvg2-bin)
+- [Debian `imagemagick`](https://packages.debian.org/stable/imagemagick)
+- [Fedora `librsvg2-tools`](https://packages.fedoraproject.org/pkgs/librsvg2/librsvg2-tools)
+- [Fedora `ImageMagick`](https://packages.fedoraproject.org/pkgs/ImageMagick/ImageMagick)
+- [Documentation d'installation ImageMagick](https://imagemagick.org/script/install-source.php)
+- [Binaires Windows ImageMagick](https://imagemagick.org/archive/windows/)
+- [Documentation WinGet pour `install`](https://learn.microsoft.com/en-us/windows/package-manager/winget/install)
+- [Paquet Chocolatey `imagemagick`](https://community.chocolatey.org/packages/imagemagick)
+- [Paquet MSYS2 `mingw-w64-ucrt-x86_64-librsvg`](https://packages.msys2.org/package/mingw-w64-ucrt-x86_64-librsvg)
+- [Notes sur la distribution binaire Windows d'ImageMagick](https://legacy.imagemagick.org/script/download.php)
 
 Puis ouvrez :
 

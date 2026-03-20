@@ -15,7 +15,7 @@ export interface ComputerArchitectureFlowArtifact {
   name: string;
   jsonPath: string;
   imagePath: string;
-  pngPath: string;
+  pngPath: string | null;
   width: number;
   height: number;
   nodeCount: number;
@@ -30,7 +30,7 @@ function runCommand(command: string, args: string[]) {
   });
 }
 
-function convertSvgToPng(svgPath: string, pngPath: string) {
+function tryConvertSvgToPng(svgPath: string, pngPath: string) {
   const converters: Array<{ command: string; args: string[] }> = [
     { command: "rsvg-convert", args: [svgPath, "-o", pngPath] },
     { command: "magick", args: [svgPath, pngPath] },
@@ -38,13 +38,13 @@ function convertSvgToPng(svgPath: string, pngPath: string) {
 
   for (const converter of converters) {
     const result = runCommand(converter.command, converter.args);
-    if (result.status === 0) return;
+    if (result.status === 0) return pngPath;
     if (result.error && "code" in result.error && result.error.code === "ENOENT") {
       continue;
     }
   }
 
-  throw new Error("Unable to convert architecture SVG to PNG: no working SVG rasterizer found");
+  return null;
 }
 
 export function writeComputerArchitectureFlowArtifacts(options: {
@@ -68,7 +68,7 @@ export function writeComputerArchitectureFlowArtifacts(options: {
   mkdirSync(pngDir, { recursive: true });
   const svgMarkup = renderComputerArchitectureFlowSvg(nodes, edges);
   writeFileSync(imagePath, svgMarkup);
-  convertSvgToPng(imagePath, pngPath);
+  const generatedPngPath = tryConvertSvgToPng(imagePath, pngPath);
   writeFileSync(
     jsonPath,
     `${JSON.stringify(
@@ -79,7 +79,7 @@ export function writeComputerArchitectureFlowArtifacts(options: {
         edgeCount: edges.length,
         activeEdgeCount,
         imagePath: relative(process.cwd(), imagePath),
-        pngPath: relative(process.cwd(), pngPath),
+        pngPath: generatedPngPath ? relative(process.cwd(), generatedPngPath) : null,
         ...metadata,
         nodes,
         edges,
@@ -93,7 +93,7 @@ export function writeComputerArchitectureFlowArtifacts(options: {
     name,
     jsonPath: relative(process.cwd(), jsonPath),
     imagePath: relative(process.cwd(), imagePath),
-    pngPath: relative(process.cwd(), pngPath),
+    pngPath: generatedPngPath ? relative(process.cwd(), generatedPngPath) : null,
     width,
     height,
     nodeCount: nodes.length,

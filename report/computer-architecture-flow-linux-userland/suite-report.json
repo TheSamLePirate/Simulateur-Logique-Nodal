@@ -1,11 +1,11 @@
 {
   "suiteName": "Linux Userland Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-linux-userland",
-  "generatedAt": "20 Mar 2026, 14:52:31",
+  "generatedAt": "20 Mar 2026, 15:17:44",
   "notes": [
     "Generated during computerArchitectureFlow.linuxUserland.test.ts.",
     "Boots the real Linux-like disk through the bootloader and exports one architecture snapshot for every bundled userland program.",
-    "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory."
+    "PNG copies are generated alongside the SVG snapshots when a local SVG rasterizer is available."
   ],
   "consoleLines": [
     "[artifact] linux-userland-hello: report/computer-architecture-flow-linux-userland/linux-userland-hello.json | report/computer-architecture-flow-linux-userland/linux-userland-hello.svg | report/computer-architecture-flow-linux-userland/png/linux-userland-hello.png (12 nodes, 61 edges)",

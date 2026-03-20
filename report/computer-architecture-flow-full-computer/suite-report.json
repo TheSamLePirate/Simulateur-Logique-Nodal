@@ -1,7 +1,7 @@
 {
   "suiteName": "Full Computer Architecture Flow Tests",
   "suiteKey": "computer-architecture-flow-full-computer",
-  "generatedAt": "20 Mar 2026, 14:52:20",
+  "generatedAt": "20 Mar 2026, 15:17:34",
   "notes": [
     "Generated during computerArchitectureFlow.integration.test.ts.",
     "This suite boots the real bootloader with the Linux-like disk and exports JSON/SVG computer snapshots.",

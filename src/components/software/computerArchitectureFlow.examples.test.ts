@@ -28,6 +28,10 @@ const ASM_EXAMPLES_ARCHITECTURE_REPORT_DIR = join(
 
 const suiteArtifacts: ComputerArchitectureFlowArtifact[] = [];
 
+function formatPngPath(pngPath: string | null) {
+  return pngPath ?? "(not generated)";
+}
+
 function writeExampleArtifact(example: Example, run: import("../../testUtils/asmExampleScenarios").AsmExampleRunContext) {
   const computerData = cpuToComputerPanelData(run.cpu, {
     codeSize: run.codeSize,
@@ -75,15 +79,15 @@ afterAll(() => {
     notes: [
       "Generated during computerArchitectureFlow.examples.test.ts.",
       "Exports one architecture flow snapshot for every bundled ASM example.",
-      "PNG copies are generated alongside the SVG snapshots in the png/ subdirectory.",
+      "PNG copies are generated alongside the SVG snapshots when a local SVG rasterizer is available.",
     ],
     consoleLines: suiteArtifacts.map((artifact) =>
-      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${artifact.pngPath} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
+      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${formatPngPath(artifact.pngPath)} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
     ),
     tests: suiteArtifacts.map((artifact) => artifact.name),
     testConsoleOutputs: suiteArtifacts.map((artifact) => ({
       testName: artifact.name,
-      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${artifact.pngPath}\nActive edges: ${artifact.activeEdgeCount}`,
+      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${formatPngPath(artifact.pngPath)}\nActive edges: ${artifact.activeEdgeCount}`,
     })),
   });
   const suiteReportPath = join(ASM_EXAMPLES_ARCHITECTURE_REPORT_DIR, "suite-report.json");

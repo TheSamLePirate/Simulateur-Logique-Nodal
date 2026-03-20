@@ -27,6 +27,10 @@ const FLOW_REPORT_DIR = join(PLOTTER_REPORT_ROOT, "computer-architecture-flow");
 
 const scenarioArtifacts: ComputerArchitectureFlowArtifact[] = [];
 
+function formatPngPath(pngPath: string | null) {
+  return pngPath ?? "(not generated)";
+}
+
 function setInstruction(memory: Uint8Array, pc: number, opcode: number, operand = 0) {
   memory[pc] = opcode & 0xff;
   if (opcode >= 0x80) {
@@ -178,12 +182,12 @@ afterAll(() => {
       "Snapshot counts indicate active edges, not lit plotter pixels.",
     ],
     consoleLines: scenarioArtifacts.map((artifact) =>
-      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${artifact.pngPath} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
+      `[artifact] ${artifact.name}: ${artifact.jsonPath} | ${artifact.imagePath} | ${formatPngPath(artifact.pngPath)} (${artifact.nodeCount} nodes, ${artifact.edgeCount} edges)`,
     ),
     tests: scenarioArtifacts.map((artifact) => artifact.name),
     testConsoleOutputs: scenarioArtifacts.map((artifact) => ({
       testName: artifact.name,
-      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${artifact.pngPath}\nActive edges: ${artifact.activeEdgeCount}`,
+      output: `JSON: ${artifact.jsonPath}\nSVG: ${artifact.imagePath}\nPNG: ${formatPngPath(artifact.pngPath)}\nActive edges: ${artifact.activeEdgeCount}`,
     })),
   });
   const suiteReportPath = join(FLOW_REPORT_DIR, "suite-report.json");
